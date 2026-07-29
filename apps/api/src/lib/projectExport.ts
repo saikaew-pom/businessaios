@@ -5,6 +5,7 @@
  * lib/presentationExport.ts for the presentation builder.
  */
 import { STEPS, PROMPT_TEMPLATES } from './prompts';
+import { EMBEDDED_THAI_FONT_CSS, EXPORT_FONT_STACK } from './exportFonts';
 
 
 // =====================================================
@@ -342,10 +343,8 @@ export function buildProjectHTML(project: any, stepData: any): string {
 <head>
 <meta charset="UTF-8">
 <title>${escape(project.name)} — Marketing System</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Thai:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
+  ${EMBEDDED_THAI_FONT_CSS}
   * { box-sizing: border-box; }
   :root {
     --primary: #3b82f6;
@@ -361,11 +360,20 @@ export function buildProjectHTML(project: any, stepData: any): string {
     --border: #e2e8f0;
   }
   body {
-    font-family: 'Noto Sans Thai', 'Inter', -apple-system, sans-serif;
-    max-width: 880px; margin: 0 auto; padding: 0;
-    color: var(--text); line-height: 1.65;
+    font-family: ${EXPORT_FONT_STACK};
+    /* A4 printable width at 96dpi is ~794px; keep content inside a safe
+       column so nothing bleeds off the right edge when printed. On screen
+       this also centers the document nicely. */
+    max-width: 720px; margin: 0 auto; padding: 0;
+    color: var(--text); line-height: 1.6;
     background: white;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
   }
+  /* Overflow safety net — long Thai runs (no spaces), long URLs, wide tables
+     must wrap/scroll instead of bleeding off the printable area. */
+  p, li, td, th, div, span, h1, h2, h3, h4 { overflow-wrap: anywhere; word-break: break-word; }
+  img, svg { max-width: 100%; height: auto; }
+  table { width: 100%; table-layout: fixed; border-collapse: collapse; }
   .cover {
     height: 100vh; min-height: 700px;
     background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 50%, #60a5fa 100%);
@@ -648,16 +656,21 @@ export function buildProjectHTML(project: any, stepData: any): string {
   .footer-page p { font-size: 18px; opacity: 0.95; max-width: 600px; line-height: 1.6; }
   .footer-brand { margin-top: 60px; font-size: 14px; opacity: 0.7; }
 
-  /* Print styles */
+  /* Print styles — real A4 margins so nothing is clipped by the printer's
+     unprintable edge, and page heights in mm (not 100vh, which print engines
+     don't map to a physical page and which caused blank/overflowing pages). */
   @page {
     size: A4;
-    margin: 0;
+    margin: 15mm;
   }
   @media print {
-    body { padding: 0; }
-    .cover, .footer-page { min-height: 100vh; }
-    .section { padding: 40px 40px 60px; }
-    .toc { padding: 40px 40px; }
+    body { max-width: none; padding: 0; }
+    /* Fill one A4 page minus the @page margins (297mm − 2×15mm ≈ 267mm). */
+    .cover, .footer-page { min-height: 255mm; border-radius: 0; }
+    .section { padding: 8mm 0 12mm; }
+    .toc { padding: 8mm 0; }
+    /* Keep headings from being orphaned at the bottom of a page. */
+    h1, h2, h3 { break-after: avoid; }
   }
   @media screen {
     body { padding: 0 0 60px; }

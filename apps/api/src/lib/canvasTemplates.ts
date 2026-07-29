@@ -12,11 +12,15 @@
  * All templates are print-ready and auto-trigger window.print() on load.
  */
 
+import { EMBEDDED_THAI_FONT_CSS, EXPORT_FONT_STACK } from './exportFonts';
+
 const PRINT_CSS = `
-  @page { size: A3 landscape; margin: 0.5cm; }
+  ${EMBEDDED_THAI_FONT_CSS}
+  @page { size: A3 landscape; margin: 0.8cm; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { font-family: 'Sarabun', 'Helvetica', 'Arial', sans-serif; color: #241A14; background: #fff; }
+  html, body { font-family: ${EXPORT_FONT_STACK}; color: #241A14; background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   body { padding: 0.8cm; }
+  h1, h2, h3, h4, p, td, th, li, span, div { overflow-wrap: anywhere; word-break: break-word; }
   .no-print { display: none; }
   @media print {
     .no-print { display: none !important; }

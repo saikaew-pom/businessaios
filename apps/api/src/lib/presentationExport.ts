@@ -7,6 +7,7 @@
 
 import PptxGenJS from 'pptxgenjs';
 import { getColorTheme, ColorTheme } from './presentationPresets';
+import { EMBEDDED_THAI_FONT_CSS, EXPORT_FONT_STACK } from './exportFonts';
 
 export interface SlideOutline {
   slide_number: number;
@@ -57,6 +58,7 @@ export function buildPresentationHTML(data: PresentationExportData): string {
 <meta charset="UTF-8">
 <title>${escape(project.title)}</title>
 <style>
+  ${EMBEDDED_THAI_FONT_CSS}
   :root {
     --primary: ${colorTheme.primary};
     --secondary: ${colorTheme.secondary};
@@ -71,7 +73,8 @@ export function buildPresentationHTML(data: PresentationExportData): string {
     --chart5: ${colorTheme.chart5};
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Sarabun', 'Noto Sans Thai', -apple-system, sans-serif; background: #f1f5f9; color: var(--text); line-height: 1.5; }
+  body { font-family: ${EXPORT_FONT_STACK}; background: #f1f5f9; color: var(--text); line-height: 1.5; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .slide-title, .slide-subtitle, .slide-bullets li, .quadrant-cell p, .three-col-cell p, .data-table td, .data-table th { overflow-wrap: anywhere; word-break: break-word; }
   .slide { width: 960px; min-height: 540px; margin: 24px auto; background: var(--bg); border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); padding: 56px 64px; page-break-after: always; position: relative; overflow: hidden; }
   .slide-num { position: absolute; top: 24px; right: 32px; font-size: 12px; color: var(--muted); }
   .slide-framework { position: absolute; top: 24px; left: 32px; font-size: 11px; padding: 4px 10px; border-radius: 12px; background: var(--primary); color: white; }
@@ -108,9 +111,13 @@ export function buildPresentationHTML(data: PresentationExportData): string {
   .speaker-notes .label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
   @media print {
     body { background: white; }
-    .slide { box-shadow: none; margin: 0; border-radius: 0; page-break-after: always; }
+    /* One slide = one printed page, sized exactly to the 960x540 (16:9)
+       slide so nothing is scaled or clipped. The old "size: 16:9" was an
+       invalid @page value -- browsers ignored it and fell back to A4
+       portrait, which is why landscape slides printed clipped/off the edge. */
+    .slide { box-shadow: none; margin: 0; border-radius: 0; width: 100%; min-height: 0; height: 540px; page-break-after: always; }
   }
-  @page { size: 16:9; margin: 0; }
+  @page { size: 960px 540px; margin: 0; }
 </style>
 </head>
 <body>
