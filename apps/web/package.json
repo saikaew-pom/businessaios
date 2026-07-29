@@ -7,7 +7,7 @@
     "dev": "vite dev",
     "build": "vite build",
     "preview": "vite preview",
-    "deploy": "wrangler pages deploy .svelte-kit/output/cloudflare --project-name businessaios",
+    "deploy": "npm run build && cd ../web-worker && npx wrangler deploy",
     "typecheck": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json"
   },
   "devDependencies": {

@@ -26,7 +26,7 @@ Not just a 7-step wizard — the live product also includes:
 ```
 Browser
   ↓ fetch + cookie (SameSite=None)
-Web Worker (businessaios-web) — serves SvelteKit static build, SPA fallback
+Web Worker (businessaios-web) — the real SvelteKit adapter-cloudflare SSR worker (`_worker.js`), not a hand-rolled SPA shell
   ↓ fetch /api/* (CORS: allowlist only — pages.dev / workers.dev / businessaios.com / localhost)
 API Worker (businessaios-api, Hono) ─→ D1 (businessaios-db) ─→ R2 (businessaios-exports)
                     ↓
@@ -48,6 +48,15 @@ Full findings and evidence in `docs/AUDIT.md`. Summary of what changed and is no
 - **OTP**: was generating 4 slightly-biased digits despite the code claiming 6 — now a true unbiased 6-digit code (password reset + login 2FA).
 
 **Repo**: code is on GitHub at https://github.com/saikaew-pom/businessaios (`main`), not just local — this project wasn't a git repo before this pass.
+
+## 2026-07-29, later: production outage found and fixed (web app never mounted)
+
+While deploying Phase C/D, discovered the live web app had been serving a completely blank page for real visitors — every API call was pointed at `http://localhost:8787` (`net::ERR_CONNECTION_REFUSED` in a real browser), and separately, even once that was fixed, the app still failed to hydrate at all (blank page, zero console errors). Two independent bugs, both fixed and verified live:
+
+1. **Wrong API URL baked into the production build.** `apps/web/.env.local` (created early in this project for local dev, pointing at `http://localhost:8787`) was silently overriding `apps/web/.env` (the real API URL) during `npm run build` too — Vite's env-file precedence is `.env.local` > `.env`, in *every* mode, not just dev. Fixed by renaming it to `.env.development.local`, which Vite only loads in dev mode — `npm run build` now correctly bakes in the real API URL, `vite dev` is unaffected.
+2. **The deploy pipeline was fundamentally the wrong shape for this app.** `apps/web-worker` (and `scripts/deploy-web.sh`, `scripts/build-spa-shell.sh`) hand-wrote a minimal "SPA shell" `index.html` that dynamic-imports SvelteKit's client entry chunks directly, then served it as a static asset with a custom Worker doing SPA-fallback routing. That only works for a **pure client-side-rendered** build. This app's `svelte.config.js` uses `adapter-cloudflare` with `routes.include: ['/*']` — i.e. real SSR — so the client bundle expects genuine SSR hydration data on the initial HTML response, which a hand-written static shell can never provide. Every JS chunk loaded fine (200 OK, no console errors), it just silently never mounted. **Fixed** by pointing `apps/web-worker/wrangler.toml`'s `main`/`[assets]` directly at the real adapter output (`apps/web/.svelte-kit/cloudflare/_worker.js` + its assets) instead of a hand-maintained `dist-deploy/` directory. Deleted the now-dead `apps/web-worker/src/index.ts`, rewrote `scripts/deploy-web.sh` to just build + `wrangler deploy` (no more manual HTML surgery), deleted `scripts/build-spa-shell.sh` (same broken pattern, unused), and fixed `apps/web/package.json`'s stale `deploy` script (pointed at a Cloudflare Pages target and a nonexistent output path).
+
+**This was not something introduced by today's work** — the hand-rolled shell approach was already in place (and in `scripts/deploy-web.sh`) before this session took over the project; it's unknown how long the mounting failure specifically had been happening, since prior verification in this project's history checked routing/redirect behavior (which the Worker's SPA-fallback logic got right) rather than actually confirming the client app mounted. Verified after the fix: real registration, login, dashboard, and the new `/developers` page all render and call the real API correctly in production.
 
 ## Known, deliberate non-fixes
 

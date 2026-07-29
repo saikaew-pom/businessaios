@@ -1,8 +1,9 @@
 name = "businessaios-web"
-main = "src/index.ts"
+main = "../web/.svelte-kit/cloudflare/_worker.js"
 compatibility_date = "2024-12-01"
+compatibility_flags = ["nodejs_compat"]
 account_id = "8d3b88fb762aaac5e9feca0421310dfb"
 
 [assets]
-directory = "../web/dist-deploy"
+directory = "../web/.svelte-kit/cloudflare"
 binding = "ASSETS"
