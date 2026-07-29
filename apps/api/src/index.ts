@@ -1573,13 +1573,14 @@ app.post('/api/tools/hook-library', requireAuth, rateLimit, async (c) => {
 // Exports (PDF) — moved to multi-format block below
 // =====================================================
 
-app.get('/api/exports/:id', async (c) => {
+app.get('/api/exports/:id', requireAuth, async (c) => {
+  const user = c.get('user')!;
   const env = c.env;
   const id = c.req.param('id');
 
   const exp = await env.DB.prepare(
-    'SELECT * FROM exports WHERE id = ?'
-  ).bind(id).first<any>();
+    'SELECT * FROM exports WHERE id = ? AND user_id = ?'
+  ).bind(id, user.id).first<any>();
 
   if (!exp) return c.json({ error: 'not_found' }, 404);
 
@@ -3495,13 +3496,14 @@ app.post('/api/tools/saved/:id/export', requireAuth, async (c) => {
 // Tool Save Export Download (separate from project exports)
 // Returns file with Content-Disposition: attachment
 // =====================================================
-app.get('/api/tool-exports/:id', async (c) => {
+app.get('/api/tool-exports/:id', requireAuth, async (c) => {
+  const user = c.get('user')!;
   const env = c.env;
   const id = c.req.param('id');
 
   const exp = await env.DB.prepare(
-    'SELECT * FROM tool_save_exports WHERE id = ?'
-  ).bind(id).first<any>();
+    'SELECT * FROM tool_save_exports WHERE id = ? AND user_id = ?'
+  ).bind(id, user.id).first<any>();
 
   if (!exp) return c.json({ error: 'not_found' }, 404);
 

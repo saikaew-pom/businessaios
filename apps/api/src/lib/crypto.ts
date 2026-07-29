@@ -168,11 +168,19 @@ export async function decryptText(payload: string, masterSecret: string): Promis
 }
 
 /**
- * Generate a 6-digit OTP code
+ * Generate a 6-digit OTP code.
+ * Rejection-samples bytes >= 250 so each digit is uniform 0-9 (256 isn't
+ * evenly divisible by 10 — naive `byte % 10` skews toward 0-5).
  */
-export function generateOTP(): string {
-  const code = crypto.getRandomValues(new Uint8Array(4));
-  return Array.from(code, b => (b % 10).toString()).join('');
+export function generateOTP(length = 6): string {
+  let result = '';
+  while (result.length < length) {
+    const bytes = crypto.getRandomValues(new Uint8Array(length - result.length));
+    for (const b of bytes) {
+      if (b < 250) result += (b % 10).toString();
+    }
+  }
+  return result;
 }
 
 /**
