@@ -662,8 +662,31 @@ export type AdminUser = {
   created_at: number;
 };
 
-export async function adminListUsers() {
-  return fetchAPI<{ users: AdminUser[] }>('/api/admin/users');
+export type AdminUserListResult = { users: AdminUser[]; total: number; page: number; pageSize: number };
+
+export async function adminListUsers(opts: { q?: string; role?: string; verified?: '0' | '1'; page?: number; pageSize?: number } = {}) {
+  const params = new URLSearchParams();
+  if (opts.q) params.set('q', opts.q);
+  if (opts.role) params.set('role', opts.role);
+  if (opts.verified !== undefined) params.set('verified', opts.verified);
+  if (opts.page) params.set('page', String(opts.page));
+  if (opts.pageSize) params.set('pageSize', String(opts.pageSize));
+  const qs = params.toString();
+  return fetchAPI<AdminUserListResult>(`/api/admin/users${qs ? '?' + qs : ''}`);
+}
+
+export type AdminUserDetail = {
+  user: AdminUser & { phone: string | null; avatar_url: string | null; email_verified_at: number | null; locale: string | null; updated_at: number };
+  credit_transactions: Array<{ id: string; delta: number; reason: string; reference_id: string | null; balance_after: number | null; note: string | null; created_by: string | null; created_at: number }>;
+  projects: Array<{ id: string; name: string; industry: string | null; kind: string | null; status: string; current_step: number; created_at: number; updated_at: number }>;
+  tool_runs: Array<{ id: string; tool_name: string; cost_usd: number | null; created_at: number }>;
+  generations_summary: { count: number; cost_usd: number };
+  payments: Array<{ id: string; package_id: string; credits: number; amount_satang: number; status: string; created_at: number }>;
+  admin_actions: Array<{ id: string; action: string; details: string; created_at: number; admin_email: string | null }>;
+};
+
+export async function adminGetUserDetail(id: string) {
+  return fetchAPI<AdminUserDetail>(`/api/admin/users/${id}`);
 }
 
 export async function adminUpdateUser(id: string, data: { role?: string; plan?: string; credits?: number }) {
@@ -680,12 +703,59 @@ export async function adminChangeCredits(id: string, delta: number, reason: stri
   });
 }
 
+export async function adminResendVerification(id: string) {
+  return fetchAPI<{ ok: boolean }>(`/api/admin/users/${id}/resend-verification`, { method: 'POST' });
+}
+
+export async function adminSendPasswordReset(id: string) {
+  return fetchAPI<{ ok: boolean }>(`/api/admin/users/${id}/send-password-reset`, { method: 'POST' });
+}
+
+export async function adminAddNote(id: string, text: string) {
+  return fetchAPI<{ ok: boolean }>(`/api/admin/users/${id}/notes`, {
+    method: 'POST',
+    body: JSON.stringify({ text }),
+  });
+}
+
 export async function adminGetStats() {
   return fetchAPI<{ ok: boolean; stats: any }>('/api/admin/stats');
 }
 
 export async function adminListEmails() {
   return fetchAPI<{ emails: any[] }>('/api/admin/emails');
+}
+
+// =====================================================
+// MCP (Developers — connect Claude Code / Claude Desktop)
+// =====================================================
+
+export type McpToken = {
+  id: string;
+  token_hint: string;
+  label: string | null;
+  is_active: 0 | 1;
+  last_used_at: number | null;
+  created_at: number;
+};
+
+export function getMcpServerUrl(): string {
+  return `${PUBLIC_API_URL}/mcp`;
+}
+
+export async function mcpListTokens() {
+  return fetchAPI<{ tokens: McpToken[] }>('/api/mcp/tokens');
+}
+
+export async function mcpCreateToken(label?: string) {
+  return fetchAPI<{ ok: boolean; id: string; token: string; token_hint: string }>('/api/mcp/tokens', {
+    method: 'POST',
+    body: JSON.stringify({ label }),
+  });
+}
+
+export async function mcpRevokeToken(id: string) {
+  return fetchAPI<{ ok: boolean }>(`/api/mcp/tokens/${id}`, { method: 'DELETE' });
 }
 
 // =====================================================

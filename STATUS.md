@@ -9,7 +9,8 @@ Not just a 7-step wizard — the live product also includes:
 - **10 standalone AI tools**: pain-generator, brand-voice, persona-builder, competitor-analysis, jtbd-generator, value-proposition-canvas, business-model-canvas, million-dollar-offer, objection-handler, hook-library
 - **Presentation builder** (9-step deck generator, separate route namespace `/api/presentation/*`)
 - **Credit system** (signup bonus + Stripe PromptPay top-ups)
-- **Admin panel**, Google OAuth, BYOK API keys (encrypted), 2FA, saved tool runs library
+- **Admin panel** (Operations Console: search/pagination, per-user detail, help-user actions), Google OAuth, BYOK API keys (encrypted), 2FA, saved tool runs library
+- **MCP server** (`/mcp`) — Claude Code / Claude Desktop can drive the product directly (create/generate/run tools/export/check credits) via a personal access token from `/developers`; see `docs/UX_REDESIGN_PLAN.md` §5 for the full Phase A–D redesign status
 
 ## URLs (Live)
 

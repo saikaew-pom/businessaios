@@ -177,6 +177,7 @@
         <a href="/billing" class="text-sm text-dark-900/70 hover:text-dark-900 font-semibold">💰 เติมเงิน</a>
         <a href="/profile" class="text-sm text-dark-900/70 hover:text-dark-900">โปรไฟล์</a>
         <a href="/tools/saved" class="text-sm text-dark-900/70 hover:text-dark-900">📂 บันทึก</a>
+        <a href="/developers" class="text-sm text-dark-900/70 hover:text-dark-900">🔌 Developers</a>
         {#if $user}
           <span class="text-sm text-dark-900/60 hidden sm:inline">{$user.email}</span>
           <button onclick={handleLogout} class="text-sm text-dark-900/70 hover:text-dark-900">ออกจากระบบ</button>

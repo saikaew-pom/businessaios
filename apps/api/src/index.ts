@@ -14,7 +14,8 @@ import { PROMPT_TEMPLATES, STEPS } from './lib/prompts';
 import { renderCanvasPDF } from './lib/canvasTemplates';
 import { buildProjectHTML, buildProjectMarkdown, buildProjectCSV, buildProjectDocx, escapeHtmlForDoc } from './lib/projectExport';
 import { requireAuth, rateLimit, getSessionToken, setSessionCookie, clearSessionCookie } from './lib/middleware';
-import { sendEmail, emailVerifyTemplate, passwordResetOTPTemplate, loginOTPTemplate } from './lib/email';
+import { sendEmail, loginOTPTemplate } from './lib/email';
+import { sendVerificationEmail, sendPasswordResetOTP } from './lib/verification';
 import { verifyTurnstile } from './lib/turnstile';
 import { calculateCredits, getCredits, deductCredits, addCredits, getCreditHistory } from './lib/credit';
 import { SIGNUP_BONUS_CREDITS } from './lib/packages';
@@ -24,6 +25,7 @@ import { createPresentationRoutes } from './presentationRoutes';
 import paymentsRoutes from './paymentsRoutes';
 import { createToolRoutes } from './toolRoutes';
 import { createAdminRoutes } from './adminRoutes';
+import { createMcpRoutes } from './mcpRoutes';
 
 // =====================================================
 // App
@@ -811,29 +813,6 @@ app.get('/api/exports/:id', requireAuth, async (c) => {
 });
 
 // =====================================================
-// Email helpers + verification flows
-// =====================================================
-
-async function sendVerificationEmail(env: Bindings, userId: string, email: string, name: string | null) {
-  const token = generateToken(32);
-  const expiresAt = Date.now() + 24 * 60 * 60 * 1000; // 24h
-
-  await env.DB.prepare(`
-    INSERT INTO email_verifications (id, user_id, email, token, expires_at, created_at)
-    VALUES (?, ?, ?, ?, ?, ?)
-  `).bind(generateId(), userId, email, token, expiresAt, Date.now()).run();
-
-  const origin = env.WEB_URL || 'https://businessaios-web.pskspace.workers.dev';
-  const verifyUrl = `${origin}/verify-email?token=${token}`;
-
-  await sendEmail(env, {
-    to: email,
-    ...emailVerifyTemplate({ name: name || undefined, verifyUrl }),
-    template: 'email_verify',
-  });
-}
-
-// =====================================================
 // Google OAuth (Social Login)
 // =====================================================
 
@@ -1077,18 +1056,7 @@ app.post('/api/auth/request-reset', rateLimit, async (c) => {
     .bind(email).first<{ id: string; name: string | null }>();
 
   if (user) {
-    const otp = generateOTP();
-    const expiresAt = Date.now() + 15 * 60 * 1000; // 15 min
-    await env.DB.prepare(`
-      INSERT INTO otp_codes (id, user_id, purpose, code, expires_at, created_at)
-      VALUES (?, ?, 'password_reset', ?, ?, ?)
-    `).bind(generateId(), user.id, otp, expiresAt, Date.now()).run();
-
-    await sendEmail(env, {
-      to: email,
-      ...passwordResetOTPTemplate({ name: user.name || undefined, otp, expiresInMinutes: 15 }),
-      template: 'password_reset',
-    });
+    await sendPasswordResetOTP(env, user.id, email, user.name);
   }
 
   return c.json({ ok: true, message: 'หากอีเมลนี้มีอยู่ในระบบ คุณจะได้รับรหัส OTP' });
@@ -2955,6 +2923,11 @@ createToolRoutes(app);
 // Admin Panel
 // =====================================================
 createAdminRoutes(app);
+
+// =====================================================
+// MCP Server (Phase D — Claude Code / Claude Desktop integration)
+// =====================================================
+createMcpRoutes(app);
 
 // =====================================================
 // Presentation Tool Routes

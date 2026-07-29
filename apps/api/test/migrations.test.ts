@@ -69,7 +69,7 @@ const REQUIRED_TABLES = [
   'users', 'sessions', 'projects', 'generations', 'exports', 'api_keys',
   'tool_runs', 'tool_saves', 'tool_save_exports', 'email_verifications',
   'otp_codes', 'credit_transactions', 'rate_limits', 'step_assets',
-  'project_links', 'admin_actions', 'email_outbox',
+  'project_links', 'admin_actions', 'email_outbox', 'mcp_tokens',
 ];
 
 describe('auto-applied migrations alone (`wrangler d1 migrations apply`)', () => {
@@ -99,6 +99,15 @@ describe('auto-applied migrations alone (`wrangler d1 migrations apply`)', () =>
     expect(() =>
       db.exec(`INSERT INTO tool_runs (id, user_id, tool_name, created_at)
                VALUES ('t1', 'u1', 'pain_generator', 0)`)
+    ).not.toThrow();
+  });
+
+  it('mcp_tokens is usable (008 — MCP personal access tokens)', () => {
+    db.exec(`INSERT OR IGNORE INTO users (id, email, password_hash, plan, created_at, updated_at)
+             VALUES ('u1', 'u1@test.com', 'x', 'free', 0, 0)`);
+    expect(() =>
+      db.exec(`INSERT INTO mcp_tokens (id, user_id, token_hash, token_hint, created_at)
+               VALUES ('mt1', 'u1', 'deadbeef', 'ab12', 0)`)
     ).not.toThrow();
   });
 

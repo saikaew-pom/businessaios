@@ -10,6 +10,7 @@ import {
   generateOTP,
   generateToken,
   getMasterSecret,
+  hashToken,
 } from '../src/lib/crypto';
 
 describe('password hashing', () => {
@@ -97,6 +98,24 @@ describe('generateSessionToken / generateId / generateToken', () => {
   it('generateToken respects the requested byte length', () => {
     expect(generateToken(16)).toHaveLength(32); // hex-encoded
     expect(generateToken(32)).toHaveLength(64);
+  });
+});
+
+describe('hashToken (MCP personal access tokens)', () => {
+  it('is deterministic — same input always hashes the same', async () => {
+    const a = await hashToken('bsos_mcp_abc123');
+    const b = await hashToken('bsos_mcp_abc123');
+    expect(a).toBe(b);
+  });
+
+  it('produces a 64-char hex string (SHA-256)', async () => {
+    expect(await hashToken('anything')).toMatch(/^[0-9a-f]{64}$/);
+  });
+
+  it('different tokens hash to different values', async () => {
+    const a = await hashToken('bsos_mcp_token-one');
+    const b = await hashToken('bsos_mcp_token-two');
+    expect(a).not.toBe(b);
   });
 });
 

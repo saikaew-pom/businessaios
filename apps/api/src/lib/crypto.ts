@@ -192,6 +192,20 @@ export function generateToken(length = 32): string {
 }
 
 /**
+ * One-way hash for bearer tokens (e.g. MCP personal access tokens) that are
+ * copy-pasted into external config files — unlike session cookies, these
+ * leave the browser's HttpOnly/SameSite protections, so only a hash is
+ * stored; the raw token is shown once at creation and never persisted.
+ * No salt needed: the input is already a 256-bit random token, not a
+ * low-entropy password, so a rainbow-table isn't a realistic threat.
+ */
+export async function hashToken(token: string): Promise<string> {
+  const enc = new TextEncoder();
+  const digest = await crypto.subtle.digest('SHA-256', enc.encode(token));
+  return Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2, '0')).join('');
+}
+
+/**
  * Get the effective master secret from env.
  * Fails closed: throws if env.MASTER_ENCRYPTION_KEY is not set, rather than
  * silently falling back to a secret hardcoded in source (which would let

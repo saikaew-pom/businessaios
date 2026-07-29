@@ -158,4 +158,19 @@ surface ที่รีวิว: Landing → Register → Dashboard → Wizard 
 
 ดูไฟล์ mockup แบบ interactive (ส่งแยกเป็น artifact) — ครอบคลุมจอสำคัญ: Dashboard ใหม่ (1-CTA), First-run onboarding, Wizard step (ไทย), Tools (ภาษาคน), Admin Operations Console + User Detail, และหน้า Developers/MCP
 
+---
+
+## 5. Implementation status (อัปเดตทุกครั้งที่เฟสเสร็จ)
+
+User สั่งลุยเป็นเฟส ๆ แบบ auto ไม่ตามลำดับที่เสนอไว้ใน §3 เป๊ะ (ข้าม B ไปทำ C/D ก่อน) — ตารางนี้คือของจริงที่ทำไปแล้ว ไม่ใช่แผนที่เสนอ
+
+| เฟส | สถานะ | รายละเอียด |
+|---|---|---|
+| **A. Design System + Onboarding + Dashboard** | 🟡 บางส่วน | Dashboard consolidation เสร็จ (1 primary CTA, true-first-time empty state ชี้ไปเครื่องมือเดี่ยว 3 ตัว, gradient banner/StrategicToolsWidget โชว์เฉพาะ returning user) — commit `32a06c3`. **ยังไม่ทำ**: design token ชุดเต็ม (neutral scale, semantic colors, dark mode) ใน `tailwind.config.js`/`app.css` |
+| **B. ภาษา + Landing + Wizard + Tools** | 🔴 ยังไม่เริ่ม | wizard step names/jargon helper text ไทย, mobile bottom-nav — ยังไม่ได้แตะ (คำแปล AI→ระบบอัจฉริยะ + brand rename ทำไปแล้วในรอบ rebrand ก่อนหน้า แยกจาก Phase B นี้) |
+| **C. Admin Operations Console** | ✅ เสร็จ | Backend: search/role/verified filter + real pagination บน `GET /api/admin/users` (`apps/api/src/adminRoutes.ts`), `GET /api/admin/users/:id` (profile+credit history+projects+activity+admin_actions), resend-verification/send-password-reset/notes actions, funnel+signups-by-day บน `/api/admin/stats`. Frontend: `apps/web/src/routes/admin/+page.svelte` สร้างใหม่ทั้งหน้า (Overview/Users/Emails tabs + User Detail modal). Code-reviewer เจอ 2 bug จริง (credit-deduction failure ที่รายงาน false success, missing-existence-check ทำ 500 แทน 404) — แก้และ verify แล้วทั้งคู่ |
+| **D. MCP Server + Developer surface** | ✅ เสร็จ | `apps/api/src/mcpRoutes.ts` ใหม่ — JSON-RPC `/mcp` endpoint (initialize/tools-list/tools-call), token model ใหม่ (`mcp_tokens` table, migration `008-mcp-tokens.sql`, hash เก็บไม่เก็บ raw token), 6 tools (`list_projects`/`create_project`/`generate_step`/`run_tool`/`get_export`/`check_credits`) dispatch ผ่าน REST handler เดิมด้วย internal short-lived session แทนการเขียน credit/AI logic ซ้ำ. หน้า `/developers` ใหม่ (สร้าง/revoke token, copy `claude mcp add` command + JSON config). Verified live ทั้ง 6 tools ผ่าน wrangler dev จริง รวมถึง run_tool ที่เรียก MiniMax จริงและหักเครดิตจริง |
+
+**ยังไม่ทำในทุกเฟส**: component library (button/input/modal/toast แบบ reusable), icon set เดียวแทน emoji ทั้งระบบ, Turnstile เปิดใช้งานจริง (ปิดไว้ตั้งใจ — ดู STATUS.md)
+
 > เอกสารนี้เป็น **แผน/บรีฟ** สำหรับ designer + เฟส implement — ยังไม่มีการแก้โค้ด UI จริงในรอบนี้
