@@ -82,9 +82,9 @@ Each extraction was verified with `npm run typecheck` (error count stayed at the
 - **หลักฐาน:** `.env.local` เก็บ API key จริงเป็น plaintext (MINIMAX, OPENROUTER, ELEVENLAB, BREVO, FAL, TURNSTILE secret) และ root ของโปรเจกต์ **ไม่มี `.gitignore`**
 - **ผลกระทบ:** ถ้า commit/push ขึ้น git หรือแชร์โฟลเดอร์ → key รั่วทั้งหมด (คนอื่นเผา quota / ยิงค่าใช้จ่ายเข้าเราได้). `.wrangler/state` (มี D1 snapshot) ก็ไม่ถูก ignore
 - **แก้:**
-  1. **Rotate key ทุกตัวทันที** (ถือว่า compromised แล้ว)
-  2. สร้าง `.gitignore`: `.env*`, `.wrangler/`, `node_modules/`, `.svelte-kit/`, `dist/`, `.DS_Store`
-  3. เก็บ secret จริงใน `wrangler secret put` เท่านั้น ไม่เก็บในไฟล์ในรีโป
+  1. สร้าง `.gitignore`: `.env*`, `.wrangler/`, `node_modules/`, `.svelte-kit/`, `dist/`, `.DS_Store` — **ทำแล้ว (2026-07-29), ก่อน `git init`/commit ครั้งแรกเสมอ**, ยืนยันด้วย `git check-ignore` ว่า `.env.local`/`.dev.vars` ไม่เคยถูก stage เลย → **key ไม่เคยเข้า git history จริง ไม่เคยขึ้น GitHub**
+  2. เก็บ secret จริงใน `wrangler secret put` เท่านั้น ไม่เก็บในไฟล์ในรีโป — ทำแล้ว
+  3. **Rotate key:** ประเมินใหม่ทีละตัวแทนที่จะ blanket-rotate — MiniMax key เป็น subscription-plan key ที่ user ใช้ร่วมกันหลาย webapp เป็น core AI engine, rotate ไม่ได้โดยไม่กระทบ project อื่น และเพราะไม่เคยเข้า git จริง **จึงไม่จำเป็นต้อง rotate** (ดู STATUS.md). Brevo/Turnstile ยังเป็น optional ตามดุลพินิจ user
 
 ### C2 — CORS สะท้อนทุก origin → CSRF / session hijack
 - **หลักฐาน:** [apps/api/src/index.ts:36-43](../apps/api/src/index.ts) — มี allowlist แต่บรรทัดสุดท้าย `return origin;` ทำให้ทุก origin ผ่าน. ใช้คู่กับ `credentials: true` + cookie `SameSite=None`

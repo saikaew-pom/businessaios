@@ -53,9 +53,12 @@ Full findings and evidence in `docs/AUDIT.md`. Summary of what changed and is no
 - **Turnstile bot-protection is off** (`TURNSTILE_REQUIRED="false"` in `apps/api/wrangler.toml`) — not a bug, the secret itself is correctly configured on the worker; this is a live policy toggle, left alone pending a product decision on whether to require it.
 - **Migration file numbering** (`0001_init.sql`, `001-v2.sql`, `0003_mvp_clean.sql`, ...) is inconsistent but intentionally NOT being renamed/reordered — doing so would desync wrangler's `d1_migrations` bookkeeping (which matches by filename) from the already-applied state on production.
 
+## Known, deliberate non-fixes (cont'd)
+
+- **`.env.local`'s MiniMax key was never rotated, and that's fine.** It's a subscription-plan key (`sk-cp-...`, Monthly Plus tier) shared as the core AI engine across several of the user's other apps — rotating it would mean updating every one of them. This repo's `.gitignore` was created (and verified via `git check-ignore`) *before* the first-ever `git init`/commit, so the key was never staged, never committed, never pushed — it never touched git history at all. The only place it ever lived is the local plaintext file, same as any `.dev.vars`, which is normal.
+
 ## Still open
 
-- [ ] Rotate the real API keys that sat in root `.env.local` before `.gitignore` existed (MiniMax, Brevo, Turnstile are the ones actually used in code)
 - [ ] Finish splitting `apps/api/src/index.ts` — down to 2,975 lines (from 5,194) after extracting `lib/projectExport.ts`, `toolRoutes.ts`, `adminRoutes.ts`; auth, project CRUD + the wizard generate endpoint, account/BYOK-keys, tool-saves, and step-assets/links routes are still in `index.ts`
 - [ ] Native PDF generation (still HTML → browser print)
 - [ ] Custom domain (still on `*.workers.dev` subdomains)
