@@ -2,7 +2,28 @@
 
 > จัดทำตอน take over โปรเจกต์ · วันที่ 2026-07-29
 > ขอบเขต: `apps/api` (Hono/Workers), `apps/web` (SvelteKit), `apps/web-worker`, migrations, docs
-> วิธี: อ่าน source ทั้งหมดของ backend หลัก + สุ่มตรวจ frontend/security surface (ยังไม่แก้โค้ด)
+> วิธี: อ่าน source ทั้งหมดของ backend หลัก + สุ่มตรวจ frontend/security surface
+
+---
+
+## STATUS UPDATE (2026-07-29, same day — after fixes applied)
+
+All **Critical** and **High** findings below (C1–C3, H1–H4) are **fixed, tested locally, committed, and pushed** to `main` on https://github.com/saikaew-pom/businessaios. Not yet deployed to the live Cloudflare Workers (`businessaios-api`/`businessaios-web`) — code lives in git + local dev only until a deploy is explicitly requested.
+
+- **C1** — `.gitignore` created and verified (`git check-ignore` + content grep before first commit). Real key rotation in `.env.local` (MiniMax/OpenRouter/ElevenLabs/Brevo/FAL/Turnstile) is still the user's own action item — not something achievable from this session.
+- **C2** — CORS no longer reflects arbitrary origins; verified live (disallowed origin gets no `Access-Control-Allow-Origin`, allowed origin still works).
+- **C3** — `getMasterSecret` now throws if `MASTER_ENCRYPTION_KEY` is unset instead of falling back to a hardcoded secret.
+- **H1** — Duplicate `/api/projects` routes removed; `kind` create/filter verified live against a real request.
+- **H2** — Credit deduction is now reserve-before-AI-call (atomic) + refund/true-up after real usage is known; verified live via the `credit_transactions` ledger (reserve → refund entries).
+- **H3** — Email-verification gate enabled (was `if (false && ...)`); verified live (blocks unverified, passes after verify).
+- **H4** — `rateLimit` wired into 15 previously-unprotected routes (auth + generate + all standalone tools); verified live (429 after 30 req/min).
+- **Migration reproducibility** — `apps/api/migrations/006-repair-api-keys.sql` (safe, idempotent, auto-applies everywhere) + `apps/api/manual-repairs/manual-repair-fresh-env.sql` (deliberately NOT in `migrations/`, for fresh-environment `users`/`projects` column repair only — verified against a from-scratch local D1 rebuild).
+
+### New finding from checking live production D1 (read-only, via a user-issued Cloudflare API token)
+
+Production schema turned out to be **healthy** — `users`/`projects` have all expected columns, `api_keys` table exists. The `0003_mvp_clean.sql` destructive-drop ordering bug (documented below under "Migration reproducibility") never actually bit production, because production's real migration history was applied file-by-file by hand rather than through one fresh `wrangler d1 migrations apply` run.
+
+That surfaced a different real bug: wrangler's own `d1_migrations` bookkeeping table only had `0001_init.sql` and `0003_mvp_clean.sql` recorded — `001-v2.sql` through `005-payments.sql` were never marked applied even though their schema changes were already live. This meant a plain `wrangler d1 migrations apply --remote` would have tried to re-run those files and failed with "duplicate column name" errors. **Fixed** (2026-07-29, user ran it directly — Claude Code's own auto-mode classifier blocks direct remote-D1 writes from the agent, by design) by backfilling the 6 missing `d1_migrations` rows to match reality. Verified: `wrangler d1 migrations list --remote` now reports "No migrations to apply!".
 
 ---
 
