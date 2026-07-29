@@ -204,31 +204,37 @@
       </div>
     {/if}
 
-    <!-- Hero -->
+    <!-- Hero — one primary action; the tools link is a plain secondary link,
+         not a second button competing for the same first click. -->
     <div class="flex items-center justify-between mb-8 flex-wrap gap-4">
       <div>
-        <h1 class="heading-2 mb-1">โปรเจกต์ของคุณ</h1>
-        <p class="text-dark-900/60">สร้าง Marketing System ด้วย ระบบอัจฉริยะ ใน 7 ขั้นตอน</p>
+        <h1 class="heading-2 mb-1">แผนของฉัน</h1>
+        <p class="text-dark-900/60">แต่ละแผนคือชุดการตลาดครบของธุรกิจหนึ่ง สร้างด้วยระบบอัจฉริยะใน 7 ขั้นตอน</p>
       </div>
-      <div class="flex gap-2 flex-wrap">
-        <a href="/tools" class="btn-secondary">⚡ เครื่องมือ ระบบอัจฉริยะ</a>
-        <button onclick={() => showCreate = !showCreate} class="btn-primary">+ โปรเจกต์ใหม่</button>
+      <div class="flex items-center gap-4 flex-wrap">
+        <a href="/tools" class="text-sm text-dark-900/60 hover:text-primary-600 font-medium">⚡ หรือลองเครื่องมือเดี่ยว</a>
+        <button onclick={() => showCreate = !showCreate} class="btn-primary">+ สร้างแผนใหม่</button>
       </div>
     </div>
 
-    <!-- Tools banner -->
-    <a href="/tools" class="block mb-6 bg-gradient-to-r from-primary-500 to-primary-700 text-white rounded-2xl p-5 hover:shadow-lg transition group">
-      <div class="flex items-center gap-4">
-        <div class="text-4xl">⚡</div>
-        <div class="flex-1">
-          <div class="font-bold text-lg">เครื่องมือ ระบบอัจฉริยะ แยกต่างหาก</div>
-          <div class="text-sm text-white/80">Pain Point Generator · Brand Voice Generator · Persona Builder · ใช้ได้โดยไม่ต้องสร้างโปรเจกต์</div>
+    <!-- Returning users get the full strategic-tools surface; a brand-new
+         user with zero plans sees one focused empty state below instead —
+         these were previously shown to everyone at once, competing with
+         the actual first task before a new user had even created anything. -->
+    {#if projects.length > 0 || archivedProjects.length > 0}
+      <a href="/tools" class="block mb-6 bg-gradient-to-r from-primary-500 to-primary-700 text-white rounded-2xl p-5 hover:shadow-lg transition group">
+        <div class="flex items-center gap-4">
+          <div class="text-4xl">⚡</div>
+          <div class="flex-1">
+            <div class="font-bold text-lg">เครื่องมือระบบอัจฉริยะแยกต่างหาก</div>
+            <div class="text-sm text-white/80">หาจุดขาย · เข้าใจลูกค้า · คิดประโยคโฆษณา และอีก 7 เครื่องมือ · ใช้ได้โดยไม่ต้องสร้างแผน</div>
+          </div>
+          <svg class="w-5 h-5 group-hover:translate-x-1 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
         </div>
-        <svg class="w-5 h-5 group-hover:translate-x-1 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
-      </div>
-    </a>
+      </a>
 
-    <StrategicToolsWidget />
+      <StrategicToolsWidget />
+    {/if}
 
     {#if error}
       <div class="mb-6 p-4 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
@@ -285,6 +291,37 @@
 
     {#if isLoading}
       <div class="text-center py-20 text-dark-900/60">กำลังโหลด...</div>
+    {:else if projects.length === 0 && archivedProjects.length === 0 && !kindFilter}
+      <!-- True first-time state: one focused message, one button, and a
+           lighter-weight secondary path for someone who just wants to try
+           one thing quickly instead of committing to the full 7-step plan. -->
+      <div class="bg-white rounded-2xl border-2 border-dashed border-dark-200 p-12 text-center">
+        <div class="text-4xl mb-3">🌱</div>
+        <h3 class="font-semibold text-lg mb-1">ยังไม่มีแผน — มาสร้างแผนแรกกัน</h3>
+        <p class="text-sm text-dark-900/60 mb-6">กดปุ่มด้านล่าง แล้วตอบคำถามทีละขั้น ใช้เวลาประมาณ 45 นาที</p>
+        <button onclick={() => showCreate = true} class="btn-primary">+ สร้างแผนแรกของฉัน</button>
+      </div>
+
+      <div class="mt-6">
+        <div class="text-sm font-semibold text-dark-900/70 mb-3">หรือลองเครื่องมือเดี่ยว</div>
+        <div class="grid sm:grid-cols-3 gap-3">
+          <a href="/tools/value-proposition-canvas" class="bg-white rounded-xl border border-dark-100 p-4 hover:border-primary-200 hover:shadow-md transition">
+            <div class="text-xl mb-1.5">🎯</div>
+            <div class="text-sm font-semibold mb-0.5">หาจุดขาย</div>
+            <div class="text-xs text-dark-900/60">ค้นว่าธุรกิจคุณเด่นกว่าคู่แข่งตรงไหน</div>
+          </a>
+          <a href="/tools/hook-library" class="bg-white rounded-xl border border-dark-100 p-4 hover:border-primary-200 hover:shadow-md transition">
+            <div class="text-xl mb-1.5">🗣️</div>
+            <div class="text-sm font-semibold mb-0.5">คิดประโยคโฆษณา</div>
+            <div class="text-xs text-dark-900/60">หาประโยคเปิดที่คนหยุดอ่าน</div>
+          </a>
+          <a href="/tools/persona-builder" class="bg-white rounded-xl border border-dark-100 p-4 hover:border-primary-200 hover:shadow-md transition">
+            <div class="text-xl mb-1.5">👥</div>
+            <div class="text-sm font-semibold mb-0.5">เข้าใจลูกค้า</div>
+            <div class="text-xs text-dark-900/60">วาดภาพลูกค้าในฝันของคุณ</div>
+          </a>
+        </div>
+      </div>
     {:else if projects.length === 0}
       <div class="bg-white rounded-2xl border border-dark-100 p-12 text-center">
         <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-primary-50 flex items-center justify-center">
