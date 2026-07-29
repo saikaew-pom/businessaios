@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
-  import { fullUser, initAuth, isAuthed, refreshFullUser } from '$lib/auth';
+  import { fullUser, initAuth, isAuthed, refreshFullUser, logout } from '$lib/auth';
   import { updateProfile, uploadAvatar, changePassword, getCredits, sendVerification, toggle2FA } from '$lib/api';
 
   let first_name = $state('');
@@ -131,6 +131,11 @@
 
   function formatDate(ts: number) {
     return new Date(ts).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }
+
+  async function handleLogout() {
+    await logout();
+    goto('/');
   }
 </script>
 
@@ -274,6 +279,31 @@
           class="relative inline-flex h-6 w-11 items-center rounded-full transition {$fullUser?.two_factor_enabled ? 'bg-primary-600' : 'bg-dark-200'}"
         >
           <span class="inline-block h-4 w-4 transform rounded-full bg-white transition {$fullUser?.two_factor_enabled ? 'translate-x-6' : 'translate-x-1'}" />
+        </button>
+      </div>
+    </div>
+
+    <!-- Account links — the catch-all for things that don't fit the mobile bottom nav -->
+    <div class="bg-white rounded-2xl border border-dark-100 p-6">
+      <h2 class="font-semibold mb-4">บัญชี</h2>
+      <div class="space-y-1">
+        <a href="/tools/saved" class="flex items-center justify-between py-2.5 text-sm hover:text-primary-600">
+          <span>📂 เครื่องมือที่บันทึกไว้</span>
+          <span class="text-dark-900/30">›</span>
+        </a>
+        <a href="/developers" class="flex items-center justify-between py-2.5 text-sm hover:text-primary-600">
+          <span>🔌 Developers (เชื่อมต่อ Claude Code)</span>
+          <span class="text-dark-900/30">›</span>
+        </a>
+        {#if $fullUser?.role === 'admin'}
+          <a href="/admin" class="flex items-center justify-between py-2.5 text-sm hover:text-primary-600">
+            <span>🛡️ Admin Console</span>
+            <span class="text-dark-900/30">›</span>
+          </a>
+        {/if}
+        <button onclick={handleLogout} class="flex items-center justify-between py-2.5 text-sm text-red-600 hover:text-red-700 w-full">
+          <span>ออกจากระบบ</span>
+          <span class="text-red-300">›</span>
         </button>
       </div>
     </div>

@@ -174,14 +174,17 @@
         {#if $fullUser?.role === 'admin'}
           <a href="/admin" class="text-sm text-amber-600 hover:text-amber-700 font-semibold">🛡️ Admin</a>
         {/if}
-        <a href="/billing" class="text-sm text-dark-900/70 hover:text-dark-900 font-semibold">💰 เติมเงิน</a>
-        <a href="/profile" class="text-sm text-dark-900/70 hover:text-dark-900">โปรไฟล์</a>
-        <a href="/tools/saved" class="text-sm text-dark-900/70 hover:text-dark-900">📂 บันทึก</a>
-        <a href="/developers" class="text-sm text-dark-900/70 hover:text-dark-900">🔌 Developers</a>
-        {#if $user}
-          <span class="text-sm text-dark-900/60 hidden sm:inline">{$user.email}</span>
-          <button onclick={handleLogout} class="text-sm text-dark-900/70 hover:text-dark-900">ออกจากระบบ</button>
-        {/if}
+        <!-- Everything below is reachable via the mobile bottom nav (โปรไฟล์ → account links, logout) -->
+        <div class="hidden sm:flex items-center gap-3">
+          <a href="/billing" class="text-sm text-dark-900/70 hover:text-dark-900 font-semibold">💰 เติมเงิน</a>
+          <a href="/profile" class="text-sm text-dark-900/70 hover:text-dark-900">โปรไฟล์</a>
+          <a href="/tools/saved" class="text-sm text-dark-900/70 hover:text-dark-900">📂 บันทึก</a>
+          <a href="/developers" class="text-sm text-dark-900/70 hover:text-dark-900">🔌 Developers</a>
+          {#if $user}
+            <span class="text-sm text-dark-900/60">{$user.email}</span>
+            <button onclick={handleLogout} class="text-sm text-dark-900/70 hover:text-dark-900">ออกจากระบบ</button>
+          {/if}
+        </div>
       </div>
     </div>
   </header>

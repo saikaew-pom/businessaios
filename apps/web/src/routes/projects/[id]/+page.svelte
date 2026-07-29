@@ -180,7 +180,30 @@
     }
   }
 
-  const STEP_NAMES = ['', 'Business DNA', 'Customer Persona', 'Customer Journey', 'Positioning', 'Content Calendar', 'Marketing Workflow', 'KPI Dashboard'];
+  const STEP_NAMES = [
+    null,
+    { th: 'ตัวตนธุรกิจ', en: 'Business DNA', icon: '1️⃣' },
+    { th: 'ลูกค้าของเรา', en: 'Customer Persona', icon: '2️⃣' },
+    { th: 'เส้นทางลูกค้า', en: 'Customer Journey', icon: '3️⃣' },
+    { th: 'จุดขาย', en: 'Positioning', icon: '4️⃣' },
+    { th: 'ปฏิทินคอนเทนต์', en: 'Content Calendar', icon: '5️⃣' },
+    { th: 'ขั้นตอนทำงาน', en: 'Marketing Workflow', icon: '6️⃣' },
+    { th: 'วัดผล (KPI)', en: 'KPI Dashboard', icon: '7️⃣' },
+  ];
+
+  // Credit ceiling shown before generating, so a step never surprises the
+  // user with a cost. Computed the same way apps/api/src/lib/credit.ts's
+  // calculateCredits() does — ceil(prompt_tokens/1000 * 1 + completion_tokens/1000 * 2)
+  // — using each step's real maxTokensByStep reserve cap from apps/api/src/index.ts
+  // (1:8000, 2:12000, 3:10000, 4:8000, 5:20000, 6:12000, 7:14000) plus a small
+  // buffer for prompt tokens. This matches the actual reserve the backend
+  // deducts up front (verified live: step 1 reserved 17, step 5 reserved 41 —
+  // both match this formula), so it's a true "at most" ceiling, never a
+  // point-guess that the real charge can exceed. Earlier this used
+  // maxCompletionTokens/1000 directly (no ×2 weighting, no prompt buffer),
+  // which under-quoted long steps by ~2x — e.g. step 5 showed "~20" while a
+  // real generation that used its full 20k-token budget charged 42.
+  const CREDIT_ESTIMATE: Record<number, number> = { 1: 18, 2: 26, 3: 22, 4: 18, 5: 42, 6: 26, 7: 30 };
 
   function getOutput(step: number) {
     return project?.step_data?.[`step${step}`]?.output;
@@ -231,10 +254,10 @@
         <a href="/dashboard" class="btn-primary">กลับไป Dashboard</a>
       </div>
     {:else}
-      <!-- Step tabs -->
-      <div class="mb-6 bg-white rounded-2xl border border-dark-100 p-2 overflow-x-auto">
+      <!-- Step tabs (desktop) -->
+      <div class="mb-6 bg-white rounded-2xl border border-dark-100 p-2 overflow-x-auto hidden sm:block">
         <div class="flex gap-1">
-          {#each STEP_NAMES.slice(1) as name, i}
+          {#each STEP_NAMES.slice(1) as step, i}
             {@const stepNum = i + 1}
             {@const isDone = getOutput(stepNum)}
             <button
@@ -244,9 +267,27 @@
               <span class="w-5 h-5 rounded-full flex items-center justify-center text-xs {currentStep === stepNum ? 'bg-white text-primary-600' : isDone ? 'bg-green-500 text-white' : 'bg-dark-100'}">
                 {isDone && currentStep !== stepNum ? '✓' : stepNum}
               </span>
-              {name}
+              {step?.th}
             </button>
           {/each}
+        </div>
+      </div>
+
+      <!-- Step progress (mobile) — dots + current step name only, the full tab row overflows a 375px screen -->
+      <div class="mb-6 bg-white rounded-2xl border border-dark-100 p-4 sm:hidden">
+        <div class="flex items-center justify-center gap-1.5 mb-2">
+          {#each STEP_NAMES.slice(1) as step, i}
+            {@const stepNum = i + 1}
+            {@const isDone = getOutput(stepNum)}
+            <button
+              onclick={() => goToStep(stepNum)}
+              aria-label={`ไปขั้นที่ ${stepNum}: ${step?.th}`}
+              class="w-2.5 h-2.5 rounded-full transition {currentStep === stepNum ? 'bg-primary-500 w-6' : isDone ? 'bg-green-500' : 'bg-dark-200'}"
+            ></button>
+          {/each}
+        </div>
+        <div class="text-center text-sm font-semibold">
+          ขั้นที่ {currentStep}/7 · {STEP_NAMES[currentStep]?.icon} {STEP_NAMES[currentStep]?.th}
         </div>
       </div>
 
@@ -268,8 +309,9 @@
       <!-- Step content -->
       <div class="bg-white rounded-2xl border border-dark-100 p-6 sm:p-8">
         <div class="mb-6">
-          <div class="text-xs font-semibold text-primary-600 uppercase tracking-wider mb-1">Step {currentStep} of 7</div>
-          <h2 class="heading-3 mb-1">{STEP_NAMES[currentStep]}</h2>
+          <div class="text-xs font-semibold text-primary-600 uppercase tracking-wider mb-1">ขั้นที่ {currentStep} จาก 7</div>
+          <h2 class="heading-3 mb-1">{STEP_NAMES[currentStep]?.icon} {STEP_NAMES[currentStep]?.th}</h2>
+          <p class="text-xs text-dark-900/40">{STEP_NAMES[currentStep]?.en}</p>
         </div>
 
         <!-- Per-step context (notes + files + links) -->
@@ -313,15 +355,20 @@
               <input type="text" bind:value={s1.price_range} class="w-full px-3 py-2 rounded-lg border border-dark-200" placeholder="กลาง" />
             </div>
             <div class="md:col-span-2">
-              <label class="block text-sm font-medium mb-1.5">Pain Point 1 *</label>
+              <p class="text-xs text-dark-900/60 -mb-1">
+                💡 <strong>ปัญหาลูกค้า (Pain Point)</strong> = ปัญหาที่ลูกค้าเจอจริง เช่น "หาของกินสายที่เปิดดึกไม่ได้"
+              </p>
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium mb-1.5">ปัญหาลูกค้า 1 *</label>
               <input type="text" bind:value={s1.pain_point_1} class="w-full px-3 py-2 rounded-lg border border-dark-200" placeholder="อยากกิน comfort food แต่กลัวอ้วน" />
             </div>
             <div>
-              <label class="block text-sm font-medium mb-1.5">Pain Point 2 *</label>
+              <label class="block text-sm font-medium mb-1.5">ปัญหาลูกค้า 2 *</label>
               <input type="text" bind:value={s1.pain_point_2} class="w-full px-3 py-2 rounded-lg border border-dark-200" />
             </div>
             <div>
-              <label class="block text-sm font-medium mb-1.5">Pain Point 3 *</label>
+              <label class="block text-sm font-medium mb-1.5">ปัญหาลูกค้า 3 *</label>
               <input type="text" bind:value={s1.pain_point_3} class="w-full px-3 py-2 rounded-lg border border-dark-200" />
             </div>
             <div>
@@ -437,7 +484,8 @@
         {/if}
 
         <!-- Generate button -->
-        <div class="mt-6 pt-6 border-t border-dark-100 flex items-center justify-end">
+        <div class="mt-6 pt-6 border-t border-dark-100 flex items-center justify-between flex-wrap gap-3">
+          <span class="text-xs text-dark-900/50">ใช้สูงสุด ~{CREDIT_ESTIMATE[currentStep]} เครดิต</span>
           <button
             onclick={handleGenerate}
             disabled={isGenerating}
@@ -452,7 +500,7 @@
           <div class="mt-6 pt-6 border-t border-dark-100">
             <h3 class="font-semibold mb-4 flex items-center gap-2">
               <span class="w-7 h-7 rounded-full bg-green-100 text-green-700 flex items-center justify-center">✓</span>
-              <span class="text-lg">{STEP_NAMES[currentStep]} Output</span>
+              <span class="text-lg">ผลลัพธ์: {STEP_NAMES[currentStep]?.th}</span>
               <button
                 onclick={() => {
                   const o = getOutput(currentStep);
@@ -473,7 +521,7 @@
         {#if getOutput(currentStep) && currentStep < 7}
           <div class="mt-4 text-right">
             <button onclick={() => goToStep(currentStep + 1)} class="btn-secondary">
-              ขั้นต่อไป: {STEP_NAMES[currentStep + 1]} →
+              ขั้นต่อไป: {STEP_NAMES[currentStep + 1]?.th} →
             </button>
           </div>
         {/if}
