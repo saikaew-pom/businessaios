@@ -25,6 +25,20 @@ Production schema turned out to be **healthy** — `users`/`projects` have all e
 
 That surfaced a different real bug: wrangler's own `d1_migrations` bookkeeping table only had `0001_init.sql` and `0003_mvp_clean.sql` recorded — `001-v2.sql` through `005-payments.sql` were never marked applied even though their schema changes were already live. This meant a plain `wrangler d1 migrations apply --remote` would have tried to re-run those files and failed with "duplicate column name" errors. **Fixed** (2026-07-29, user ran it directly — Claude Code's own auto-mode classifier blocks direct remote-D1 writes from the agent, by design) by backfilling the 6 missing `d1_migrations` rows to match reality. Verified: `wrangler d1 migrations list --remote` now reports "No migrations to apply!".
 
+### Follow-up bug pass (same day): standalone tools had the same H2/H3 bugs, plus a missing table
+
+Went back through the 10 `/api/tools/*` endpoints (pain-generator, brand-voice, persona-builder, competitor-analysis, jtbd-generator, value-proposition-canvas, business-model-canvas, million-dollar-offer, objection-handler, hook-library) since they were copy-pasted from an earlier version of the main generate handler and hadn't been touched during the C1-H4 pass. Found and fixed, identically to H2/H3:
+- Credits deducted after the AI call instead of reserved before it (non-atomic) — same reserve/refund/true-up pattern applied to all 10.
+- Email-verification gate dead behind `if (false && ...)` — enabled on all 10.
+
+Also **added M3-style fixes**: `/api/exports/:id` and `/api/tool-exports/:id` had no auth or ownership check at all (anyone who obtained/guessed an export UUID could download another user's document) — added `requireAuth` + `user_id` filtering, verified the existing `<a target="_blank">` download flow still works since the session cookie is `SameSite=None`.
+
+Also fixed `generateOTP()`: was producing 4 digits with a slight modulo bias despite its own docstring claiming 6 — now generates a true unbiased 6-digit code via rejection sampling (used for password-reset and login 2FA).
+
+**New bug found only by live-testing the tool fix:** `tool_runs` — the table all 10 tool endpoints insert into after every AI call — was never created by any migration file. It exists on production (created via untracked manual SQL, same root cause as the `api_keys`/`d1_migrations` gaps above), which is why the feature works there, but a from-scratch database has no such table. Reproduced live: every tool call paid for a real MiniMax generation, then crashed on `INSERT INTO tool_runs` with no refund (the unhandled exception skipped the new reservation's refund logic entirely) — worse than the original bug, since now credits were being silently, permanently lost on every call. Fixed two ways: (1) `007-repair-tool-runs.sql` migration (safe `CREATE TABLE IF NOT EXISTS`, matches production's exact schema) and (2) wrapped the `tool_runs` INSERT in a non-fatal try/catch across all 10 endpoints, since it's a best-effort usage log — a write failure there should never cost the user their already-paid-for AI output or reserved credits. Verified live end-to-end: credit ledger shows `reserve -25 → refund +4 → net -21`, matching actual token usage exactly.
+
+**Still needs (user action, blocked from this session):** run `wrangler d1 migrations apply --remote` against production to pick up `007-repair-tool-runs.sql` — safe now that `d1_migrations` bookkeeping is caught up (it'll only try to apply 007, which is a no-op `CREATE TABLE IF NOT EXISTS` since the table already exists there).
+
 ---
 
 ## 0. สรุปผู้บริหาร (Executive Summary)
