@@ -103,9 +103,12 @@
   </header>
 
   <main class="container-narrow py-10 space-y-8">
-    <div>
-      <h1 class="heading-2 mb-1">🔌 Developers</h1>
-      <p class="text-dark-900/60">เชื่อมต่อ Claude Code หรือ Claude Desktop เข้ากับ Business Smart OS — สร้างแผน, รันเครื่องมือ, export ได้โดยตรงจาก Claude โดยใช้เครดิตเดียวกับบัญชีของคุณ</p>
+    <div class="flex items-start justify-between gap-4 flex-wrap">
+      <div>
+        <h1 class="heading-2 mb-1">🔌 Developers</h1>
+        <p class="text-dark-900/60">เชื่อมต่อ Claude Code หรือ Claude Desktop เข้ากับ Business Smart OS — สร้างแผน, รันเครื่องมือ, export ได้โดยตรงจาก Claude โดยใช้เครดิตเดียวกับบัญชีของคุณ</p>
+      </div>
+      <a href="/developers/docs" class="btn-secondary whitespace-nowrap">📖 ดูคู่มือแบบเต็ม</a>
     </div>
 
     <!-- Reveal modal for a freshly created token -->

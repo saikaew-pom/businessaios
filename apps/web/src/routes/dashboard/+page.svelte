@@ -141,7 +141,8 @@
   }
 
   function stepLabel(step: number) {
-    const names = ['', 'Business DNA', 'Persona', 'Journey', 'Positioning', 'Content', 'Workflow', 'KPI'];
+    // Kept in sync with the wizard's own STEP_NAMES (apps/web/src/routes/projects/[id]/+page.svelte) — Phase B translated that one to Thai but missed this sibling copy, so project cards briefly showed English step names while the wizard itself showed Thai.
+    const names = ['', 'ตัวตนธุรกิจ', 'ลูกค้าของเรา', 'เส้นทางลูกค้า', 'จุดขาย', 'ปฏิทินคอนเทนต์', 'ขั้นตอนทำงาน', 'วัดผล (KPI)'];
     return names[step] || '-';
   }
 

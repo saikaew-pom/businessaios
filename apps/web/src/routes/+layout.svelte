@@ -6,6 +6,10 @@
   import { page } from '$app/stores';
   import { initAuth, isAuthed } from '$lib/auth';
   import MobileNav from '$lib/MobileNav.svelte';
+  // Imported for its module-level side effect: applies the persisted/system
+  // theme as a `dark` class on <html> as soon as the app boots, before any
+  // page-specific dark: styling would otherwise have nothing to key off of.
+  import '$lib/theme';
 
   let { children } = $props();
 

@@ -13,6 +13,10 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
+  html.dark {
+    color-scheme: dark;
+  }
+
   body {
     font-family: var(--font-sans);
   }
@@ -29,7 +33,7 @@
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center px-6 py-3 rounded-lg border border-dark-200 text-dark-900 font-semibold hover:bg-dark-50 transition-colors;
+    @apply inline-flex items-center justify-center px-6 py-3 rounded-lg border border-dark-200 dark:border-dark-600 text-dark-900 dark:text-dark-50 font-semibold hover:bg-dark-50 dark:hover:bg-dark-700 transition-colors;
   }
 
   .container-narrow {
