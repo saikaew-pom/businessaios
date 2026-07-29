@@ -26,7 +26,7 @@ cat > "$DIST/index.html" << EOF
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>MarketingAiOs — Operating System for AI Marketing</title>
+  <title>BusinessAiOs — Operating System for AI Business</title>
   <link rel="icon" href="/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

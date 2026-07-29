@@ -1,5 +1,5 @@
 /**
- * Shared types for MarketingAiOs
+ * Shared types for BusinessAiOs
  * Used by both web (SvelteKit) and api (Hono)
  */
 
