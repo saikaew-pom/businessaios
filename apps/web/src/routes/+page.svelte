@@ -66,7 +66,7 @@
       <a href="/register" class="btn-primary text-sm py-2 px-4">
         {t(currentLocale, 'nav.cta')}
       </a>
-      <a href="/tools" class="text-sm text-dark-900/70 hover:text-dark-900 transition hidden sm:block" title="เครื่องมือ AI แยกต่างหาก">
+      <a href="/tools" class="text-sm text-dark-900/70 hover:text-dark-900 transition hidden sm:block" title="เครื่องมือระบบอัจฉริยะแยกต่างหาก">
         ⚡ Tools
       </a>
     </div>

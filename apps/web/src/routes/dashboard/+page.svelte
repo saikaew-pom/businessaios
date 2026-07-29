@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, tick } from 'svelte';
   import { goto } from '$app/navigation';
   import { page } from '$app/stores';
   import { user, fullUser, logout, initAuth, isAuthed, refreshFullUser } from '$lib/auth';
@@ -15,6 +15,8 @@
   let newIndustry = $state('');
   let newKind = $state('playbook');
   let showCreate = $state(false);
+  let createFormEl = $state<HTMLDivElement | null>(null);
+  let createNameInput = $state<HTMLInputElement | null>(null);
   let kindFilter = $state<string>('');
   let error = $state('');
   let verificationBanner = $state(false);
@@ -106,6 +108,42 @@
     } catch (err: any) {
       error = err.message;
     }
+  }
+
+  // The create form renders after the returning-user gradient banner/tools
+  // widget, so for anyone with existing plans it's off-screen below the
+  // hero button that opens it — clicking that button looked like it did
+  // nothing. Scrolling it into view + focusing the name field makes the
+  // result of the click visible immediately instead of requiring a manual
+  // scroll to discover the form appeared at all.
+  async function openCreate() {
+    showCreate = true;
+    await tick();
+    const scrollToForm = () => createFormEl?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    scrollToForm();
+    createNameInput?.focus();
+
+    // StrategicToolsWidget (and this page's own project list) load their data
+    // asynchronously and can grow/shrink shortly after the scroll above
+    // already ran — on a slow connection this leaves the form no longer at
+    // the top of the viewport, silently reintroducing the "nothing visibly
+    // happened" bug this function exists to fix. Re-run the scroll once if
+    // the page's layout changes within the next couple seconds, then stop
+    // watching so this doesn't fight the user's own subsequent scrolling.
+    let corrected = false;
+    let firstCallback = true;
+    const ro = new ResizeObserver(() => {
+      // ResizeObserver invokes its callback once immediately upon observe()
+      // with the current size — that first call isn't a layout shift, so it
+      // must not count as the one correction this is allowed to make.
+      if (firstCallback) { firstCallback = false; return; }
+      if (corrected || !showCreate) { ro.disconnect(); return; }
+      corrected = true;
+      scrollToForm();
+      ro.disconnect();
+    });
+    ro.observe(document.body);
+    setTimeout(() => ro.disconnect(), 2000);
   }
 
   async function handleCreate(e: Event) {
@@ -218,7 +256,7 @@
       </div>
       <div class="flex items-center gap-4 flex-wrap">
         <a href="/tools" class="text-sm text-dark-900/60 hover:text-primary-600 font-medium">⚡ หรือลองเครื่องมือเดี่ยว</a>
-        <button onclick={() => showCreate = !showCreate} class="btn-primary">+ สร้างแผนใหม่</button>
+        <button onclick={() => showCreate ? (showCreate = false) : openCreate()} class="btn-primary">+ สร้างแผนใหม่</button>
       </div>
     </div>
 
@@ -248,10 +286,11 @@
     {/if}
 
     {#if showCreate}
-      <div class="bg-white rounded-2xl border border-dark-100 p-6 mb-8">
+      <div bind:this={createFormEl} class="bg-white rounded-2xl border border-dark-100 p-6 mb-8 scroll-mt-20">
         <h2 class="font-semibold mb-4">สร้างโปรเจกต์ใหม่</h2>
         <form onsubmit={handleCreate} class="space-y-3">
           <input
+            bind:this={createNameInput}
             type="text"
             bind:value={newName}
             required
@@ -304,7 +343,7 @@
         <div class="text-4xl mb-3">🌱</div>
         <h3 class="font-semibold text-lg mb-1">ยังไม่มีแผน — มาสร้างแผนแรกกัน</h3>
         <p class="text-sm text-dark-900/60 mb-6">กดปุ่มด้านล่าง แล้วตอบคำถามทีละขั้น ใช้เวลาประมาณ 45 นาที</p>
-        <button onclick={() => showCreate = true} class="btn-primary">+ สร้างแผนแรกของฉัน</button>
+        <button onclick={openCreate} class="btn-primary">+ สร้างแผนแรกของฉัน</button>
       </div>
 
       <div class="mt-6">
@@ -334,7 +373,7 @@
         </div>
         <h3 class="font-semibold mb-2">ยังไม่มีโปรเจกต์{kindFilter ? `ประเภท ${({ brand_voice: 'Brand Voice', pain_points: 'Pain Points', persona: 'Persona', competitor_analysis: 'Competitor', jtbd_generator: 'JTBD', value_proposition_canvas: 'VPC', business_model_canvas: 'BMC', million_dollar_offer: 'Offer', objection_handler: 'Objections', hook_library: 'Hooks' } as any)[kindFilter] || ''}` : ''}</h3>
         <p class="text-sm text-dark-900/60 mb-6">เริ่มสร้างโปรเจกต์แรกของคุณ</p>
-        <button onclick={() => showCreate = true} class="btn-primary">+ สร้างโปรเจกต์แรก</button>
+        <button onclick={openCreate} class="btn-primary">+ สร้างโปรเจกต์แรก</button>
       </div>
     {:else}
       <!-- Kind filter -->

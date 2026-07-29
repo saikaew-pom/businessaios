@@ -234,7 +234,7 @@
             <div class="mt-2 space-y-2">
               <input type="text" bind:value={newFileTitle} placeholder="ชื่อ (optional)" class="w-full px-3 py-2 text-sm rounded border border-dark-200" />
               <input type="file" accept=".txt,.csv,.json,.md,text/*" onchange={handleFileUpload} disabled={isUploadingFile} class="text-sm" />
-              <p class="text-xs text-dark-900/50">รองรับ text, csv, json — เนื้อหาจะถูกส่งให้ AI เป็น context</p>
+              <p class="text-xs text-dark-900/50">รองรับ text, csv, json — เนื้อหาจะถูกส่งให้ระบบอัจฉริยะเป็น context</p>
             </div>
           </details>
         </div>

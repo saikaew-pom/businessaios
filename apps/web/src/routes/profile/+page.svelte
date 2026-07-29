@@ -227,7 +227,7 @@
 
     <!-- Credits -->
     <div class="bg-white dark:bg-dark-800 rounded-2xl border border-dark-100 dark:border-dark-700 p-6">
-      <h2 class="font-semibold mb-1">⚡ เครดิต AI</h2>
+      <h2 class="font-semibold mb-1">⚡ เครดิต ระบบอัจฉริยะ</h2>
       <p class="text-sm text-dark-900/60 dark:text-dark-100/60 mb-4">1 credit ≈ $0.001 (≈ 1K input tokens)</p>
       <div class="bg-gradient-to-r from-primary-500 to-primary-700 text-white rounded-xl p-5 mb-4">
         <div class="text-xs uppercase tracking-wider opacity-80">คงเหลือ</div>

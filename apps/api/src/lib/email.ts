@@ -148,7 +148,7 @@ export function emailVerifyTemplate(opts: { name?: string; verifyUrl: string }):
 <body style="${baseStyle}">
   <div style="max-width: 560px; margin: 0 auto; background: white; border-radius: 16px; padding: 40px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
     <div style="text-align: center; margin-bottom: 24px;">
-      <div style="display: inline-block; background: #3b82f6; color: white; padding: 8px 16px; border-radius: 99px; font-size: 12px; font-weight: 600;">✨ MARKETING AI OS</div>
+      <div style="display: inline-block; background: #3b82f6; color: white; padding: 8px 16px; border-radius: 99px; font-size: 12px; font-weight: 600;">✨ Business Smart OS</div>
     </div>
     <h1 style="color: #0f172a; font-size: 24px; margin: 0 0 16px;">ยืนยันอีเมลของคุณ</h1>
     <p style="color: #64748b; font-size: 15px; line-height: 1.6;">สวัสดี${opts.name ? ' ' + opts.name : ''} 👋</p>

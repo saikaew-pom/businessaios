@@ -327,7 +327,7 @@ export async function buildPresentationPPTX(data: PresentationExportData): Promi
   pptx.author = 'Business Smart OS';
   pptx.company = 'Business Smart OS';
   pptx.title = project.title;
-  pptx.subject = `AI-Generated Presentation (${outline.framework})`;
+  pptx.subject = `Smart Engine-Generated Presentation (${outline.framework})`;
 
   // Slide layout: 16:9 widescreen
   pptx.layout = 'LAYOUT_WIDE'; // 13.333" x 7.5"
