@@ -56,10 +56,13 @@ Full findings and evidence in `docs/AUDIT.md`. Summary of what changed and is no
 ## Still open
 
 - [ ] Rotate the real API keys that sat in root `.env.local` before `.gitignore` existed (MiniMax, Brevo, Turnstile are the ones actually used in code)
-- [ ] Split `apps/api/src/index.ts` (~5,000 lines, dozens of routes) into modules
-- [ ] Test coverage (currently zero — no test files anywhere in the repo)
+- [ ] Finish splitting `apps/api/src/index.ts` — down to 2,975 lines (from 5,194) after extracting `lib/projectExport.ts`, `toolRoutes.ts`, `adminRoutes.ts`; auth, project CRUD + the wizard generate endpoint, account/BYOK-keys, tool-saves, and step-assets/links routes are still in `index.ts`
 - [ ] Native PDF generation (still HTML → browser print)
 - [ ] Custom domain (still on `*.workers.dev` subdomains)
+
+## Testing
+
+`cd apps/api && npm test` runs the vitest suite (29 tests): a migration gate test against a real in-memory SQLite database (`test/migrations.test.ts`) plus unit tests for `lib/crypto.ts` and `lib/credit.ts`. `npm run typecheck:test` typechecks `test/` alongside `src/`.
 
 ## Cloudflare Resources
 

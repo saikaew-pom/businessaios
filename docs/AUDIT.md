@@ -39,6 +39,24 @@ Also fixed `generateOTP()`: was producing 4 digits with a slight modulo bias des
 
 **Still needs (user action, blocked from this session):** run `wrangler d1 migrations apply --remote` against production to pick up `007-repair-tool-runs.sql` — safe now that `d1_migrations` bookkeeping is caught up (it'll only try to apply 007, which is a no-op `CREATE TABLE IF NOT EXISTS` since the table already exists there).
 
+**Resolved same day:** user ran the handed-off command themselves; `wrangler d1 migrations list --remote` now reports "No migrations to apply!" and both API and web workers were redeployed with all of the above live in production.
+
+### M2 (tests) and M1 (monolith split) — done same day, after user said "medium items"
+
+**M2 — added `apps/api`'s first tests (`npm test`, vitest).** No test infra existed at all. Added:
+- A **migration gate test** (`test/migrations.test.ts`) that applies every `migrations/*.sql` file against a real in-memory SQLite database (Node's built-in `node:sqlite`) in wrangler's actual apply order. Writing this caught a real bug in the test itself first — wrangler uses a *natural* (numeric-aware) sort of filenames, not a plain lexicographic one; `.sort()` would have tested the wrong order and given false confidence. With the correct order, the test confirmed a known, still-real gap: auto-applied migrations alone don't restore `users`/`projects` columns on a fresh database (only the manual repair script does) — that's now an explicit "known gap" test, alongside a second suite proving the full documented setup procedure (migrations + `manual-repairs/manual-repair-fresh-env.sql`) produces a correct schema.
+- Unit tests for `lib/crypto.ts` (password hashing, AES-GCM round-trip, the OTP bias fix, `getMasterSecret`'s fail-closed behavior) and `lib/credit.ts` (the atomic reserve/refund logic H2 depends on) via a small D1-shim over `node:sqlite`.
+- 29 tests total, all passing.
+
+**M1 — split `index.ts` from 5,194 to 2,975 lines** (both an active liability — it's exactly how the H1 duplicate-route bug went unnoticed for so long — and a target explicitly called out in this doc). Followed the project's own existing pattern (`presentationRoutes.ts`/`paymentsRoutes.ts`'s `createXRoutes(app)` style) rather than inventing a new one:
+- `src/lib/projectExport.ts` — the wizard's HTML/Markdown/CSV/Word-as-HTML export builders (~1,050 lines), mirroring `lib/presentationExport.ts`.
+- `src/toolRoutes.ts` — all 10 standalone tool endpoints (~1,050 lines).
+- `src/adminRoutes.ts` — the admin panel routes (~115 lines).
+
+Each extraction was verified with `npm run typecheck` (error count stayed at the same 52 pre-existing baseline throughout — confirmed line-by-line that nothing new was introduced), `npm test`, and a live request against the local dev server exercising the moved code specifically (export in all 4 formats, a tool call with a real AI generation, admin stats) before moving to the next piece. One real mistake happened and was caught immediately: the admin extraction's line range was one line short, leaving a stray `});` in `index.ts` and a missing one in the new file — caught by `tsc` failing loudly, fixed, then reverified.
+
+**Not extracted (deliberately, for a future pass):** auth routes, project CRUD + the wizard `generate` endpoint, account/BYOK-keys routes, tool-saves, step-assets/links. These are far more interconnected (shared context-injection logic, several call sites into the same helper functions) than the three pieces above, and this was already a long, careful session — splitting them without rushing deserves its own pass rather than being squeezed in at the end of this one.
+
 ---
 
 ## 0. สรุปผู้บริหาร (Executive Summary)
