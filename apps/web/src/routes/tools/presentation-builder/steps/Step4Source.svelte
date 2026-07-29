@@ -2,7 +2,7 @@
   /**
    * Step 4: Source Content
    * Paste text or upload file (PDF/DOCX/MD)
-   * No AI — just save
+   * No ระบบอัจฉริยะ — just save
    */
   let { project, initialData, step3Data, onSave, onContinue, isSaving }: {
     project: any;
@@ -104,12 +104,12 @@
 <div class="space-y-6">
   <div>
     <h2 class="text-2xl font-bold mb-2">📚 Source Content</h2>
-    <p class="text-sm text-dark-900/60">ใส่เนื้อหาต้นทาง — AI จะใช้ข้อมูลนี้ตอน Triage (Step 5)</p>
+    <p class="text-sm text-dark-900/60">ใส่เนื้อหาต้นทาง — ระบบอัจฉริยะ จะใช้ข้อมูลนี้ตอน Triage (Step 5)</p>
   </div>
 
   <form onsubmit={(e) => { e.preventDefault(); handleSubmit(e); }} class="space-y-4">
     <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
-      💡 ถ้าไม่มีเนื้อหาต้นทาง — AI จะใช้ <strong>Content Gap จาก ATR (Step 3)</strong> เป็นฐาน
+      💡 ถ้าไม่มีเนื้อหาต้นทาง — ระบบอัจฉริยะ จะใช้ <strong>Content Gap จาก ATR (Step 3)</strong> เป็นฐาน
     </div>
 
     <label class="flex items-center gap-2 text-sm">

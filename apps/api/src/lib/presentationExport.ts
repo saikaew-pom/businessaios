@@ -324,8 +324,8 @@ export async function buildPresentationPPTX(data: PresentationExportData): Promi
   const slideNotes = notes?.slide_notes || [];
 
   const pptx = new PptxGenJS();
-  pptx.author = 'BusinessAiOs';
-  pptx.company = 'BusinessAiOs';
+  pptx.author = 'Business Smart OS';
+  pptx.company = 'Business Smart OS';
   pptx.title = project.title;
   pptx.subject = `AI-Generated Presentation (${outline.framework})`;
 

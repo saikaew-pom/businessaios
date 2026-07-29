@@ -135,7 +135,7 @@
 </script>
 
 <svelte:head>
-  <title>โปรไฟล์ — BusinessAiOs</title>
+  <title>โปรไฟล์ — Business Smart OS</title>
 </svelte:head>
 
 <div class="min-h-screen bg-dark-50">
@@ -143,9 +143,9 @@
     <div class="container-narrow flex items-center justify-between h-16">
       <a href="/dashboard" class="flex items-center gap-2">
         <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
-          <span class="text-white font-bold text-sm">M</span>
+          <span class="text-white font-bold text-sm">B</span>
         </div>
-        <span class="font-bold text-lg">BusinessAiOs</span>
+        <span class="font-bold text-lg">Business Smart OS</span>
       </a>
       <a href="/dashboard" class="text-sm text-primary-600 hover:underline">← กลับ Dashboard</a>
     </div>

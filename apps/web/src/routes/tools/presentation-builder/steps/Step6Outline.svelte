@@ -1,7 +1,7 @@
 <script lang="ts">
   /**
    * Step 6: Story Outline
-   * AI generates slide-by-slide outline using framework
+   * Smart Engine generates slide-by-slide outline using framework
    * Shows framework structure
    */
   let { project, initialData, step3Data, step5Data, presets, onGenerate, isGenerating }: {
@@ -45,7 +45,7 @@
 <div class="space-y-6">
   <div>
     <h2 class="text-2xl font-bold mb-2">📖 Story Outline</h2>
-    <p class="text-sm text-dark-900/60">AI จะสร้าง outline {project?.target_slides} slides ตาม <strong>{frameworkName()}</strong></p>
+    <p class="text-sm text-dark-900/60">ระบบอัจฉริยะ จะสร้าง outline {project?.target_slides} slides ตาม <strong>{frameworkName()}</strong></p>
   </div>
 
   <div class="bg-purple-50 border border-purple-200 rounded-lg p-3 text-sm text-purple-800">
@@ -87,7 +87,7 @@
       disabled={isGenerating}
       class="w-full bg-primary-600 hover:bg-primary-700 disabled:bg-dark-300 text-white font-semibold py-3 rounded-lg transition"
     >
-      {isGenerating ? '⚙️ AI กำลังสร้าง Outline...' : '✨ Generate Outline → Step 7'}
+      {isGenerating ? '⚙️ ระบบอัจฉริยะ กำลังสร้าง Outline...' : '✨ Generate Outline → Step 7'}
     </button>
   </form>
 

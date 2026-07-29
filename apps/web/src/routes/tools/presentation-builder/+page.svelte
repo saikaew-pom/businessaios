@@ -1,6 +1,6 @@
 <script lang="ts">
   /**
-   * AI Presentation Builder — 9-step wizard
+   * Smart Presentation Builder — 9-step wizard
    * Step 1: Quick Brief (objective, slides, time)
    * Step 2: Audience Profile (style + concerns)
    * Step 3: ATR Canvas (Before/After 4x2)
@@ -155,7 +155,7 @@
         creditsRemaining = res.meta.credits_remaining ?? creditsRemaining;
       }
     } catch (err: any) {
-      error = err.message || 'AI error';
+      error = err.message || 'Smart Engine error';
     } finally {
       isGenerating = false;
     }
@@ -217,7 +217,7 @@
   function getStepData(stepNumber: number): any {
     const s = steps.find((x) => x.step_number === stepNumber);
     if (!s) return null;
-    // Prefer output_json, but fall back to input_json (for non-AI steps like 1, 4)
+    // Prefer output_json, but fall back to input_json (for non-generated steps like 1, 4)
     const raw = s.output_json || s.input_json;
     if (!raw) return null;
     try {
@@ -247,7 +247,7 @@
 </script>
 
 <ToolLayout
-  title="AI Presentation Builder"
+  title="Smart Presentation Builder"
   subtitle="สร้าง presentation มืออาชีพ 9 steps — ใช้ framework จาก McKinsey, Dan Roam, Phil Waknell"
   icon="🎤"
   color="purple"

@@ -2,7 +2,7 @@
   /**
    * Step 1: Quick Brief
    * Configure title, objective, slides, time
-   * Free — no AI
+   * Free — no ระบบอัจฉริยะ
    */
   let { project, initialData, presets, onGenerate, onUpdate, isGenerating }: {
     project: any;
@@ -33,7 +33,7 @@
 <div class="space-y-6">
   <div>
     <h2 class="text-2xl font-bold mb-2">📝 Quick Brief</h2>
-    <p class="text-sm text-dark-900/60">ตั้งค่าพื้นฐาน — objective จะกำหนด framework ที่ AI ใช้</p>
+    <p class="text-sm text-dark-900/60">ตั้งค่าพื้นฐาน — objective จะกำหนด framework ที่ ระบบอัจฉริยะ ใช้</p>
   </div>
 
   <form onsubmit={handleSubmit} class="space-y-4">

@@ -348,7 +348,7 @@ ${css}
   ${body}
 
   <div style="margin-top:60px;padding-top:20px;border-top:1px solid #e2e8f0;text-align:center;color:#94a3b8;font-size:12px;">
-    สร้างโดย BusinessAiOs
+    สร้างโดย Business Smart OS
   </div>
 </body>
 </html>`;
@@ -426,7 +426,7 @@ ${css}
 </script>
 
 <svelte:head>
-  <title>บันทึกของฉัน — BusinessAiOs</title>
+  <title>บันทึกของฉัน — Business Smart OS</title>
 </svelte:head>
 
 <div class="min-h-screen bg-dark-50">
@@ -434,7 +434,7 @@ ${css}
     <div class="container-narrow flex items-center justify-between h-16">
       <a href="/dashboard" class="flex items-center gap-2">
         <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
-          <span class="text-white font-bold text-sm">M</span>
+          <span class="text-white font-bold text-sm">B</span>
         </div>
         <span class="font-bold text-lg">📂 บันทึกของฉัน</span>
       </a>
@@ -459,8 +459,8 @@ ${css}
           <span class="text-3xl">📂</span>
         </div>
         <h3 class="font-semibold mb-2">{showArchived ? 'ไม่มีรายการที่ archive' : 'ยังไม่มีบันทึก'}</h3>
-        <p class="text-sm text-dark-900/60 mb-6">ลองใช้เครื่องมือ AI แล้วกด "💾 บันทึก" เพื่อเก็บไว้ดูภายหลัง</p>
-        <a href="/tools" class="btn-primary inline-block">เปิดเครื่องมือ AI</a>
+        <p class="text-sm text-dark-900/60 mb-6">ลองใช้เครื่องมือ ระบบอัจฉริยะ แล้วกด "💾 บันทึก" เพื่อเก็บไว้ดูภายหลัง</p>
+        <a href="/tools" class="btn-primary inline-block">เปิดเครื่องมือ ระบบอัจฉริยะ</a>
       </div>
     {:else}
       <div class="space-y-3">

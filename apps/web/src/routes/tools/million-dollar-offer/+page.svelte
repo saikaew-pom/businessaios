@@ -176,7 +176,7 @@ Products: ${(s.output?.value_map?.products_services || []).slice(0, 3).map((p: a
       });
       output = res.output;
     } catch (err: any) {
-      error = err.message || 'AI error';
+      error = err.message || 'Smart Engine error';
     } finally {
       isGenerating = false;
     }
@@ -424,7 +424,7 @@ Products: ${(s.output?.value_map?.products_services || []).slice(0, 3).map((p: a
 
       <div>
         <label class="block text-sm font-semibold mb-1.5">โน้ตเพิ่มเติม <span class="text-dark-900/50 font-normal">(optional)</span></label>
-        <textarea bind:value={user_notes} rows="2" placeholder="อะไรก็ได้ที่อยากให้ AI รู้เพิ่ม..." class="w-full px-3 py-2.5 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500"></textarea>
+        <textarea bind:value={user_notes} rows="2" placeholder="อะไรก็ได้ที่อยากให้ ระบบอัจฉริยะ รู้เพิ่ม..." class="w-full px-3 py-2.5 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500"></textarea>
       </div>
 
       {#if error}
@@ -433,7 +433,7 @@ Products: ${(s.output?.value_map?.products_services || []).slice(0, 3).map((p: a
 
       <div class="pt-4 flex items-center justify-end border-t border-dark-100">
         <button onclick={handleGenerate} disabled={isGenerating} class="btn-primary disabled:opacity-50">
-          {isGenerating ? '⏳ AI กำลังออกแบบ Offer...' : '💎 ออกแบบ Million Dollar Offer'}
+          {isGenerating ? '⏳ ระบบอัจฉริยะ กำลังออกแบบ Offer...' : '💎 ออกแบบ Million Dollar Offer'}
         </button>
       </div>
     </div>

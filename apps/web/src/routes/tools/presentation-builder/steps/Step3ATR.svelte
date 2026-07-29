@@ -2,7 +2,7 @@
   /**
    * Step 3: ATR (Audience Transformation Roadmap) Canvas
    * 4×2 grid: Know/Believe/Feel/Do × Before/After
-   * AI proposes → user edits → AI computes content gap
+   * Smart Engine proposes → user edits → Smart Engine computes content gap
    */
   let { project, initialData, presets, step2Data, onGenerate, isGenerating }: {
     project: any;
@@ -117,7 +117,7 @@
 
     <div class="bg-purple-50 border border-purple-200 rounded-lg p-3 text-sm text-purple-800">
       💡 "พื้นที่ตรงกลาง (ช่องว่างระหว่าง Before/After) = <strong>เนื้อหาที่ต้องนำเสนอ</strong>"
-      <div class="text-xs mt-1">AI จะวิเคราะห์ gap นี้และสร้าง content_gap เพื่อใช้ใน Step 5 (Triage) และ Step 6 (Outline)</div>
+      <div class="text-xs mt-1">ระบบอัจฉริยะ จะวิเคราะห์ gap นี้และสร้าง content_gap เพื่อใช้ใน Step 5 (Triage) และ Step 6 (Outline)</div>
     </div>
 
     <button
@@ -125,7 +125,7 @@
       disabled={isGenerating || !summary.trim() || !before.know || !after.do}
       class="w-full bg-primary-600 hover:bg-primary-700 disabled:bg-dark-300 text-white font-semibold py-3 rounded-lg transition"
     >
-      {isGenerating ? '⚙️ AI กำลังวิเคราะห์ ATR...' : '✨ Generate ATR + Content Gap → Step 4'}
+      {isGenerating ? '⚙️ ระบบอัจฉริยะ กำลังวิเคราะห์ ATR...' : '✨ Generate ATR + Content Gap → Step 4'}
     </button>
   </form>
 </div>

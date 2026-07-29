@@ -46,7 +46,7 @@
 </script>
 
 <svelte:head>
-  <title>เข้าสู่ระบบ — BusinessAiOs</title>
+  <title>เข้าสู่ระบบ — Business Smart OS</title>
 </svelte:head>
 
 <div class="min-h-screen bg-gradient-to-br from-primary-50 via-white to-purple-50 flex items-center justify-center p-4">

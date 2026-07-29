@@ -1,6 +1,6 @@
 <script lang="ts">
   /**
-   * OutputRenderer — renders AI generation output as beautiful, professional cards
+   * OutputRenderer — renders Smart Engine generation output as beautiful, professional cards
    * Each step has its own layout
    */
   let { step, output }: { step: number; output: any } = $props();
@@ -45,7 +45,7 @@
 
     {#if output.reasoning}
       <details class="bg-dark-50 border border-dark-100 rounded-xl p-5">
-        <summary class="cursor-pointer text-sm font-semibold text-dark-900/70">💡 ทำไม AI ถึงแนะนำแบบนี้</summary>
+        <summary class="cursor-pointer text-sm font-semibold text-dark-900/70">💡 ทำไม ระบบอัจฉริยะ ถึงแนะนำแบบนี้</summary>
         <div class="mt-3 text-sm text-dark-900/80 leading-relaxed">{output.reasoning}</div>
       </details>
     {/if}
@@ -323,11 +323,11 @@
 
           <div class="grid grid-cols-2 gap-3 mb-4 text-sm">
             <div class="bg-red-50 rounded-lg p-2 text-center">
-              <div class="text-xs text-dark-900/60">ก่อนใช้ AI</div>
+              <div class="text-xs text-dark-900/60">ก่อนใช้ ระบบอัจฉริยะ</div>
               <div class="font-semibold text-red-700">{wf.time_before}</div>
             </div>
             <div class="bg-green-50 rounded-lg p-2 text-center">
-              <div class="text-xs text-dark-900/60">หลังใช้ AI</div>
+              <div class="text-xs text-dark-900/60">หลังใช้ ระบบอัจฉริยะ</div>
               <div class="font-semibold text-green-700">{wf.time_after}</div>
             </div>
           </div>

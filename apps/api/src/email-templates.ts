@@ -8,7 +8,7 @@ export const waitlistConfirmationTH = (email: string, position: number) => `
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>ยินดีต้อนรับสู่ BusinessAiOs</title>
+  <title>ยินดีต้อนรับสู่ Business Smart OS</title>
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; margin: 0; padding: 40px 0;">
   <div style="max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 12px; padding: 40px;">
@@ -17,7 +17,7 @@ export const waitlistConfirmationTH = (email: string, position: number) => `
       คุณอยู่ในลำดับที่ <strong style="color: #3b82f6;">#${position}</strong> ของ waitlist
     </p>
     <p style="color: #0a0a0a; font-size: 16px; line-height: 1.6; margin: 0 0 16px;">
-      ขอบคุณที่สนใจ <strong>BusinessAiOs</strong> — ระบบช่วยสร้าง marketing system ครบชุดด้วย AI
+      ขอบคุณที่สนใจ <strong>Business Smart OS</strong> — ระบบช่วยสร้างแผนธุรกิจครบชุดด้วยระบบอัจฉริยะ
     </p>
     <p style="color: #0a0a0a; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
       เราจะแจ้งให้คุณทราบทันทีที่เปิดให้ใช้งาน
@@ -36,7 +36,7 @@ export const waitlistConfirmationEN = (email: string, position: number) => `
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Welcome to BusinessAiOs</title>
+  <title>Welcome to Business Smart OS</title>
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; margin: 0; padding: 40px 0;">
   <div style="max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 12px; padding: 40px;">
@@ -45,7 +45,7 @@ export const waitlistConfirmationEN = (email: string, position: number) => `
       You are #<strong style="color: #3b82f6;">${position}</strong> on the waitlist
     </p>
     <p style="color: #0a0a0a; font-size: 16px; line-height: 1.6; margin: 0 0 16px;">
-      Thanks for your interest in <strong>BusinessAiOs</strong> — the AI-powered marketing system builder
+      Thanks for your interest in <strong>Business Smart OS</strong> — the Smart Engine-powered business plan builder
     </p>
     <p style="color: #0a0a0a; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
       We will notify you as soon as we launch.

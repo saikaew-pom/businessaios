@@ -50,7 +50,7 @@
         </a>
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
-            <span class="text-white font-bold text-sm">M</span>
+            <span class="text-white font-bold text-sm">B</span>
           </div>
           <span class="font-bold">{title}</span>
         </div>

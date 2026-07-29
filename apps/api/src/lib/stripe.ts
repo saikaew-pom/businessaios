@@ -49,7 +49,7 @@ export async function createPromptPayPayment(opts: {
     amount: opts.amountSatang,
     currency: 'thb',
     payment_method_types: ['promptpay'],
-    description: `BusinessAiOs ${opts.packageName} — ${opts.credits} credits`,
+    description: `Business Smart OS ${opts.packageName} — ${opts.credits} credits`,
     receipt_email: opts.userEmail,
     metadata: {
       package_id: opts.packageId,

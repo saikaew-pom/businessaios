@@ -158,7 +158,7 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
       });
       output = res.output;
     } catch (err: any) {
-      error = err.message || 'AI error';
+      error = err.message || 'Smart Engine error';
     } finally {
       isGenerating = false;
     }
@@ -389,7 +389,7 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
 
       <div>
         <label class="block text-sm font-semibold mb-1.5">โน้ตเพิ่มเติม <span class="text-dark-900/50 font-normal">(optional)</span></label>
-        <textarea bind:value={user_notes} rows="2" placeholder="อะไรก็ได้ที่อยากให้ AI รู้เพิ่ม..." class="w-full px-3 py-2.5 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500"></textarea>
+        <textarea bind:value={user_notes} rows="2" placeholder="อะไรก็ได้ที่อยากให้ ระบบอัจฉริยะ รู้เพิ่ม..." class="w-full px-3 py-2.5 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500"></textarea>
       </div>
 
       {#if error}
@@ -404,7 +404,7 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
           disabled={isGenerating}
           class="btn-primary disabled:opacity-50"
         >
-          {isGenerating ? '⏳ AI กำลังออกแบบ VPC...' : '💎 ออกแบบ Value Proposition'}
+          {isGenerating ? '⏳ ระบบอัจฉริยะ กำลังออกแบบ VPC...' : '💎 ออกแบบ Value Proposition'}
         </button>
       </div>
     </div>

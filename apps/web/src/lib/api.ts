@@ -1,5 +1,5 @@
 /**
- * API client for BusinessAiOs
+ * API client for Business Smart OS
  * Uses cookies for auth (HttpOnly)
  */
 

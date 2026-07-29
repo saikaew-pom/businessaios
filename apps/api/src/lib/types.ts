@@ -1,5 +1,5 @@
 /**
- * Shared types for BusinessAiOs API
+ * Shared types for Business Smart OS API
  */
 
 export type Bindings = {

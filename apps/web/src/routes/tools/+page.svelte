@@ -14,7 +14,7 @@
   const tools = [
     {
       icon: '🎤',
-      title: 'AI Presentation Builder',
+      title: 'Smart Presentation Builder',
       subtitle: 'สร้าง Presentation 9 steps — framework จาก McKinsey, Dan Roam, Phil Waknell',
       desc: 'Brief → Audience → ATR → Triage → Outline (SCQA/5M/Pop-Up) → Blueprint → Notes → Export (PPTX/Google Sheet)',
       href: '/tools/presentation-builder',
@@ -114,7 +114,7 @@
       icon: '👥',
       title: 'Persona Builder (ธุรกิจใหม่)',
       subtitle: 'สร้าง Persona จากสมมติฐาน สำหรับธุรกิจที่ยังไม่มีรีวิว',
-      desc: 'AI สร้าง Persona จากข้อมูลอุตสาหกรรม + แนะนำวิธี validate ด้วยข้อมูลจริง',
+      desc: 'ระบบอัจฉริยะ สร้าง Persona จากข้อมูลอุตสาหกรรม + แนะนำวิธี validate ด้วยข้อมูลจริง',
       href: '/tools/persona-builder',
       color: 'green',
       keywords: 'Persona · Customer profile · New business',
@@ -131,7 +131,7 @@
         </a>
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
-            <span class="text-white font-bold text-sm">M</span>
+            <span class="text-white font-bold text-sm">B</span>
           </div>
           <span class="font-bold">เครื่องมือ</span>
         </div>
@@ -145,9 +145,9 @@
   <main class="container-narrow py-8 max-w-5xl">
     <div class="mb-8 text-center">
       <div class="inline-block px-3 py-1 rounded-full bg-primary-50 border border-primary-200 text-xs font-semibold text-primary-700 mb-3">
-        ⚡ เครื่องมือ AI แยกต่างหาก
+        ⚡ เครื่องมือ ระบบอัจฉริยะ แยกต่างหาก
       </div>
-      <h1 class="text-3xl sm:text-4xl font-bold mb-2">เครื่องมือ AI Marketing</h1>
+      <h1 class="text-3xl sm:text-4xl font-bold mb-2">เครื่องมือ ระบบอัจฉริยะ Marketing</h1>
       <p class="text-dark-900/70 max-w-2xl mx-auto">
         ใช้ได้โดยไม่ต้องสร้างโปรเจกต์ — เหมาะกับงานเฉพาะจุด เช่น หา Pain Point, สร้าง Brand Voice, สร้าง Persona
       </p>

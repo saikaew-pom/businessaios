@@ -27,10 +27,10 @@
 </script>
 
 <svelte:head>
-  <title>BusinessAiOs — Operating System for AI Business</title>
-  <meta name="description" content="Fill 7 steps. Get a complete Marketing System. Generate Brand Card, Persona, Content, Workflow with AI. Export as PDF, Word, Excel." />
-  <meta property="og:title" content="BusinessAiOs — Operating System for AI Business" />
-  <meta property="og:description" content="Fill 7 steps. Get a complete Marketing System with AI." />
+  <title>Business Smart OS — ระบบปฏิบัติการอัจฉริยะสำหรับธุรกิจ</title>
+  <meta name="description" content="Fill 7 steps. Get a complete business plan. Generate a Brand Card, personas, content, and workflow with a Smart Engine. Export as PDF, Word, Excel." />
+  <meta property="og:title" content="Business Smart OS — ระบบปฏิบัติการอัจฉริยะสำหรับธุรกิจ" />
+  <meta property="og:description" content="Fill 7 steps. Get a complete business plan with a Smart Engine." />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
 </svelte:head>
@@ -40,9 +40,9 @@
   <div class="container-narrow flex items-center justify-between h-16">
     <a href="/" class="flex items-center gap-2">
       <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
-        <span class="text-white font-bold text-sm">M</span>
+        <span class="text-white font-bold text-sm">B</span>
       </div>
-      <span class="font-bold text-lg">BusinessAiOs</span>
+      <span class="font-bold text-lg">Business Smart OS</span>
     </a>
 
     <div class="hidden md:flex items-center gap-8">
@@ -178,7 +178,7 @@
         <p class="text-sm text-dark-900/60 mb-6">{t(currentLocale, 'pricing.free.desc')}</p>
         <div class="mb-6">
           <span class="text-5xl font-bold">{t(currentLocale, 'pricing.free.price')}</span>
-          <span class="text-dark-900/60">{t(currentLocale, 'pricing.month')}</span>
+          <span class="text-dark-900/60">{t(currentLocale, 'pricing.oneTime')}</span>
         </div>
         <ul class="space-y-3 mb-8 text-sm">
           <li class="flex items-start gap-2">
@@ -212,7 +212,7 @@
         <p class="text-sm text-white/80 mb-6">{t(currentLocale, 'pricing.pro.desc')}</p>
         <div class="mb-6">
           <span class="text-5xl font-bold">{t(currentLocale, 'pricing.pro.price')}</span>
-          <span class="text-white/80">{t(currentLocale, 'pricing.month')}</span>
+          <span class="text-white/80">{t(currentLocale, 'pricing.oneTime')}</span>
         </div>
         <ul class="space-y-3 mb-8 text-sm">
           {#each [1, 2, 3, 4, 5] as i}
@@ -233,7 +233,7 @@
         <p class="text-sm text-dark-900/60 mb-6">{t(currentLocale, 'pricing.team.desc')}</p>
         <div class="mb-6">
           <span class="text-5xl font-bold">{t(currentLocale, 'pricing.team.price')}</span>
-          <span class="text-dark-900/60">{t(currentLocale, 'pricing.month')}</span>
+          <span class="text-dark-900/60">{t(currentLocale, 'pricing.oneTime')}</span>
         </div>
         <ul class="space-y-3 mb-8 text-sm">
           {#each [1, 2, 3, 4, 5] as i}
@@ -243,7 +243,7 @@
             </li>
           {/each}
         </ul>
-        <a href="mailto:hello@businessaios.com" class="btn-secondary w-full">
+        <a href="mailto:hello@businesssmartos.com" class="btn-secondary w-full">
           {t(currentLocale, 'pricing.team.cta')}
         </a>
       </div>
@@ -328,9 +328,9 @@
       <div>
         <div class="flex items-center gap-2 mb-3">
           <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
-            <span class="text-white font-bold text-sm">M</span>
+            <span class="text-white font-bold text-sm">B</span>
           </div>
-          <span class="font-bold">BusinessAiOs</span>
+          <span class="font-bold">Business Smart OS</span>
         </div>
         <p class="text-sm text-dark-900/60">{t(currentLocale, 'footer.tagline')}</p>
       </div>
@@ -349,7 +349,7 @@
         <ul class="space-y-2 text-sm text-dark-900/60">
           <li><a href="/about" class="hover:text-dark-900 transition">{t(currentLocale, 'footer.about')}</a></li>
           <li><a href="/blog" class="hover:text-dark-900 transition">{t(currentLocale, 'footer.blog')}</a></li>
-          <li><a href="mailto:hello@businessaios.com" class="hover:text-dark-900 transition">{t(currentLocale, 'footer.contact')}</a></li>
+          <li><a href="mailto:hello@businesssmartos.com" class="hover:text-dark-900 transition">{t(currentLocale, 'footer.contact')}</a></li>
         </ul>
       </div>
 

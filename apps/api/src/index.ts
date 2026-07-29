@@ -1,5 +1,5 @@
 /**
- * BusinessAiOs API
+ * Business Smart OS API
  * Cloudflare Workers + Hono + D1 + R2
  *
  * MVP: Auth + Projects + AI Generation + PDF Export
@@ -17,6 +17,7 @@ import { requireAuth, rateLimit, getSessionToken, setSessionCookie, clearSession
 import { sendEmail, emailVerifyTemplate, passwordResetOTPTemplate, loginOTPTemplate } from './lib/email';
 import { verifyTurnstile } from './lib/turnstile';
 import { calculateCredits, getCredits, deductCredits, addCredits, getCreditHistory } from './lib/credit';
+import { SIGNUP_BONUS_CREDITS } from './lib/packages';
 import { SESSION_TTL_MS } from './lib/types';
 import type { Bindings, Variables } from './lib/types';
 import { createPresentationRoutes } from './presentationRoutes';
@@ -59,7 +60,7 @@ app.use('*', cors({
 // Health
 // =====================================================
 app.get('/', (c) => c.json({
-  name: 'BusinessAiOs API',
+  name: 'Business Smart OS API',
   version: '0.2.0',
   status: 'ok',
   timestamp: new Date().toISOString(),
@@ -177,19 +178,22 @@ app.post('/api/auth/register', rateLimit, async (c) => {
 
     await env.DB.prepare(`
       INSERT INTO users (id, email, password_hash, name, first_name, last_name, plan, locale, credits, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, 'free', ?, 100, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, 'free', ?, ?, ?, ?)
     `).bind(
       userId, email, passwordHash, fullName,
       body.first_name?.trim() || null,
       body.last_name?.trim() || null,
-      body.locale || 'th', now, now
+      body.locale || 'th', SIGNUP_BONUS_CREDITS, now, now
     ).run();
 
-    // Signup bonus credit (200 credits — enough to try most tools)
+    // Signup bonus credit — was hardcoded to 100 here while every other
+    // reference to this (the ledger note below, the Google OAuth signup
+    // path, the billing page copy) said 200: the balance a new user
+    // actually got didn't match what their own credit history claimed.
     await env.DB.prepare(`
       INSERT INTO credit_transactions (id, user_id, delta, reason, balance_after, note, created_at)
-      VALUES (?, ?, 200, 'signup_bonus', 200, 'Welcome bonus — 200 credits', ?)
-    `).bind(generateId(), userId, now).run();
+      VALUES (?, ?, ?, 'signup_bonus', ?, 'Welcome bonus', ?)
+    `).bind(generateId(), userId, SIGNUP_BONUS_CREDITS, SIGNUP_BONUS_CREDITS, now).run();
 
     // Create session
     const sessionToken = generateSessionToken();
@@ -206,7 +210,7 @@ app.post('/api/auth/register', rateLimit, async (c) => {
 
     return c.json({
       ok: true,
-      user: { id: userId, email, name: fullName, plan: 'free', credits: 100, email_verified: false },
+      user: { id: userId, email, name: fullName, plan: 'free', credits: SIGNUP_BONUS_CREDITS, email_verified: false },
     });
   } catch (err: any) {
     console.error('Register error:', err);

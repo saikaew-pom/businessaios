@@ -385,7 +385,7 @@ export function buildProjectHTML(project: any, stepData: any): string {
     position: relative;
   }
   .cover::after {
-    content: 'BusinessAiOs'; position: absolute; bottom: 30px;
+    content: 'Business Smart OS'; position: absolute; bottom: 30px;
     font-size: 14px; opacity: 0.7; letter-spacing: 2px;
   }
   .cover-badge {
@@ -739,7 +739,7 @@ export function buildProjectHTML(project: any, stepData: any): string {
   <!-- SECTIONS -->
   ${STEPS.map(n => {
     const data = normalize(stepData[`step${n}`]);
-    const content = data ? renderers[n](data) : `<div class="empty">ยังไม่ได้สร้าง — กลับไปที่ Step ${n} ใน BusinessAiOs เพื่อสร้างเนื้อหา</div>`;
+    const content = data ? renderers[n](data) : `<div class="empty">ยังไม่ได้สร้าง — กลับไปที่ Step ${n} ใน Business Smart OS เพื่อสร้างเนื้อหา</div>`;
     return `<div class="section">
       <div class="section-header">
         <div class="section-num">${n}</div>
@@ -756,7 +756,7 @@ export function buildProjectHTML(project: any, stepData: any): string {
   <div class="footer-page">
     <h2>🚀 พร้อมใช้งานแล้ว!</h2>
     <p>คุณได้ Marketing System ครบชุด พร้อมวางแผนและลงมือทำ</p>
-    <div class="footer-brand">BusinessAiOs · Operating System for AI Business</div>
+    <div class="footer-brand">Business Smart OS</div>
   </div>
 </body>
 </html>`;
@@ -950,7 +950,7 @@ export function buildProjectMarkdown(project: any, stepData: any): string {
     lines.push('');
   }
 
-  lines.push('*สร้างโดย BusinessAiOs · Operating System for AI Business*');
+  lines.push('*สร้างโดย Business Smart OS*');
   return lines.join('\n');
 }
 
@@ -1082,7 +1082,7 @@ export function buildProjectDocx(project: any, stepData: any): string {
     }
   }
 
-  sections.push(`<hr/><p style="text-align: center; color: #94a3b8; font-size: 12px;">BusinessAiOs · Operating System for AI Business</p>`);
+  sections.push(`<hr/><p style="text-align: center; color: #94a3b8; font-size: 12px;">Business Smart OS</p>`);
 
   return sections.join('\n');
 }

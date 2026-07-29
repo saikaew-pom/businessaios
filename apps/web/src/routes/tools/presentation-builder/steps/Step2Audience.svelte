@@ -1,7 +1,7 @@
 <script lang="ts">
   /**
    * Step 2: Audience Profile
-   * Select communication styles + concerns → AI builds persona card
+   * Select communication styles + concerns → Smart Engine builds persona card
    */
   let { project, initialData, presets, onGenerate, isGenerating }: {
     project: any;
@@ -38,7 +38,7 @@
 <div class="space-y-6">
   <div>
     <h2 class="text-2xl font-bold mb-2">👥 Audience Profile</h2>
-    <p class="text-sm text-dark-900/60">ระบุผู้ฟัง — AI จะสร้าง persona card และ handling strategy</p>
+    <p class="text-sm text-dark-900/60">ระบุผู้ฟัง — ระบบอัจฉริยะ จะสร้าง persona card และ handling strategy</p>
   </div>
 
   <form onsubmit={handleSubmit} class="space-y-5">
@@ -103,7 +103,7 @@
     </div>
 
     <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
-      💡 AI จะ:
+      💡 ระบบอัจฉริยะ จะ:
       <ul class="mt-1 ml-4 list-disc text-xs">
         <li>สร้าง persona card (role, decision_style, motivations, fears)</li>
         <li>แนะนำ handling strategy (data_density, visual_density, opening approach)</li>
@@ -116,7 +116,7 @@
       disabled={isGenerating || !audience_role.trim() || communication_styles.length === 0}
       class="w-full bg-primary-600 hover:bg-primary-700 disabled:bg-dark-300 text-white font-semibold py-3 rounded-lg transition"
     >
-      {isGenerating ? '⚙️ AI กำลังวิเคราะห์...' : '✨ Generate Persona Card → Step 3'}
+      {isGenerating ? '⚙️ ระบบอัจฉริยะ กำลังวิเคราะห์...' : '✨ Generate Persona Card → Step 3'}
     </button>
   </form>
 </div>

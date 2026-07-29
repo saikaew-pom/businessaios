@@ -154,7 +154,7 @@
       });
       output = res.output;
     } catch (err: any) {
-      error = err.message || 'AI error';
+      error = err.message || 'Smart Engine error';
     } finally {
       isGenerating = false;
     }
@@ -375,7 +375,7 @@
         <textarea
           bind:value={user_notes}
           rows="2"
-          placeholder="อะไรก็ได้ที่อยากให้ AI รู้เพิ่ม..."
+          placeholder="อะไรก็ได้ที่อยากให้ ระบบอัจฉริยะ รู้เพิ่ม..."
           class="w-full px-3 py-2.5 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
         ></textarea>
       </div>
@@ -392,7 +392,7 @@
           disabled={isGenerating}
           class="btn-primary disabled:opacity-50"
         >
-          {isGenerating ? '⏳ AI กำลังวิจัย...' : '🎯 วิเคราะห์ JTBD'}
+          {isGenerating ? '⏳ ระบบอัจฉริยะ กำลังวิจัย...' : '🎯 วิเคราะห์ JTBD'}
         </button>
       </div>
     </div>

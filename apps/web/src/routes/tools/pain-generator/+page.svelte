@@ -159,7 +159,7 @@
       });
       output = res.output;
     } catch (err: any) {
-      error = err.message || 'AI error';
+      error = err.message || 'Smart Engine error';
     } finally {
       isGenerating = false;
     }
@@ -289,7 +289,7 @@
       <div class="bg-gradient-to-r from-red-50 to-orange-50 border border-red-200 rounded-xl p-4">
         <div class="mb-2">
           <div class="font-semibold text-red-900">🎯 เลือกหมวด Pain Point ที่เน้น <span class="text-xs font-normal text-red-700">(เลือกได้หลายข้อ / ไม่เลือกก็ได้)</span></div>
-          <div class="text-xs text-red-700">AI จะเน้น pain points ในหมวดที่เลือก — เลือก 0 ข้อถ้าอยากให้ AI วิเคราะห์กว้างๆ</div>
+          <div class="text-xs text-red-700">ระบบอัจฉริยะ จะเน้น pain points ในหมวดที่เลือก — เลือก 0 ข้อถ้าอยากให้ ระบบอัจฉริยะ วิเคราะห์กว้างๆ</div>
         </div>
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {#each PAIN_POINT_CATEGORIES as cat}
@@ -343,7 +343,7 @@
           disabled={isGenerating}
           class="btn-primary disabled:opacity-50"
         >
-          {isGenerating ? '⏳ AI กำลังวิเคราะห์...' : '🎯 วิเคราะห์ Pain Points'}
+          {isGenerating ? '⏳ ระบบอัจฉริยะ กำลังวิเคราะห์...' : '🎯 วิเคราะห์ Pain Points'}
         </button>
       </div>
     </div>

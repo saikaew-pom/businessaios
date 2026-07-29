@@ -46,7 +46,7 @@
 <div class="space-y-6">
   <div>
     <h2 class="text-2xl font-bold mb-2">🎨 Slide Blueprint</h2>
-    <p class="text-sm text-dark-900/60">AI จะออกแบบ slide แต่ละหน้า — เลือก type, layout, chart, media</p>
+    <p class="text-sm text-dark-900/60">ระบบอัจฉริยะ จะออกแบบ slide แต่ละหน้า — เลือก type, layout, chart, media</p>
   </div>
 
   <form onsubmit={handleSubmit} class="space-y-4">
@@ -76,7 +76,7 @@
       disabled={isGenerating}
       class="w-full bg-primary-600 hover:bg-primary-700 disabled:bg-dark-300 text-white font-semibold py-3 rounded-lg transition"
     >
-      {isGenerating ? '⚙️ AI กำลังออกแบบ Slide Blueprint...' : '✨ Generate Blueprint → Step 8'}
+      {isGenerating ? '⚙️ ระบบอัจฉริยะ กำลังออกแบบ Slide Blueprint...' : '✨ Generate Blueprint → Step 8'}
     </button>
   </form>
 

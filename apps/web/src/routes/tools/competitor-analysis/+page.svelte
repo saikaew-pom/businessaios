@@ -169,7 +169,7 @@
       });
       output = res.output;
     } catch (err: any) {
-      error = err.message || 'AI error';
+      error = err.message || 'Smart Engine error';
     } finally {
       isGenerating = false;
     }
@@ -343,7 +343,7 @@
           >
             <div class="text-lg mb-0.5">🤖</div>
             <div>Auto-find</div>
-            <div class="text-xs font-normal opacity-70">AI ช่วยเดาคู่แข่งที่น่าจะอยู่ในตลาด</div>
+            <div class="text-xs font-normal opacity-70">ระบบอัจฉริยะ ช่วยเดาคู่แข่งที่น่าจะอยู่ในตลาด</div>
           </button>
           <button
             type="button"
@@ -358,7 +358,7 @@
 
         {#if competitor_mode === 'auto_find'}
           <div class="bg-white/70 rounded-lg p-3 text-xs text-blue-800">
-            💡 <b>แนะนำสำหรับมือใหม่:</b> AI จะเดาคู่แข่ง 3-5 เจ้าที่น่าจะอยู่ในตลาดของคุณ (เช่น ร้านอาหารใต้ในหาดใหญ่) และระบุว่าเป็นการประมาณการณ์
+            💡 <b>แนะนำสำหรับมือใหม่:</b> ระบบอัจฉริยะ จะเดาคู่แข่ง 3-5 เจ้าที่น่าจะอยู่ในตลาดของคุณ (เช่น ร้านอาหารใต้ในหาดใหญ่) และระบุว่าเป็นการประมาณการณ์
           </div>
         {:else}
           <div class="space-y-2">
@@ -443,7 +443,7 @@
           disabled={isGenerating}
           class="btn-primary disabled:opacity-50"
         >
-          {isGenerating ? '⏳ AI กำลังวิเคราะห์...' : '🔍 วิเคราะห์คู่แข่ง'}
+          {isGenerating ? '⏳ ระบบอัจฉริยะ กำลังวิเคราะห์...' : '🔍 วิเคราะห์คู่แข่ง'}
         </button>
       </div>
     </div>

@@ -193,7 +193,7 @@
 </script>
 
 <svelte:head>
-  <title>{project?.name || 'Project'} — BusinessAiOs</title>
+  <title>{project?.name || 'Project'} — Business Smart OS</title>
 </svelte:head>
 
 <div class="min-h-screen bg-dark-50">
@@ -206,14 +206,14 @@
         </a>
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
-            <span class="text-white font-bold text-sm">M</span>
+            <span class="text-white font-bold text-sm">B</span>
           </div>
           <span class="font-bold">{project?.name || 'Loading...'}</span>
         </div>
       </div>
       <div class="flex items-center gap-3">
         {#if $fullUser}
-          <span class="text-xs px-2 py-0.5 rounded-full bg-primary-50 text-primary-700" title="AI credits คงเหลือ">⚡ {$fullUser.credits}</span>
+          <span class="text-xs px-2 py-0.5 rounded-full bg-primary-50 text-primary-700" title="ระบบอัจฉริยะ credits คงเหลือ">⚡ {$fullUser.credits}</span>
         {/if}
         <a href="/dashboard" class="text-sm text-dark-900/60 hover:text-dark-900">← กลับ</a>
         <a href="/profile" class="text-sm text-dark-900/60 hover:text-dark-900 hidden sm:inline">โปรไฟล์</a>
@@ -351,7 +351,7 @@
           <div>
             <label class="block text-sm font-medium mb-1.5">รีวิว/ข้อความจากลูกค้าจริง (50-100 รีวิว)</label>
             <p class="text-xs text-dark-900/60 mb-2">
-              Paste รีวิวจาก Google/Facebook/Wongnai มาให้ AI วิเคราะห์
+              Paste รีวิวจาก Google/Facebook/Wongnai มาให้ ระบบอัจฉริยะ วิเคราะห์
               <span class="block mt-1 text-primary-600">💡 ถ้ามี Brand Voice project / Pain Points project / saved tool result → กดแท็บ "🔗 ลิงก์" ด้านบนเพื่อดึงข้อมูลมาใช้</span>
             </p>
             <textarea
@@ -401,7 +401,7 @@
               <input type="number" bind:value={s6.team_size} min="1" class="w-full px-3 py-2 rounded-lg border border-dark-200" />
             </div>
             <div>
-              <label class="block text-sm font-medium mb-1.5">งบ AI tools (บาท/เดือน)</label>
+              <label class="block text-sm font-medium mb-1.5">งบ ระบบอัจฉริยะ tools (บาท/เดือน)</label>
               <input type="number" bind:value={s6.budget} min="0" class="w-full px-3 py-2 rounded-lg border border-dark-200" />
             </div>
             <div>
@@ -443,7 +443,7 @@
             disabled={isGenerating}
             class="btn-primary disabled:opacity-50"
           >
-            {isGenerating ? '⏳ AI กำลังคิด...' : '✨ Generate with AI'}
+            {isGenerating ? '⏳ ระบบอัจฉริยะกำลังคิด...' : '✨ ให้ระบบอัจฉริยะช่วยคิด'}
           </button>
         </div>
 

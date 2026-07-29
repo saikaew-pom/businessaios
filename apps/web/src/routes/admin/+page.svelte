@@ -72,7 +72,7 @@
 </script>
 
 <svelte:head>
-  <title>Admin — BusinessAiOs</title>
+  <title>Admin — Business Smart OS</title>
 </svelte:head>
 
 <div class="min-h-screen bg-dark-50">

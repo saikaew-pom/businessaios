@@ -48,7 +48,7 @@ export async function sendEmail(env: Bindings, payload: EmailPayload): Promise<E
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        sender: { name: 'BusinessAiOs', email: fromEmail },
+        sender: { name: 'Business Smart OS', email: fromEmail },
         to: [{ email: payload.to }],
         subject: payload.subject,
         htmlContent: payload.html,
@@ -142,7 +142,7 @@ const buttonStyle = `
 `;
 
 export function emailVerifyTemplate(opts: { name?: string; verifyUrl: string }): { subject: string; html: string } {
-  const subject = 'ยืนยันอีเมลของคุณ — BusinessAiOs';
+  const subject = 'ยืนยันอีเมลของคุณ — Business Smart OS';
   const html = `<!DOCTYPE html>
 <html><head><meta charset="UTF-8"></head>
 <body style="${baseStyle}">
@@ -152,20 +152,20 @@ export function emailVerifyTemplate(opts: { name?: string; verifyUrl: string }):
     </div>
     <h1 style="color: #0f172a; font-size: 24px; margin: 0 0 16px;">ยืนยันอีเมลของคุณ</h1>
     <p style="color: #64748b; font-size: 15px; line-height: 1.6;">สวัสดี${opts.name ? ' ' + opts.name : ''} 👋</p>
-    <p style="color: #64748b; font-size: 15px; line-height: 1.6;">ขอบคุณที่สมัครใช้งาน BusinessAiOs กรุณาคลิกปุ่มด้านล่างเพื่อยืนยันอีเมลและเริ่มใช้งาน</p>
+    <p style="color: #64748b; font-size: 15px; line-height: 1.6;">ขอบคุณที่สมัครใช้งาน Business Smart OS กรุณาคลิกปุ่มด้านล่างเพื่อยืนยันอีเมลและเริ่มใช้งาน</p>
     <div style="text-align: center; margin: 32px 0;">
       <a href="${opts.verifyUrl}" style="${buttonStyle}">ยืนยันอีเมล</a>
     </div>
     <p style="color: #94a3b8; font-size: 13px; line-height: 1.6;">ลิงก์นี้หมดอายุใน 24 ชั่วโมง หากคุณไม่ได้สมัคร ให้ละเลยอีเมลนี้</p>
     <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;">
-    <p style="color: #94a3b8; font-size: 12px; text-align: center;">BusinessAiOs · Operating System for AI Business</p>
+    <p style="color: #94a3b8; font-size: 12px; text-align: center;">Business Smart OS</p>
   </div>
 </body></html>`;
   return { subject, html };
 }
 
 export function passwordResetOTPTemplate(opts: { name?: string; otp: string; expiresInMinutes: number }): { subject: string; html: string } {
-  const subject = 'รหัสรีเซ็ตรหัสผ่าน — BusinessAiOs';
+  const subject = 'รหัสรีเซ็ตรหัสผ่าน — Business Smart OS';
   const html = `<!DOCTYPE html>
 <html><head><meta charset="UTF-8"></head>
 <body style="${baseStyle}">
@@ -181,14 +181,14 @@ export function passwordResetOTPTemplate(opts: { name?: string; otp: string; exp
     <p style="color: #94a3b8; font-size: 13px; text-align: center;">รหัสนี้หมดอายุใน ${opts.expiresInMinutes} นาที</p>
     <p style="color: #94a3b8; font-size: 13px; line-height: 1.6; margin-top: 24px;">หากคุณไม่ได้ขอรีเซ็ต ให้ละเลยอีเมลนี้ รหัสผ่านของคุณยังปลอดภัย</p>
     <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;">
-    <p style="color: #94a3b8; font-size: 12px; text-align: center;">BusinessAiOs · Operating System for AI Business</p>
+    <p style="color: #94a3b8; font-size: 12px; text-align: center;">Business Smart OS</p>
   </div>
 </body></html>`;
   return { subject, html };
 }
 
 export function loginOTPTemplate(opts: { name?: string; otp: string; expiresInMinutes: number }): { subject: string; html: string } {
-  const subject = 'รหัสยืนยันการเข้าสู่ระบบ — BusinessAiOs';
+  const subject = 'รหัสยืนยันการเข้าสู่ระบบ — Business Smart OS';
   const html = `<!DOCTYPE html>
 <html><head><meta charset="UTF-8"></head>
 <body style="${baseStyle}">
@@ -203,7 +203,7 @@ export function loginOTPTemplate(opts: { name?: string; otp: string; expiresInMi
     </div>
     <p style="color: #94a3b8; font-size: 13px; text-align: center;">รหัสนี้หมดอายุใน ${opts.expiresInMinutes} นาที</p>
     <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;">
-    <p style="color: #94a3b8; font-size: 12px; text-align: center;">BusinessAiOs</p>
+    <p style="color: #94a3b8; font-size: 12px; text-align: center;">Business Smart OS</p>
   </div>
 </body></html>`;
   return { subject, html };

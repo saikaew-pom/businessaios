@@ -185,7 +185,7 @@ White space: ${s.output?.white_space || '-'}`;
       });
       output = res.output;
     } catch (err: any) {
-      error = err.message || 'AI error';
+      error = err.message || 'Smart Engine error';
     } finally {
       isGenerating = false;
     }
@@ -371,7 +371,7 @@ White space: ${s.output?.white_space || '-'}`;
         <div>
           <label class="block text-xs font-semibold text-indigo-800 mb-1">💵 Revenue Model</label>
           <select bind:value={revenue_model} class="w-full px-2.5 py-1.5 rounded border border-indigo-200 text-sm">
-            <option value="">— เลือก / ปล่อยว่างให้ AI วิเคราะห์ —</option>
+            <option value="">— เลือก / ปล่อยว่างให้ ระบบอัจฉริยะ วิเคราะห์ —</option>
             {#each REVENUE_MODELS as r}
               <option value={r.id}>{r.label} — {r.desc}</option>
             {/each}
@@ -466,7 +466,7 @@ White space: ${s.output?.white_space || '-'}`;
 
       <div>
         <label class="block text-sm font-semibold mb-1.5">โน้ตเพิ่มเติม <span class="text-dark-900/50 font-normal">(optional)</span></label>
-        <textarea bind:value={user_notes} rows="2" placeholder="อะไรก็ได้ที่อยากให้ AI รู้เพิ่ม..." class="w-full px-3 py-2.5 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500"></textarea>
+        <textarea bind:value={user_notes} rows="2" placeholder="อะไรก็ได้ที่อยากให้ ระบบอัจฉริยะ รู้เพิ่ม..." class="w-full px-3 py-2.5 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500"></textarea>
       </div>
 
       {#if error}
@@ -475,7 +475,7 @@ White space: ${s.output?.white_space || '-'}`;
 
       <div class="pt-4 flex items-center justify-end border-t border-dark-100">
         <button onclick={handleGenerate} disabled={isGenerating} class="btn-primary disabled:opacity-50">
-          {isGenerating ? '⏳ AI กำลังออกแบบ BMC...' : '📊 ออกแบบ Business Model'}
+          {isGenerating ? '⏳ ระบบอัจฉริยะ กำลังออกแบบ BMC...' : '📊 ออกแบบ Business Model'}
         </button>
       </div>
     </div>

@@ -199,8 +199,8 @@
 </script>
 
 <svelte:head>
-  <title>BusinessAiOs Demo — Full Flow Pain → Offer</title>
-  <meta name="description" content="Self-running demo walkthrough ของ BusinessAiOs full chain Pain Point → Million Dollar Offer" />
+  <title>Business Smart OS Demo — Full Flow Pain → Offer</title>
+  <meta name="description" content="Self-running demo walkthrough ของ Business Smart OS full chain Pain Point → Million Dollar Offer" />
 </svelte:head>
 
 <div class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
@@ -208,8 +208,8 @@
   <div class="fixed top-0 left-0 right-0 z-50 bg-slate-900/80 backdrop-blur-md border-b border-white/10">
     <div class="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between">
       <a href="/" class="flex items-center gap-2 hover:opacity-80">
-        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">M</div>
-        <span class="font-bold">BusinessAiOs</span>
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">B</div>
+        <span class="font-bold">Business Smart OS</span>
         <span class="text-xs text-white/50 hidden sm:inline">Demo Walkthrough</span>
       </a>
       <div class="flex items-center gap-3">
@@ -457,7 +457,7 @@
             href="/register"
             class="inline-block px-8 py-4 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold text-lg shadow-2xl hover:scale-105 transition"
           >
-            🚀 เริ่มใช้ BusinessAiOs ฟรี — 100 credits
+            🚀 เริ่มใช้ Business Smart OS ฟรี — 200 credits
           </a>
         </div>
       {/if}

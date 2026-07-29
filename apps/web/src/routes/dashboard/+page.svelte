@@ -151,7 +151,7 @@
 </script>
 
 <svelte:head>
-  <title>Dashboard — BusinessAiOs</title>
+  <title>Dashboard — Business Smart OS</title>
 </svelte:head>
 
 <div class="min-h-screen bg-dark-50">
@@ -160,14 +160,14 @@
     <div class="container-narrow flex items-center justify-between h-16">
       <a href="/dashboard" class="flex items-center gap-2">
         <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
-          <span class="text-white font-bold text-sm">M</span>
+          <span class="text-white font-bold text-sm">B</span>
         </div>
-        <span class="font-bold text-lg">BusinessAiOs</span>
+        <span class="font-bold text-lg">Business Smart OS</span>
       </a>
 
       <div class="flex items-center gap-3">
         {#if $fullUser}
-          <a href="/billing" class="text-xs px-2 py-0.5 rounded-full bg-primary-50 text-primary-700 hover:bg-primary-100 font-semibold" title="เครดิต AI คงเหลือ — คลิกเพื่อเติม">
+          <a href="/billing" class="text-xs px-2 py-0.5 rounded-full bg-primary-50 text-primary-700 hover:bg-primary-100 font-semibold" title="เครดิต ระบบอัจฉริยะ คงเหลือ — คลิกเพื่อเติม">
             ⚡ {$fullUser.credits} credits
           </a>
         {/if}
@@ -208,10 +208,10 @@
     <div class="flex items-center justify-between mb-8 flex-wrap gap-4">
       <div>
         <h1 class="heading-2 mb-1">โปรเจกต์ของคุณ</h1>
-        <p class="text-dark-900/60">สร้าง Marketing System ด้วย AI ใน 7 ขั้นตอน</p>
+        <p class="text-dark-900/60">สร้าง Marketing System ด้วย ระบบอัจฉริยะ ใน 7 ขั้นตอน</p>
       </div>
       <div class="flex gap-2 flex-wrap">
-        <a href="/tools" class="btn-secondary">⚡ เครื่องมือ AI</a>
+        <a href="/tools" class="btn-secondary">⚡ เครื่องมือ ระบบอัจฉริยะ</a>
         <button onclick={() => showCreate = !showCreate} class="btn-primary">+ โปรเจกต์ใหม่</button>
       </div>
     </div>
@@ -221,7 +221,7 @@
       <div class="flex items-center gap-4">
         <div class="text-4xl">⚡</div>
         <div class="flex-1">
-          <div class="font-bold text-lg">เครื่องมือ AI แยกต่างหาก</div>
+          <div class="font-bold text-lg">เครื่องมือ ระบบอัจฉริยะ แยกต่างหาก</div>
           <div class="text-sm text-white/80">Pain Point Generator · Brand Voice Generator · Persona Builder · ใช้ได้โดยไม่ต้องสร้างโปรเจกต์</div>
         </div>
         <svg class="w-5 h-5 group-hover:translate-x-1 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>

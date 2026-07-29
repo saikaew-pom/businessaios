@@ -173,7 +173,7 @@
       });
       output = res.output;
     } catch (err: any) {
-      error = err.message || 'AI error';
+      error = err.message || 'Smart Engine error';
     } finally {
       isGenerating = false;
     }
@@ -327,7 +327,7 @@
 
       <div class="pt-4 flex items-center justify-end border-t border-dark-100">
         <button onclick={handleGenerate} disabled={isGenerating} class="btn-primary disabled:opacity-50">
-          {isGenerating ? '⏳ AI กำลังคิด...' : '🎙️ สร้าง Brand Voice'}
+          {isGenerating ? '⏳ ระบบอัจฉริยะ กำลังคิด...' : '🎙️ สร้าง Brand Voice'}
         </button>
       </div>
     </div>

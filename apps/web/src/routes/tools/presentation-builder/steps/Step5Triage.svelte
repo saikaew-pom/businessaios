@@ -1,7 +1,7 @@
 <script lang="ts">
   /**
    * Step 5: Content Triage (Must / Maybe / Kill)
-   * AI classifies source content items
+   * Smart Engine classifies source content items
    * User can move items between buckets
    */
   let { project, initialData, sourceData, step3Data, presets, onGenerate, isGenerating }: {
@@ -32,7 +32,7 @@
 <div class="space-y-6">
   <div>
     <h2 class="text-2xl font-bold mb-2">🎯 Content Triage</h2>
-    <p class="text-sm text-dark-900/60">AI จะจัดเนื้อหาเป็น 3 กลุ่ม: <strong>Must Have</strong> (ลงสไลด์) / <strong>Maybe</strong> (speaker notes) / <strong>Kill It</strong> (ตัดทิ้ง)</p>
+    <p class="text-sm text-dark-900/60">ระบบอัจฉริยะ จะจัดเนื้อหาเป็น 3 กลุ่ม: <strong>Must Have</strong> (ลงสไลด์) / <strong>Maybe</strong> (speaker notes) / <strong>Kill It</strong> (ตัดทิ้ง)</p>
   </div>
 
   <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">
@@ -62,7 +62,7 @@
       disabled={isGenerating || sourceItems.length === 0}
       class="w-full bg-primary-600 hover:bg-primary-700 disabled:bg-dark-300 text-white font-semibold py-3 rounded-lg transition"
     >
-      {isGenerating ? '⚙️ AI กำลังจัดกลุ่มเนื้อหา...' : '✨ Triage Content → Step 6'}
+      {isGenerating ? '⚙️ ระบบอัจฉริยะ กำลังจัดกลุ่มเนื้อหา...' : '✨ Triage Content → Step 6'}
     </button>
   </form>
 

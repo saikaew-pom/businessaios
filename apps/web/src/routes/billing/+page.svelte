@@ -125,7 +125,7 @@
 </script>
 
 <svelte:head>
-  <title>เติม Credits · BusinessAiOs</title>
+  <title>เติม Credits · Business Smart OS</title>
 </svelte:head>
 
 <div class="max-w-5xl mx-auto px-6 py-10">

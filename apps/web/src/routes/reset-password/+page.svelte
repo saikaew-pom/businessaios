@@ -41,16 +41,16 @@
 </script>
 
 <svelte:head>
-  <title>รีเซ็ตรหัสผ่าน — BusinessAiOs</title>
+  <title>รีเซ็ตรหัสผ่าน — Business Smart OS</title>
 </svelte:head>
 
 <div class="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-50 flex items-center justify-center p-4">
   <div class="w-full max-w-md">
     <a href="/" class="flex items-center gap-2 justify-center mb-8">
       <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
-        <span class="text-white font-bold">M</span>
+        <span class="text-white font-bold">B</span>
       </div>
-      <span class="font-bold text-xl">BusinessAiOs</span>
+      <span class="font-bold text-xl">Business Smart OS</span>
     </a>
 
     <div class="bg-white rounded-2xl shadow-xl border border-dark-100 p-8">
