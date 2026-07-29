@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-thai: 'Noto Sans Thai', 'Inter', sans-serif;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    font-family: var(--font-sans);
+  }
+
+  /* Thai content uses Noto Sans Thai */
+  :lang(th), .thai {
+    font-family: var(--font-thai);
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center px-6 py-3 rounded-lg bg-primary-500 text-white font-semibold shadow-lg shadow-primary-500/20 hover:bg-primary-600 hover:shadow-xl hover:shadow-primary-500/30 transition-all duration-200;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center px-6 py-3 rounded-lg border border-dark-200 text-dark-900 font-semibold hover:bg-dark-50 transition-colors;
+  }
+
+  .container-narrow {
+    @apply max-w-6xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .section {
+    @apply py-20 sm:py-28;
+  }
+
+  .heading-1 {
+    @apply text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight;
+  }
+
+  .heading-2 {
+    @apply text-3xl sm:text-4xl font-bold tracking-tight;
+  }
+
+  .heading-3 {
+    @apply text-2xl font-semibold;
+  }
+}

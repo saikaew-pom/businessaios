@@ -1,0 +1,8 @@
+name = "businessaios-web"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+account_id = "8d3b88fb762aaac5e9feca0421310dfb"
+
+[assets]
+directory = "../web/dist-deploy"
+binding = "ASSETS"

@@ -1,0 +1,459 @@
+<script lang="ts">
+  import { onMount } from 'svelte';
+  import { goto } from '$app/navigation';
+  import { page } from '$app/stores';
+  import { user, fullUser, logout, initAuth, isAuthed, refreshFullUser } from '$lib/auth';
+  import { listProjects, createProject, deleteProject, restoreProject, resetProject, sendVerification, type Project } from '$lib/api';
+  import StrategicToolsWidget from '$lib/StrategicToolsWidget.svelte';
+
+  let projects = $state<Project[]>([]);
+  let archivedProjects = $state<Project[]>([]);
+  let showArchive = $state(false);
+  let isLoading = $state(true);
+  let isCreating = $state(false);
+  let newName = $state('');
+  let newIndustry = $state('');
+  let newKind = $state('playbook');
+  let showCreate = $state(false);
+  let kindFilter = $state<string>('');
+  let error = $state('');
+  let verificationBanner = $state(false);
+  let sendingVerify = $state(false);
+  let verifySent = $state(false);
+  let projectMenu = $state<string | null>(null); // open menu for project id
+  let actionMessage = $state('');
+
+  onMount(async () => {
+    await initAuth();
+    if (!$isAuthed) {
+      goto('/login');
+      return;
+    }
+    if ($page.url.searchParams.get('verify') === '1') {
+      verificationBanner = true;
+    }
+    const kindParam = $page.url.searchParams.get('kind');
+    if (kindParam) kindFilter = kindParam;
+    await loadProjects();
+    // Close action menu on outside click
+    const handler = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('[data-action-menu]')) {
+        projectMenu = null;
+      }
+    };
+    document.addEventListener('click', handler);
+    return () => document.removeEventListener('click', handler);
+  });
+
+  async function loadProjects() {
+    isLoading = true;
+    try {
+      projects = await listProjects(kindFilter ? { kind: kindFilter } : undefined);
+      archivedProjects = await listProjects({ status: 'archived' });
+    } catch (err: any) {
+      error = err.message;
+    } finally {
+      isLoading = false;
+    }
+  }
+
+  async function handleArchive(id: string) {
+    if (!confirm('Archive project นี้? สามารถ restore กลับมาได้จากหน้า Archive')) return;
+    projectMenu = null;
+    try {
+      await deleteProject(id, false);
+      actionMessage = '✓ Archive แล้ว';
+      await loadProjects();
+      setTimeout(() => actionMessage = '', 3000);
+    } catch (err: any) {
+      error = err.message;
+    }
+  }
+
+  async function handleRestore(id: string) {
+    projectMenu = null;
+    try {
+      await restoreProject(id);
+      actionMessage = '✓ Restore แล้ว — กลับมาเป็น draft';
+      await loadProjects();
+      setTimeout(() => actionMessage = '', 3000);
+    } catch (err: any) {
+      error = err.message;
+    }
+  }
+
+  async function handleReset(id: string, name: string) {
+    if (!confirm(`Reset "${name}"?\n\nข้อมูลทั้งหมด (step 1-7) จะถูกลบ แต่ชื่อโปรเจกต์และ exports จะยังอยู่\n\nลบแล้วลบเลย ไม่สามารถ undo ได้`)) return;
+    projectMenu = null;
+    try {
+      await resetProject(id);
+      actionMessage = '✓ Reset แล้ว — เริ่ม step 1 ใหม่';
+      await loadProjects();
+      setTimeout(() => actionMessage = '', 3000);
+    } catch (err: any) {
+      error = err.message;
+    }
+  }
+
+  async function handlePermanentDelete(id: string, name: string) {
+    if (!confirm(`⚠️ ลบ "${name}" ถาวร?\n\nข้อมูลทั้งหมด (project, generations, exports) จะถูกลบออกจากระบบ\n\nลบแล้วลบเลย ไม่สามารถ undo ได้`)) return;
+    try {
+      await deleteProject(id, true);
+      actionMessage = '✓ ลบถาวรแล้ว';
+      await loadProjects();
+      setTimeout(() => actionMessage = '', 3000);
+    } catch (err: any) {
+      error = err.message;
+    }
+  }
+
+  async function handleCreate(e: Event) {
+    e.preventDefault();
+    if (!newName.trim() || isCreating) return;
+    isCreating = true;
+    error = '';
+    try {
+      const res = await createProject(newName.trim(), newIndustry.trim() || undefined, newKind);
+      goto(`/projects/${res.project.id}`);
+    } catch (err: any) {
+      error = err.message;
+      isCreating = false;
+    }
+  }
+
+  async function handleLogout() {
+    await logout();
+    goto('/');
+  }
+
+  async function handleResendVerify() {
+    if (sendingVerify) return;
+    sendingVerify = true;
+    try {
+      await sendVerification();
+      verifySent = true;
+    } catch (err: any) {
+      error = err.message;
+    } finally {
+      sendingVerify = false;
+    }
+  }
+
+  function stepLabel(step: number) {
+    const names = ['', 'Business DNA', 'Persona', 'Journey', 'Positioning', 'Content', 'Workflow', 'KPI'];
+    return names[step] || '-';
+  }
+
+  function formatDate(ts: number) {
+    return new Date(ts).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+</script>
+
+<svelte:head>
+  <title>Dashboard — BusinessAiOs</title>
+</svelte:head>
+
+<div class="min-h-screen bg-dark-50">
+  <!-- Header -->
+  <header class="bg-white border-b border-dark-100 sticky top-0 z-10">
+    <div class="container-narrow flex items-center justify-between h-16">
+      <a href="/dashboard" class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
+          <span class="text-white font-bold text-sm">M</span>
+        </div>
+        <span class="font-bold text-lg">BusinessAiOs</span>
+      </a>
+
+      <div class="flex items-center gap-3">
+        {#if $fullUser}
+          <a href="/billing" class="text-xs px-2 py-0.5 rounded-full bg-primary-50 text-primary-700 hover:bg-primary-100 font-semibold" title="เครดิต AI คงเหลือ — คลิกเพื่อเติม">
+            ⚡ {$fullUser.credits} credits
+          </a>
+        {/if}
+        {#if $fullUser?.role === 'admin'}
+          <a href="/admin" class="text-sm text-amber-600 hover:text-amber-700 font-semibold">🛡️ Admin</a>
+        {/if}
+        <a href="/billing" class="text-sm text-dark-900/70 hover:text-dark-900 font-semibold">💰 เติมเงิน</a>
+        <a href="/profile" class="text-sm text-dark-900/70 hover:text-dark-900">โปรไฟล์</a>
+        <a href="/tools/saved" class="text-sm text-dark-900/70 hover:text-dark-900">📂 บันทึก</a>
+        {#if $user}
+          <span class="text-sm text-dark-900/60 hidden sm:inline">{$user.email}</span>
+          <button onclick={handleLogout} class="text-sm text-dark-900/70 hover:text-dark-900">ออกจากระบบ</button>
+        {/if}
+      </div>
+    </div>
+  </header>
+
+  <main class="container-narrow py-10">
+    {#if false && $fullUser && !$fullUser.email_verified}
+      <div class="mb-6 p-4 rounded-xl bg-amber-50 border border-amber-200 flex items-start gap-3">
+        <span class="text-2xl">📧</span>
+        <div class="flex-1">
+          <div class="font-semibold text-amber-900">กรุณายืนยันอีเมล</div>
+          <div class="text-sm text-amber-800 mt-1">
+            ส่งลิงก์ยืนยันไปที่ <b>{$fullUser.email}</b> แล้ว กรุณาคลิกลิงก์ในอีเมลเพื่อเริ่มใช้งาน
+            {#if verifySent}
+              <span class="text-green-700 ml-2">✓ ส่งใหม่แล้ว</span>
+            {/if}
+          </div>
+          <button onclick={handleResendVerify} disabled={sendingVerify} class="mt-2 text-sm text-amber-700 hover:underline font-semibold disabled:opacity-50">
+            {sendingVerify ? 'กำลังส่ง...' : 'ส่งอีเมลยืนยันอีกครั้ง'}
+          </button>
+        </div>
+      </div>
+    {/if}
+
+    <!-- Hero -->
+    <div class="flex items-center justify-between mb-8 flex-wrap gap-4">
+      <div>
+        <h1 class="heading-2 mb-1">โปรเจกต์ของคุณ</h1>
+        <p class="text-dark-900/60">สร้าง Marketing System ด้วย AI ใน 7 ขั้นตอน</p>
+      </div>
+      <div class="flex gap-2 flex-wrap">
+        <a href="/tools" class="btn-secondary">⚡ เครื่องมือ AI</a>
+        <button onclick={() => showCreate = !showCreate} class="btn-primary">+ โปรเจกต์ใหม่</button>
+      </div>
+    </div>
+
+    <!-- Tools banner -->
+    <a href="/tools" class="block mb-6 bg-gradient-to-r from-primary-500 to-primary-700 text-white rounded-2xl p-5 hover:shadow-lg transition group">
+      <div class="flex items-center gap-4">
+        <div class="text-4xl">⚡</div>
+        <div class="flex-1">
+          <div class="font-bold text-lg">เครื่องมือ AI แยกต่างหาก</div>
+          <div class="text-sm text-white/80">Pain Point Generator · Brand Voice Generator · Persona Builder · ใช้ได้โดยไม่ต้องสร้างโปรเจกต์</div>
+        </div>
+        <svg class="w-5 h-5 group-hover:translate-x-1 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+      </div>
+    </a>
+
+    <StrategicToolsWidget />
+
+    {#if error}
+      <div class="mb-6 p-4 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
+        {error}
+      </div>
+    {/if}
+
+    {#if showCreate}
+      <div class="bg-white rounded-2xl border border-dark-100 p-6 mb-8">
+        <h2 class="font-semibold mb-4">สร้างโปรเจกต์ใหม่</h2>
+        <form onsubmit={handleCreate} class="space-y-3">
+          <input
+            type="text"
+            bind:value={newName}
+            required
+            placeholder="ชื่อธุรกิจ (เช่น ก๋วยเตี๋ยวบ้านหมู)"
+            class="w-full px-4 py-2.5 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+          />
+          <input
+            type="text"
+            bind:value={newIndustry}
+            placeholder="อุตสาหกรรม (เช่น F&B, คลินิก, อสังหา) — ไม่บังคับ"
+            class="w-full px-4 py-2.5 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+          />
+          <div>
+            <label class="block text-sm font-medium mb-1.5">ประเภทโปรเจกต์</label>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {#each [
+                { value: 'playbook', label: '📊 Playbook', desc: '7-step ครบ' },
+                { value: 'brand_voice', label: '🎙️ Brand Voice', desc: 'เสียงแบรนด์' },
+                { value: 'pain_points', label: '🎯 Pain Points', desc: 'Pain point' },
+                { value: 'persona', label: '👥 Persona', desc: 'Customer persona' },
+              ] as opt}
+                <button
+                  type="button"
+                  onclick={() => newKind = opt.value}
+                  class="text-left px-3 py-2 rounded-lg border-2 transition text-sm {newKind === opt.value ? 'border-primary-500 bg-primary-50' : 'border-dark-200 hover:border-dark-300'}"
+                >
+                  <div class="font-semibold">{opt.label}</div>
+                  <div class="text-xs text-dark-900/60">{opt.desc}</div>
+                </button>
+              {/each}
+            </div>
+          </div>
+          <div class="flex gap-2">
+            <button type="submit" disabled={isCreating} class="btn-primary disabled:opacity-50">
+              {isCreating ? 'กำลังสร้าง...' : 'สร้าง'}
+            </button>
+            <button type="button" onclick={() => showCreate = false} class="btn-secondary">ยกเลิก</button>
+          </div>
+        </form>
+      </div>
+    {/if}
+
+    {#if isLoading}
+      <div class="text-center py-20 text-dark-900/60">กำลังโหลด...</div>
+    {:else if projects.length === 0}
+      <div class="bg-white rounded-2xl border border-dark-100 p-12 text-center">
+        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-primary-50 flex items-center justify-center">
+          <span class="text-3xl">{kindFilter ? ({ brand_voice: '🎙️', pain_points: '🎯', persona: '👥', competitor_analysis: '🔍', jtbd_generator: '🎯', value_proposition_canvas: '💎', business_model_canvas: '📊', million_dollar_offer: '💎', objection_handler: '🛡️', hook_library: '🎣' } as any)[kindFilter] || '📋' : '📋'}</span>
+        </div>
+        <h3 class="font-semibold mb-2">ยังไม่มีโปรเจกต์{kindFilter ? `ประเภท ${({ brand_voice: 'Brand Voice', pain_points: 'Pain Points', persona: 'Persona', competitor_analysis: 'Competitor', jtbd_generator: 'JTBD', value_proposition_canvas: 'VPC', business_model_canvas: 'BMC', million_dollar_offer: 'Offer', objection_handler: 'Objections', hook_library: 'Hooks' } as any)[kindFilter] || ''}` : ''}</h3>
+        <p class="text-sm text-dark-900/60 mb-6">เริ่มสร้างโปรเจกต์แรกของคุณ</p>
+        <button onclick={() => showCreate = true} class="btn-primary">+ สร้างโปรเจกต์แรก</button>
+      </div>
+    {:else}
+      <!-- Kind filter -->
+      <div class="flex items-center gap-2 mb-4 flex-wrap">
+        <button onclick={() => { kindFilter = ''; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === '' ? 'bg-primary-600 text-white' : 'bg-white border border-dark-200 hover:border-primary-300'}">
+          ทั้งหมด
+        </button>
+        <button onclick={() => { kindFilter = 'playbook'; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === 'playbook' ? 'bg-primary-600 text-white' : 'bg-white border border-dark-200 hover:border-primary-300'}">
+          📊 Playbook
+        </button>
+        <button onclick={() => { kindFilter = 'brand_voice'; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === 'brand_voice' ? 'bg-primary-600 text-white' : 'bg-white border border-dark-200 hover:border-primary-300'}">
+          🎙️ Brand Voice
+        </button>
+        <button onclick={() => { kindFilter = 'pain_points'; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === 'pain_points' ? 'bg-primary-600 text-white' : 'bg-white border border-dark-200 hover:border-primary-300'}">
+          🎯 Pain Points
+        </button>
+        <button onclick={() => { kindFilter = 'persona'; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === 'persona' ? 'bg-primary-600 text-white' : 'bg-white border border-dark-200 hover:border-primary-300'}">
+          👥 Persona
+        </button>
+        <button onclick={() => { kindFilter = 'competitor_analysis'; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === 'competitor_analysis' ? 'bg-primary-600 text-white' : 'bg-white border border-dark-200 hover:border-primary-300'}">
+          🔍 Competitor
+        </button>
+        <button onclick={() => { kindFilter = 'jtbd_generator'; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === 'jtbd_generator' ? 'bg-primary-600 text-white' : 'bg-white border border-dark-200 hover:border-primary-300'}">
+          🎯 JTBD
+        </button>
+        <button onclick={() => { kindFilter = 'value_proposition_canvas'; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === 'value_proposition_canvas' ? 'bg-primary-600 text-white' : 'bg-white border border-dark-200 hover:border-primary-300'}">
+          💎 VPC
+        </button>
+        <button onclick={() => { kindFilter = 'business_model_canvas'; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === 'business_model_canvas' ? 'bg-primary-600 text-white' : 'bg-white border border-dark-200 hover:border-primary-300'}">
+          📊 BMC
+        </button>
+        <button onclick={() => { kindFilter = 'million_dollar_offer'; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === 'million_dollar_offer' ? 'bg-primary-600 text-white' : 'bg-white border border-dark-200 hover:border-primary-300'}">
+          💎 Offer
+        </button>
+        <button onclick={() => { kindFilter = 'objection_handler'; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === 'objection_handler' ? 'bg-primary-600 text-white' : 'bg-white border border-dark-200 hover:border-primary-300'}">
+          🛡️ Objections
+        </button>
+        <button onclick={() => { kindFilter = 'hook_library'; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === 'hook_library' ? 'bg-primary-600 text-white' : 'bg-white border border-dark-200 hover:border-primary-300'}">
+          🎣 Hooks
+        </button>
+      </div>
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {#each projects as project}
+          {@const kindMeta = ({ playbook: { icon: '📊', color: 'primary' }, brand_voice: { icon: '🎙️', color: 'purple' }, pain_points: { icon: '🎯', color: 'red' }, persona: { icon: '👥', color: 'green' }, competitor_analysis: { icon: '🔍', color: 'orange' }, jtbd_generator: { icon: '🎯', color: 'purple' }, value_proposition_canvas: { icon: '💎', color: 'pink' }, business_model_canvas: { icon: '📊', color: 'indigo' } } as any)[project.kind || 'playbook']}
+          <div class="relative bg-white rounded-2xl border border-dark-100 p-5 hover:border-primary-200 hover:shadow-lg transition group">
+            <a href={`/projects/${project.id}`} class="block">
+              <div class="flex items-start justify-between mb-3 pr-8">
+                <div class="w-10 h-10 rounded-lg bg-{kindMeta.color}-50 flex items-center justify-center text-xl">
+                  {kindMeta.icon}
+                </div>
+                <div class="flex flex-col items-end gap-1">
+                  <span class="text-xs px-2 py-0.5 rounded-full bg-{kindMeta.color}-50 text-{kindMeta.color}-700">{({ playbook: 'Playbook', brand_voice: 'Brand Voice', pain_points: 'Pain Points', persona: 'Persona', competitor_analysis: 'Competitor', jtbd_generator: 'JTBD', value_proposition_canvas: 'VPC', business_model_canvas: 'BMC' } as any)[project.kind || 'playbook']}</span>
+                  {#if project.status === 'completed'}
+                    <span class="text-xs px-2 py-0.5 rounded-full bg-green-50 text-green-700">เสร็จ</span>
+                  {:else}
+                    <span class="text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-700">ร่าง</span>
+                  {/if}
+                </div>
+              </div>
+              <h3 class="font-semibold mb-1 group-hover:text-primary-600 transition">{project.name}</h3>
+              <p class="text-sm text-dark-900/60 mb-3">{project.industry || 'ไม่ระบุอุตสาหกรรม'}</p>
+              <div class="flex items-center justify-between text-xs text-dark-900/50">
+                <span>ขั้นที่ {project.current_step} / 7 · {stepLabel(project.current_step)}</span>
+                <span>{formatDate(project.updated_at)}</span>
+              </div>
+              <!-- Progress bar -->
+              {#if (project.kind || 'playbook') === 'playbook'}
+                <div class="mt-3 h-1.5 bg-dark-100 rounded-full overflow-hidden">
+                  <div class="h-full bg-primary-500 transition-all" style="width: {((project.current_step - 1) / 7) * 100}%"></div>
+                </div>
+              {/if}
+            </a>
+            <!-- Actions menu button (top-right corner, z-20) -->
+            <div data-action-menu class="absolute top-2 right-2 z-20">
+              <button
+                onclick={(e) => { e.preventDefault(); e.stopPropagation(); projectMenu = projectMenu === project.id ? null : project.id; }}
+                class="p-1.5 rounded-lg hover:bg-dark-100 text-dark-900/40 hover:text-dark-900 transition-colors"
+                title="Actions"
+                aria-label="Project actions"
+              >
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
+                </svg>
+              </button>
+              {#if projectMenu === project.id}
+                <div class="absolute right-0 mt-1 w-48 bg-white border border-dark-200 rounded-lg shadow-xl z-30 py-1 text-sm">
+                  <button
+                    onclick={(e) => { e.stopPropagation(); handleReset(project.id, project.name); }}
+                    class="w-full text-left px-3 py-2 hover:bg-dark-50 flex items-center gap-2"
+                  >
+                    <span>🔄</span> Reset ใหม่
+                  </button>
+                  <button
+                    onclick={(e) => { e.stopPropagation(); handleArchive(project.id); }}
+                    class="w-full text-left px-3 py-2 hover:bg-dark-50 flex items-center gap-2 text-amber-700"
+                  >
+                    <span>📦</span> Archive
+                  </button>
+                  <button
+                    onclick={(e) => { e.stopPropagation(); if (confirm('ลบถาวร "' + project.name + '" ?\n\n⚠️ ลบแล้วไม่สามารถ undo')) handlePermanentDelete(project.id, project.name); }}
+                    class="w-full text-left px-3 py-2 hover:bg-red-50 flex items-center gap-2 text-red-700 border-t border-dark-100"
+                  >
+                    <span>🗑️</span> ลบถาวร
+                  </button>
+                </div>
+              {/if}
+            </div>
+          </div>
+        {/each}
+      </div>
+
+      <!-- Action message -->
+      {#if actionMessage}
+        <div class="mt-4 p-3 rounded-lg bg-green-50 border border-green-200 text-sm text-green-700 text-center">
+          {actionMessage}
+        </div>
+      {/if}
+
+      <!-- Archive section -->
+      {#if archivedProjects.length > 0}
+        <div class="mt-8 pt-6 border-t border-dark-200">
+          <button
+            onclick={() => (showArchive = !showArchive)}
+            class="flex items-center gap-2 text-sm font-semibold text-dark-900/70 hover:text-dark-900"
+          >
+            <span>{showArchive ? '▼' : '▶'}</span>
+            <span>📦 Archive ({archivedProjects.length})</span>
+          </button>
+
+          {#if showArchive}
+            <div class="mt-3 grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {#each archivedProjects as p}
+                <div class="bg-dark-50 border border-dark-200 rounded-xl p-4 opacity-80">
+                  <div class="flex items-start justify-between mb-2">
+                    <h4 class="font-medium text-dark-900 line-clamp-1">{p.name}</h4>
+                    <span class="text-xs text-dark-900/50">📦</span>
+                  </div>
+                  <p class="text-xs text-dark-900/60 mb-3">{p.industry || 'ไม่ระบุอุตสาหกรรม'}</p>
+                  <div class="text-xs text-dark-900/50 mb-3">
+                    Archived {formatDate(p.updated_at)}
+                  </div>
+                  <div class="flex gap-2">
+                    <button
+                      onclick={() => handleRestore(p.id)}
+                      class="flex-1 text-xs px-2 py-1.5 rounded bg-primary-600 text-white hover:bg-primary-700"
+                    >
+                      ↩ Restore
+                    </button>
+                    <button
+                      onclick={() => handlePermanentDelete(p.id, p.name)}
+                      class="flex-1 text-xs px-2 py-1.5 rounded bg-red-50 text-red-700 hover:bg-red-100 border border-red-200"
+                    >
+                      🗑️ ลบถาวร
+                    </button>
+                  </div>
+                </div>
+              {/each}
+            </div>
+          {/if}
+        </div>
+      {/if}
+    {/if}
+  </main>
+</div>

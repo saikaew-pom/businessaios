@@ -1,0 +1,245 @@
+<script lang="ts">
+  import { onMount } from 'svelte';
+  import { listSavedTools, type ToolSave } from '$lib/api';
+  import {
+    getNextTools,
+    STRATEGIC_CHAIN,
+    TACTICAL_TOOLS,
+    getUserChainOrder,
+    saveUserChainOrder,
+    resetUserChainOrder,
+    type ChainTool
+  } from '$lib/toolChain';
+
+  let saves = $state<ToolSave[]>([]);
+  let isLoading = $state(true);
+  let error = $state('');
+
+  // Chain state
+  let chain = $state<ChainTool[]>(STRATEGIC_CHAIN);
+  let isEditing = $state(false);
+  let dirtyChain = $state<ChainTool[]>([]);
+  let saveMsg = $state('');
+
+  // Tool meta (always from default — colors don't change)
+  const toolMeta: Record<string, { label: string; emoji: string; color: string }> = {};
+  [...STRATEGIC_CHAIN, ...TACTICAL_TOOLS].forEach(t => {
+    toolMeta[t.id] = { label: t.label, emoji: t.emoji, color: t.color };
+  });
+
+  onMount(async () => {
+    chain = getUserChainOrder();
+    try {
+      const all = await listSavedTools();
+      saves = all.filter(s => !s.archived).slice(0, 3);
+    } catch (e: any) {
+      error = e?.message || 'โหลดข้อมูลไม่สำเร็จ';
+    } finally {
+      isLoading = false;
+    }
+  });
+
+  function timeAgo(ts: number): string {
+    if (!ts) return '';
+    const diff = Date.now() - ts;
+    const min = Math.floor(diff / 60000);
+    if (min < 1) return 'เมื่อกี้';
+    if (min < 60) return `${min} นาทีที่แล้ว`;
+    const hr = Math.floor(min / 60);
+    if (hr < 24) return `${hr} ชม.ที่แล้ว`;
+    const d = Math.floor(hr / 24);
+    if (d < 30) return `${d} วันที่แล้ว`;
+    return new Date(ts).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
+  }
+
+  function getNextSuggestion(toolType: string): ChainTool | null {
+    const idx = chain.findIndex(t => t.id === toolType);
+    if (idx === -1 || idx === chain.length - 1) return null;
+    return chain[idx + 1];
+  }
+
+  function startEdit() {
+    dirtyChain = [...chain];
+    isEditing = true;
+    saveMsg = '';
+  }
+
+  function moveUp(idx: number) {
+    if (idx === 0) return;
+    const next = [...dirtyChain];
+    [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
+    dirtyChain = next;
+  }
+
+  function moveDown(idx: number) {
+    if (idx === dirtyChain.length - 1) return;
+    const next = [...dirtyChain];
+    [next[idx], next[idx + 1]] = [next[idx + 1], next[idx]];
+    dirtyChain = next;
+  }
+
+  function saveOrder() {
+    saveUserChainOrder(dirtyChain);
+    chain = [...dirtyChain];
+    isEditing = false;
+    saveMsg = '✓ บันทึกแล้ว';
+    setTimeout(() => { saveMsg = ''; }, 2000);
+  }
+
+  function cancelEdit() {
+    isEditing = false;
+  }
+
+  function resetDefault() {
+    if (!confirm('Reset chain เป็นค่า default (Pain → Persona → JTBD → VPC → BMC → Offer)?')) return;
+    resetUserChainOrder();
+    chain = [...STRATEGIC_CHAIN];
+    isEditing = false;
+    saveMsg = '✓ Reset เป็น default แล้ว';
+    setTimeout(() => { saveMsg = ''; }, 2000);
+  }
+</script>
+
+<div class="bg-gradient-to-br from-indigo-50 via-blue-50 to-white border-2 border-indigo-200 rounded-2xl p-5 mb-6 shadow-sm">
+  <div class="flex items-center justify-between mb-4">
+    <div class="flex items-center gap-2">
+      <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-lg">
+        🧭
+      </div>
+      <div>
+        <h2 class="text-base font-bold text-dark-900">Strategic Tools</h2>
+        <p class="text-xs text-dark-900/60">3 saves ล่าสุด + tool ถัดไปใน chain</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      {#if saveMsg}
+        <span class="text-xs text-green-700 font-semibold">{saveMsg}</span>
+      {/if}
+      <a href="/tools/saved" class="text-xs text-indigo-600 hover:text-indigo-800 font-semibold">
+        ดูทั้งหมด →
+      </a>
+    </div>
+  </div>
+
+  {#if isLoading}
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      {#each [1, 2, 3] as _}
+        <div class="bg-white/60 rounded-xl p-3 border border-dark-100 animate-pulse">
+          <div class="h-4 bg-dark-100 rounded w-3/4 mb-2"></div>
+          <div class="h-3 bg-dark-100 rounded w-1/2"></div>
+        </div>
+      {/each}
+    </div>
+  {:else if error}
+    <div class="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-3">
+      {error}
+    </div>
+  {:else if saves.length === 0}
+    <div class="text-center py-6 text-dark-900/60">
+      <div class="text-3xl mb-2">🚀</div>
+      <div class="text-sm">ยังไม่มี saved tool — เริ่มจาก <a href="/tools/pain-generator" class="text-indigo-600 font-semibold hover:underline">Pain Point</a></div>
+    </div>
+  {:else}
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      {#each saves as save (save.id)}
+        {@const meta = toolMeta[save.tool_type] || { label: save.tool_type, emoji: '📋', color: '#6B7280' }}
+        {@const nextTool = getNextSuggestion(save.tool_type)}
+        <div class="bg-white rounded-xl border-2 border-dark-100 p-3 hover:shadow-md transition-shadow">
+          <div class="flex items-start justify-between gap-2 mb-2">
+            <div
+              class="flex items-center gap-1.5 px-2 py-1 rounded-md text-white text-[10px] font-bold"
+              style="background: {meta.color};"
+            >
+              <span>{meta.emoji}</span>
+              <span>{meta.label}</span>
+            </div>
+            <span class="text-[10px] text-dark-900/50 whitespace-nowrap">{timeAgo(save.updated_at || save.created_at)}</span>
+          </div>
+
+          <a href="/tools/saved" class="block text-sm font-semibold text-dark-900 hover:text-indigo-600 line-clamp-2 mb-2 min-h-[2.5rem]" title={save.title}>
+            {save.title || '(ไม่มีชื่อ)'}
+          </a>
+
+          {#if nextTool}
+            <a
+              href={`/tools/${nextTool.slug}`}
+              class="flex items-center gap-1.5 mt-2 px-2 py-1.5 rounded-md bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 hover:border-indigo-400 transition-colors"
+              title="ทำเครื่องมือถัดไป"
+            >
+              <span class="text-[10px] text-dark-900/60 font-semibold">NEXT →</span>
+              <span style="color: {nextTool.color};" class="text-sm">{nextTool.emoji}</span>
+              <span class="text-xs font-semibold text-dark-800">{nextTool.label}</span>
+            </a>
+          {:else if STRATEGIC_CHAIN.find(t => t.id === save.tool_type)}
+            <div class="flex items-center gap-1.5 mt-2 px-2 py-1.5 rounded-md bg-green-50 border border-green-200">
+              <span class="text-[10px] text-green-700 font-semibold">✅ CHAIN COMPLETE</span>
+            </div>
+          {:else}
+            <div class="text-[10px] text-dark-900/50 mt-2 italic">Tactical tool</div>
+          {/if}
+        </div>
+      {/each}
+    </div>
+
+    <div class="mt-4 pt-4 border-t border-indigo-100">
+      <div class="flex items-center justify-between mb-2">
+        <div class="text-[10px] text-dark-900/50 font-semibold uppercase tracking-wide">Strategic Chain Flow</div>
+        {#if !isEditing}
+          <div class="flex items-center gap-2">
+            <button onclick={startEdit} class="text-[10px] text-indigo-600 hover:text-indigo-800 font-semibold">
+              ✏️ แก้ไขลำดับ
+            </button>
+            <button onclick={resetDefault} class="text-[10px] text-dark-500 hover:text-dark-700 font-semibold">
+              ↺ default
+            </button>
+          </div>
+        {/if}
+      </div>
+
+      {#if isEditing}
+        <!-- Editable chain -->
+        <div class="bg-white border-2 border-indigo-300 rounded-lg p-3 mb-2">
+          <div class="text-xs text-dark-700 mb-2">⬆️⬇️ เรียงลำดับ chain ตามที่คุณต้องการ</div>
+          <div class="space-y-1.5">
+            {#each dirtyChain as t, i (t.id)}
+              <div class="flex items-center gap-2 px-2 py-1.5 rounded-md bg-dark-50 border border-dark-100">
+                <div class="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold" style="background: {t.color};">
+                  {i + 1}
+                </div>
+                <span class="text-sm">{t.emoji}</span>
+                <span class="text-xs font-semibold text-dark-800 flex-1">{t.label}</span>
+                <div class="flex items-center gap-0.5">
+                  <button onclick={() => moveUp(i)} disabled={i === 0} class="w-6 h-6 rounded text-xs hover:bg-dark-200 disabled:opacity-30" title="ย้ายขึ้น">↑</button>
+                  <button onclick={() => moveDown(i)} disabled={i === dirtyChain.length - 1} class="w-6 h-6 rounded text-xs hover:bg-dark-200 disabled:opacity-30" title="ย้ายลง">↓</button>
+                </div>
+              </div>
+            {/each}
+          </div>
+          <div class="flex items-center gap-2 mt-3 pt-2 border-t border-dark-100">
+            <button onclick={saveOrder} class="text-xs px-3 py-1.5 rounded bg-indigo-600 text-white hover:bg-indigo-700 font-semibold">
+              💾 บันทึก
+            </button>
+            <button onclick={cancelEdit} class="text-xs px-3 py-1.5 rounded bg-white border border-dark-200 hover:bg-dark-50 font-semibold">
+              ยกเลิก
+            </button>
+          </div>
+        </div>
+      {:else}
+        <!-- Display chain -->
+        <div class="flex items-center gap-1 text-[11px] flex-wrap">
+          {#each chain as t, i (t.id)}
+            {@const isDone = saves.some(s => s.tool_type === t.id)}
+            <span
+              class="px-1.5 py-0.5 rounded {isDone ? 'bg-green-100 text-green-800 font-semibold' : 'bg-white border border-dark-200 text-dark-900/50'}"
+            >
+              {t.emoji} {t.label}
+            </span>
+            {#if i < chain.length - 1}
+              <span class="text-dark-300">→</span>
+            {/if}
+          {/each}
+        </div>
+      {/if}
+    </div>
+  {/if}
+</div>

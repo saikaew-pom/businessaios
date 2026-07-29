@@ -1,0 +1,20 @@
+{
+  "name": "marketingaios",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Operating System for AI Marketing",
+  "scripts": {
+    "dev": "echo 'Run: cd apps/web && npm run dev (or apps/api && npm run dev)'",
+    "build": "cd apps/web && npm run build",
+    "deploy": "cd apps/api && npm run deploy && cd ../web && npm run deploy",
+    "lint": "echo 'No linter configured'",
+    "clean": "rm -rf node_modules apps/*/node_modules apps/*/.svelte-kit apps/*/dist"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Secrets — never commit real API keys / tokens
+.env
+.env.local
+.env.*.local
+.dev.vars
+*.dev.vars
+
+# Cloudflare Workers / Wrangler local state (D1/R2/KV emulation, build cache)
+.wrangler/
+
+# SvelteKit / Vite build output
+.svelte-kit/
+dist/
+dist-deploy/
+build/
+.vercel/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# OS
+.DS_Store
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea/

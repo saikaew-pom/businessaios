@@ -1,0 +1,38 @@
+name = "businessaios-api"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+compatibility_flags = ["nodejs_compat"]
+account_id = "8d3b88fb762aaac5e9feca0421310dfb"
+
+# D1 Database
+[[d1_databases]]
+binding = "DB"
+database_name = "businessaios-db"
+database_id = "d545a3fc-09ec-40c1-99f2-2dd239faedb0"
+migrations_dir = "migrations"
+
+# R2 Bucket (file storage)
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "businessaios-exports"
+
+# Environment variables
+[vars]
+ALLOWED_ORIGIN = "https://businessaios-web.pskspace.workers.dev,https://businessaios.pages.dev,https://businessaios-web.pskspace.workers.dev"
+RESEND_FROM_EMAIL = "onboarding@resend.dev"
+NOTIFY_EMAIL = "watcharapong.saikaew@gmail.com"
+MINIMAX_MODEL = "MiniMax-M3"
+TURNSTILE_SITE_KEY = "0x4AAAAAAD-Tp8_cHI9Xl8wM"
+TURNSTILE_REQUIRED = "false"
+STRIPE_PUBLISHABLE_KEY = "pk_test_xxx"  # set via wrangler secret in production
+
+# Secrets (set via `wrangler secret put NAME`)
+# RESEND_API_KEY - email notifications
+# MINIMAX_API_KEY - AI API
+# MINIMAX_GROUP_ID - AI group ID
+# SESSION_SECRET - cookie signing (auto-generated, fallback to dev-secret)
+# STRIPE_SECRET_KEY - Stripe API (PromptPay payments) — set via wrangler secret
+# STRIPE_WEBHOOK_SECRET - Stripe webhook signing secret — set via wrangler secret
+
+[observability]
+enabled = true
