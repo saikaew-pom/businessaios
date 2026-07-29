@@ -193,9 +193,9 @@
   <title>Dashboard — Business Smart OS</title>
 </svelte:head>
 
-<div class="min-h-screen bg-dark-50">
+<div class="min-h-screen bg-dark-50 dark:bg-dark-950 dark:text-dark-50">
   <!-- Header -->
-  <header class="bg-white border-b border-dark-100 sticky top-0 z-10">
+  <header class="bg-white dark:bg-dark-800 border-b border-dark-100 dark:border-dark-700 sticky top-0 z-10">
     <div class="container-narrow flex items-center justify-between h-16">
       <a href="/dashboard" class="flex items-center gap-2">
         <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
@@ -206,22 +206,22 @@
 
       <div class="flex items-center gap-3">
         {#if $fullUser}
-          <a href="/billing" class="text-xs px-2 py-0.5 rounded-full bg-primary-50 text-primary-700 hover:bg-primary-100 font-semibold" title="เครดิต ระบบอัจฉริยะ คงเหลือ — คลิกเพื่อเติม">
+          <a href="/billing" class="text-xs px-2 py-0.5 rounded-full bg-primary-50 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 hover:bg-primary-100 dark:hover:bg-primary-900/50 font-semibold" title="เครดิต ระบบอัจฉริยะ คงเหลือ — คลิกเพื่อเติม">
             ⚡ {$fullUser.credits} credits
           </a>
         {/if}
         {#if $fullUser?.role === 'admin'}
-          <a href="/admin" class="text-sm text-amber-600 hover:text-amber-700 font-semibold">🛡️ Admin</a>
+          <a href="/admin" class="text-sm text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 font-semibold">🛡️ Admin</a>
         {/if}
         <!-- Everything below is reachable via the mobile bottom nav (โปรไฟล์ → account links, logout) -->
         <div class="hidden sm:flex items-center gap-3">
-          <a href="/billing" class="text-sm text-dark-900/70 hover:text-dark-900 font-semibold">💰 เติมเงิน</a>
-          <a href="/profile" class="text-sm text-dark-900/70 hover:text-dark-900">โปรไฟล์</a>
-          <a href="/tools/saved" class="text-sm text-dark-900/70 hover:text-dark-900">📂 บันทึก</a>
-          <a href="/developers" class="text-sm text-dark-900/70 hover:text-dark-900">🔌 Developers</a>
+          <a href="/billing" class="text-sm text-dark-900/70 dark:text-dark-100/70 hover:text-dark-900 dark:hover:text-dark-50 font-semibold">💰 เติมเงิน</a>
+          <a href="/profile" class="text-sm text-dark-900/70 dark:text-dark-100/70 hover:text-dark-900 dark:hover:text-dark-50">โปรไฟล์</a>
+          <a href="/tools/saved" class="text-sm text-dark-900/70 dark:text-dark-100/70 hover:text-dark-900 dark:hover:text-dark-50">📂 บันทึก</a>
+          <a href="/developers" class="text-sm text-dark-900/70 dark:text-dark-100/70 hover:text-dark-900 dark:hover:text-dark-50">🔌 Developers</a>
           {#if $user}
-            <span class="text-sm text-dark-900/60">{$user.email}</span>
-            <button onclick={handleLogout} class="text-sm text-dark-900/70 hover:text-dark-900">ออกจากระบบ</button>
+            <span class="text-sm text-dark-900/60 dark:text-dark-100/60">{$user.email}</span>
+            <button onclick={handleLogout} class="text-sm text-dark-900/70 dark:text-dark-100/70 hover:text-dark-900 dark:hover:text-dark-50">ออกจากระบบ</button>
           {/if}
         </div>
       </div>
@@ -230,17 +230,17 @@
 
   <main class="container-narrow py-10">
     {#if false && $fullUser && !$fullUser.email_verified}
-      <div class="mb-6 p-4 rounded-xl bg-amber-50 border border-amber-200 flex items-start gap-3">
+      <div class="mb-6 p-4 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 flex items-start gap-3">
         <span class="text-2xl">📧</span>
         <div class="flex-1">
-          <div class="font-semibold text-amber-900">กรุณายืนยันอีเมล</div>
-          <div class="text-sm text-amber-800 mt-1">
+          <div class="font-semibold text-amber-900 dark:text-amber-200">กรุณายืนยันอีเมล</div>
+          <div class="text-sm text-amber-800 dark:text-amber-300 mt-1">
             ส่งลิงก์ยืนยันไปที่ <b>{$fullUser.email}</b> แล้ว กรุณาคลิกลิงก์ในอีเมลเพื่อเริ่มใช้งาน
             {#if verifySent}
-              <span class="text-green-700 ml-2">✓ ส่งใหม่แล้ว</span>
+              <span class="text-green-700 dark:text-green-400 ml-2">✓ ส่งใหม่แล้ว</span>
             {/if}
           </div>
-          <button onclick={handleResendVerify} disabled={sendingVerify} class="mt-2 text-sm text-amber-700 hover:underline font-semibold disabled:opacity-50">
+          <button onclick={handleResendVerify} disabled={sendingVerify} class="mt-2 text-sm text-amber-700 dark:text-amber-400 hover:underline font-semibold disabled:opacity-50">
             {sendingVerify ? 'กำลังส่ง...' : 'ส่งอีเมลยืนยันอีกครั้ง'}
           </button>
         </div>
@@ -252,10 +252,10 @@
     <div class="flex items-center justify-between mb-8 flex-wrap gap-4">
       <div>
         <h1 class="heading-2 mb-1">แผนของฉัน</h1>
-        <p class="text-dark-900/60">แต่ละแผนคือชุดการตลาดครบของธุรกิจหนึ่ง สร้างด้วยระบบอัจฉริยะใน 7 ขั้นตอน</p>
+        <p class="text-dark-900/60 dark:text-dark-100/60">แต่ละแผนคือชุดการตลาดครบของธุรกิจหนึ่ง สร้างด้วยระบบอัจฉริยะใน 7 ขั้นตอน</p>
       </div>
       <div class="flex items-center gap-4 flex-wrap">
-        <a href="/tools" class="text-sm text-dark-900/60 hover:text-primary-600 font-medium">⚡ หรือลองเครื่องมือเดี่ยว</a>
+        <a href="/tools" class="text-sm text-dark-900/60 dark:text-dark-100/60 hover:text-primary-600 font-medium">⚡ หรือลองเครื่องมือเดี่ยว</a>
         <button onclick={() => showCreate ? (showCreate = false) : openCreate()} class="btn-primary">+ สร้างแผนใหม่</button>
       </div>
     </div>
@@ -280,13 +280,13 @@
     {/if}
 
     {#if error}
-      <div class="mb-6 p-4 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
+      <div class="mb-6 p-4 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-sm text-red-700 dark:text-red-400">
         {error}
       </div>
     {/if}
 
     {#if showCreate}
-      <div bind:this={createFormEl} class="bg-white rounded-2xl border border-dark-100 p-6 mb-8 scroll-mt-20">
+      <div bind:this={createFormEl} class="bg-white dark:bg-dark-800 rounded-2xl border border-dark-100 dark:border-dark-700 p-6 mb-8 scroll-mt-20">
         <h2 class="font-semibold mb-4">สร้างโปรเจกต์ใหม่</h2>
         <form onsubmit={handleCreate} class="space-y-3">
           <input
@@ -295,13 +295,13 @@
             bind:value={newName}
             required
             placeholder="ชื่อธุรกิจ (เช่น ก๋วยเตี๋ยวบ้านหมู)"
-            class="w-full px-4 py-2.5 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+            class="w-full px-4 py-2.5 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
           <input
             type="text"
             bind:value={newIndustry}
             placeholder="อุตสาหกรรม (เช่น F&B, คลินิก, อสังหา) — ไม่บังคับ"
-            class="w-full px-4 py-2.5 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+            class="w-full px-4 py-2.5 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
           <div>
             <label class="block text-sm font-medium mb-1.5">ประเภทโปรเจกต์</label>
@@ -315,10 +315,10 @@
                 <button
                   type="button"
                   onclick={() => newKind = opt.value}
-                  class="text-left px-3 py-2 rounded-lg border-2 transition text-sm {newKind === opt.value ? 'border-primary-500 bg-primary-50' : 'border-dark-200 hover:border-dark-300'}"
+                  class="text-left px-3 py-2 rounded-lg border-2 transition text-sm {newKind === opt.value ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/40' : 'border-dark-200 dark:border-dark-600 hover:border-dark-300 dark:hover:border-dark-500'}"
                 >
                   <div class="font-semibold">{opt.label}</div>
-                  <div class="text-xs text-dark-900/60">{opt.desc}</div>
+                  <div class="text-xs text-dark-900/60 dark:text-dark-100/60">{opt.desc}</div>
                 </button>
               {/each}
             </div>
@@ -334,91 +334,91 @@
     {/if}
 
     {#if isLoading}
-      <div class="text-center py-20 text-dark-900/60">กำลังโหลด...</div>
+      <div class="text-center py-20 text-dark-900/60 dark:text-dark-100/60">กำลังโหลด...</div>
     {:else if projects.length === 0 && archivedProjects.length === 0 && !kindFilter}
       <!-- True first-time state: one focused message, one button, and a
            lighter-weight secondary path for someone who just wants to try
            one thing quickly instead of committing to the full 7-step plan. -->
-      <div class="bg-white rounded-2xl border-2 border-dashed border-dark-200 p-12 text-center">
+      <div class="bg-white dark:bg-dark-800 rounded-2xl border-2 border-dashed border-dark-200 dark:border-dark-600 p-12 text-center">
         <div class="text-4xl mb-3">🌱</div>
         <h3 class="font-semibold text-lg mb-1">ยังไม่มีแผน — มาสร้างแผนแรกกัน</h3>
-        <p class="text-sm text-dark-900/60 mb-6">กดปุ่มด้านล่าง แล้วตอบคำถามทีละขั้น ใช้เวลาประมาณ 45 นาที</p>
+        <p class="text-sm text-dark-900/60 dark:text-dark-100/60 mb-6">กดปุ่มด้านล่าง แล้วตอบคำถามทีละขั้น ใช้เวลาประมาณ 45 นาที</p>
         <button onclick={openCreate} class="btn-primary">+ สร้างแผนแรกของฉัน</button>
       </div>
 
       <div class="mt-6">
-        <div class="text-sm font-semibold text-dark-900/70 mb-3">หรือลองเครื่องมือเดี่ยว</div>
+        <div class="text-sm font-semibold text-dark-900/70 dark:text-dark-100/70 mb-3">หรือลองเครื่องมือเดี่ยว</div>
         <div class="grid sm:grid-cols-3 gap-3">
-          <a href="/tools/value-proposition-canvas" class="bg-white rounded-xl border border-dark-100 p-4 hover:border-primary-200 hover:shadow-md transition">
+          <a href="/tools/value-proposition-canvas" class="bg-white dark:bg-dark-800 rounded-xl border border-dark-100 dark:border-dark-700 p-4 hover:border-primary-200 hover:shadow-md transition">
             <div class="text-xl mb-1.5">🎯</div>
             <div class="text-sm font-semibold mb-0.5">หาจุดขาย</div>
-            <div class="text-xs text-dark-900/60">ค้นว่าธุรกิจคุณเด่นกว่าคู่แข่งตรงไหน</div>
+            <div class="text-xs text-dark-900/60 dark:text-dark-100/60">ค้นว่าธุรกิจคุณเด่นกว่าคู่แข่งตรงไหน</div>
           </a>
-          <a href="/tools/hook-library" class="bg-white rounded-xl border border-dark-100 p-4 hover:border-primary-200 hover:shadow-md transition">
+          <a href="/tools/hook-library" class="bg-white dark:bg-dark-800 rounded-xl border border-dark-100 dark:border-dark-700 p-4 hover:border-primary-200 hover:shadow-md transition">
             <div class="text-xl mb-1.5">🗣️</div>
             <div class="text-sm font-semibold mb-0.5">คิดประโยคโฆษณา</div>
-            <div class="text-xs text-dark-900/60">หาประโยคเปิดที่คนหยุดอ่าน</div>
+            <div class="text-xs text-dark-900/60 dark:text-dark-100/60">หาประโยคเปิดที่คนหยุดอ่าน</div>
           </a>
-          <a href="/tools/persona-builder" class="bg-white rounded-xl border border-dark-100 p-4 hover:border-primary-200 hover:shadow-md transition">
+          <a href="/tools/persona-builder" class="bg-white dark:bg-dark-800 rounded-xl border border-dark-100 dark:border-dark-700 p-4 hover:border-primary-200 hover:shadow-md transition">
             <div class="text-xl mb-1.5">👥</div>
             <div class="text-sm font-semibold mb-0.5">เข้าใจลูกค้า</div>
-            <div class="text-xs text-dark-900/60">วาดภาพลูกค้าในฝันของคุณ</div>
+            <div class="text-xs text-dark-900/60 dark:text-dark-100/60">วาดภาพลูกค้าในฝันของคุณ</div>
           </a>
         </div>
       </div>
     {:else if projects.length === 0}
-      <div class="bg-white rounded-2xl border border-dark-100 p-12 text-center">
-        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-primary-50 flex items-center justify-center">
+      <div class="bg-white dark:bg-dark-800 rounded-2xl border border-dark-100 dark:border-dark-700 p-12 text-center">
+        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-primary-50 dark:bg-primary-900/40 flex items-center justify-center">
           <span class="text-3xl">{kindFilter ? ({ brand_voice: '🎙️', pain_points: '🎯', persona: '👥', competitor_analysis: '🔍', jtbd_generator: '🎯', value_proposition_canvas: '💎', business_model_canvas: '📊', million_dollar_offer: '💎', objection_handler: '🛡️', hook_library: '🎣' } as any)[kindFilter] || '📋' : '📋'}</span>
         </div>
         <h3 class="font-semibold mb-2">ยังไม่มีโปรเจกต์{kindFilter ? `ประเภท ${({ brand_voice: 'Brand Voice', pain_points: 'Pain Points', persona: 'Persona', competitor_analysis: 'Competitor', jtbd_generator: 'JTBD', value_proposition_canvas: 'VPC', business_model_canvas: 'BMC', million_dollar_offer: 'Offer', objection_handler: 'Objections', hook_library: 'Hooks' } as any)[kindFilter] || ''}` : ''}</h3>
-        <p class="text-sm text-dark-900/60 mb-6">เริ่มสร้างโปรเจกต์แรกของคุณ</p>
+        <p class="text-sm text-dark-900/60 dark:text-dark-100/60 mb-6">เริ่มสร้างโปรเจกต์แรกของคุณ</p>
         <button onclick={openCreate} class="btn-primary">+ สร้างโปรเจกต์แรก</button>
       </div>
     {:else}
       <!-- Kind filter -->
       <div class="flex items-center gap-2 mb-4 flex-wrap">
-        <button onclick={() => { kindFilter = ''; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === '' ? 'bg-primary-600 text-white' : 'bg-white border border-dark-200 hover:border-primary-300'}">
+        <button onclick={() => { kindFilter = ''; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === '' ? 'bg-primary-600 text-white' : 'bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 hover:border-primary-300'}">
           ทั้งหมด
         </button>
-        <button onclick={() => { kindFilter = 'playbook'; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === 'playbook' ? 'bg-primary-600 text-white' : 'bg-white border border-dark-200 hover:border-primary-300'}">
+        <button onclick={() => { kindFilter = 'playbook'; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === 'playbook' ? 'bg-primary-600 text-white' : 'bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 hover:border-primary-300'}">
           📊 Playbook
         </button>
-        <button onclick={() => { kindFilter = 'brand_voice'; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === 'brand_voice' ? 'bg-primary-600 text-white' : 'bg-white border border-dark-200 hover:border-primary-300'}">
+        <button onclick={() => { kindFilter = 'brand_voice'; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === 'brand_voice' ? 'bg-primary-600 text-white' : 'bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 hover:border-primary-300'}">
           🎙️ Brand Voice
         </button>
-        <button onclick={() => { kindFilter = 'pain_points'; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === 'pain_points' ? 'bg-primary-600 text-white' : 'bg-white border border-dark-200 hover:border-primary-300'}">
+        <button onclick={() => { kindFilter = 'pain_points'; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === 'pain_points' ? 'bg-primary-600 text-white' : 'bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 hover:border-primary-300'}">
           🎯 Pain Points
         </button>
-        <button onclick={() => { kindFilter = 'persona'; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === 'persona' ? 'bg-primary-600 text-white' : 'bg-white border border-dark-200 hover:border-primary-300'}">
+        <button onclick={() => { kindFilter = 'persona'; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === 'persona' ? 'bg-primary-600 text-white' : 'bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 hover:border-primary-300'}">
           👥 Persona
         </button>
-        <button onclick={() => { kindFilter = 'competitor_analysis'; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === 'competitor_analysis' ? 'bg-primary-600 text-white' : 'bg-white border border-dark-200 hover:border-primary-300'}">
+        <button onclick={() => { kindFilter = 'competitor_analysis'; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === 'competitor_analysis' ? 'bg-primary-600 text-white' : 'bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 hover:border-primary-300'}">
           🔍 Competitor
         </button>
-        <button onclick={() => { kindFilter = 'jtbd_generator'; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === 'jtbd_generator' ? 'bg-primary-600 text-white' : 'bg-white border border-dark-200 hover:border-primary-300'}">
+        <button onclick={() => { kindFilter = 'jtbd_generator'; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === 'jtbd_generator' ? 'bg-primary-600 text-white' : 'bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 hover:border-primary-300'}">
           🎯 JTBD
         </button>
-        <button onclick={() => { kindFilter = 'value_proposition_canvas'; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === 'value_proposition_canvas' ? 'bg-primary-600 text-white' : 'bg-white border border-dark-200 hover:border-primary-300'}">
+        <button onclick={() => { kindFilter = 'value_proposition_canvas'; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === 'value_proposition_canvas' ? 'bg-primary-600 text-white' : 'bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 hover:border-primary-300'}">
           💎 VPC
         </button>
-        <button onclick={() => { kindFilter = 'business_model_canvas'; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === 'business_model_canvas' ? 'bg-primary-600 text-white' : 'bg-white border border-dark-200 hover:border-primary-300'}">
+        <button onclick={() => { kindFilter = 'business_model_canvas'; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === 'business_model_canvas' ? 'bg-primary-600 text-white' : 'bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 hover:border-primary-300'}">
           📊 BMC
         </button>
-        <button onclick={() => { kindFilter = 'million_dollar_offer'; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === 'million_dollar_offer' ? 'bg-primary-600 text-white' : 'bg-white border border-dark-200 hover:border-primary-300'}">
+        <button onclick={() => { kindFilter = 'million_dollar_offer'; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === 'million_dollar_offer' ? 'bg-primary-600 text-white' : 'bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 hover:border-primary-300'}">
           💎 Offer
         </button>
-        <button onclick={() => { kindFilter = 'objection_handler'; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === 'objection_handler' ? 'bg-primary-600 text-white' : 'bg-white border border-dark-200 hover:border-primary-300'}">
+        <button onclick={() => { kindFilter = 'objection_handler'; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === 'objection_handler' ? 'bg-primary-600 text-white' : 'bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 hover:border-primary-300'}">
           🛡️ Objections
         </button>
-        <button onclick={() => { kindFilter = 'hook_library'; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === 'hook_library' ? 'bg-primary-600 text-white' : 'bg-white border border-dark-200 hover:border-primary-300'}">
+        <button onclick={() => { kindFilter = 'hook_library'; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === 'hook_library' ? 'bg-primary-600 text-white' : 'bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 hover:border-primary-300'}">
           🎣 Hooks
         </button>
       </div>
       <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
         {#each projects as project}
           {@const kindMeta = ({ playbook: { icon: '📊', color: 'primary' }, brand_voice: { icon: '🎙️', color: 'purple' }, pain_points: { icon: '🎯', color: 'red' }, persona: { icon: '👥', color: 'green' }, competitor_analysis: { icon: '🔍', color: 'orange' }, jtbd_generator: { icon: '🎯', color: 'purple' }, value_proposition_canvas: { icon: '💎', color: 'pink' }, business_model_canvas: { icon: '📊', color: 'indigo' } } as any)[project.kind || 'playbook']}
-          <div class="relative bg-white rounded-2xl border border-dark-100 p-5 hover:border-primary-200 hover:shadow-lg transition group">
+          <div class="relative bg-white dark:bg-dark-800 rounded-2xl border border-dark-100 dark:border-dark-700 p-5 hover:border-primary-200 hover:shadow-lg transition group">
             <a href={`/projects/${project.id}`} class="block">
               <div class="flex items-start justify-between mb-3 pr-8">
                 <div class="w-10 h-10 rounded-lg bg-{kindMeta.color}-50 flex items-center justify-center text-xl">
@@ -427,21 +427,21 @@
                 <div class="flex flex-col items-end gap-1">
                   <span class="text-xs px-2 py-0.5 rounded-full bg-{kindMeta.color}-50 text-{kindMeta.color}-700">{({ playbook: 'Playbook', brand_voice: 'Brand Voice', pain_points: 'Pain Points', persona: 'Persona', competitor_analysis: 'Competitor', jtbd_generator: 'JTBD', value_proposition_canvas: 'VPC', business_model_canvas: 'BMC' } as any)[project.kind || 'playbook']}</span>
                   {#if project.status === 'completed'}
-                    <span class="text-xs px-2 py-0.5 rounded-full bg-green-50 text-green-700">เสร็จ</span>
+                    <span class="text-xs px-2 py-0.5 rounded-full bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-400">เสร็จ</span>
                   {:else}
-                    <span class="text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-700">ร่าง</span>
+                    <span class="text-xs px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400">ร่าง</span>
                   {/if}
                 </div>
               </div>
               <h3 class="font-semibold mb-1 group-hover:text-primary-600 transition">{project.name}</h3>
-              <p class="text-sm text-dark-900/60 mb-3">{project.industry || 'ไม่ระบุอุตสาหกรรม'}</p>
-              <div class="flex items-center justify-between text-xs text-dark-900/50">
+              <p class="text-sm text-dark-900/60 dark:text-dark-100/60 mb-3">{project.industry || 'ไม่ระบุอุตสาหกรรม'}</p>
+              <div class="flex items-center justify-between text-xs text-dark-900/50 dark:text-dark-100/50">
                 <span>ขั้นที่ {project.current_step} / 7 · {stepLabel(project.current_step)}</span>
                 <span>{formatDate(project.updated_at)}</span>
               </div>
               <!-- Progress bar -->
               {#if (project.kind || 'playbook') === 'playbook'}
-                <div class="mt-3 h-1.5 bg-dark-100 rounded-full overflow-hidden">
+                <div class="mt-3 h-1.5 bg-dark-100 dark:bg-dark-600 rounded-full overflow-hidden">
                   <div class="h-full bg-primary-500 transition-all" style="width: {((project.current_step - 1) / 7) * 100}%"></div>
                 </div>
               {/if}
@@ -450,7 +450,7 @@
             <div data-action-menu class="absolute top-2 right-2 z-20">
               <button
                 onclick={(e) => { e.preventDefault(); e.stopPropagation(); projectMenu = projectMenu === project.id ? null : project.id; }}
-                class="p-1.5 rounded-lg hover:bg-dark-100 text-dark-900/40 hover:text-dark-900 transition-colors"
+                class="p-1.5 rounded-lg hover:bg-dark-100 dark:hover:bg-dark-700 text-dark-900/40 dark:text-dark-100/40 hover:text-dark-900 dark:hover:text-dark-50 transition-colors"
                 title="Actions"
                 aria-label="Project actions"
               >
@@ -459,22 +459,22 @@
                 </svg>
               </button>
               {#if projectMenu === project.id}
-                <div class="absolute right-0 mt-1 w-48 bg-white border border-dark-200 rounded-lg shadow-xl z-30 py-1 text-sm">
+                <div class="absolute right-0 mt-1 w-48 bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 rounded-lg shadow-xl z-30 py-1 text-sm">
                   <button
                     onclick={(e) => { e.stopPropagation(); handleReset(project.id, project.name); }}
-                    class="w-full text-left px-3 py-2 hover:bg-dark-50 flex items-center gap-2"
+                    class="w-full text-left px-3 py-2 hover:bg-dark-50 dark:hover:bg-dark-700 flex items-center gap-2"
                   >
                     <span>🔄</span> Reset ใหม่
                   </button>
                   <button
                     onclick={(e) => { e.stopPropagation(); handleArchive(project.id); }}
-                    class="w-full text-left px-3 py-2 hover:bg-dark-50 flex items-center gap-2 text-amber-700"
+                    class="w-full text-left px-3 py-2 hover:bg-dark-50 dark:hover:bg-dark-700 flex items-center gap-2 text-amber-700 dark:text-amber-400"
                   >
                     <span>📦</span> Archive
                   </button>
                   <button
                     onclick={(e) => { e.stopPropagation(); if (confirm('ลบถาวร "' + project.name + '" ?\n\n⚠️ ลบแล้วไม่สามารถ undo')) handlePermanentDelete(project.id, project.name); }}
-                    class="w-full text-left px-3 py-2 hover:bg-red-50 flex items-center gap-2 text-red-700 border-t border-dark-100"
+                    class="w-full text-left px-3 py-2 hover:bg-red-50 dark:hover:bg-red-950/40 flex items-center gap-2 text-red-700 dark:text-red-400 border-t border-dark-100 dark:border-dark-700"
                   >
                     <span>🗑️</span> ลบถาวร
                   </button>
@@ -487,17 +487,17 @@
 
       <!-- Action message -->
       {#if actionMessage}
-        <div class="mt-4 p-3 rounded-lg bg-green-50 border border-green-200 text-sm text-green-700 text-center">
+        <div class="mt-4 p-3 rounded-lg bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-800 text-sm text-green-700 dark:text-green-400 text-center">
           {actionMessage}
         </div>
       {/if}
 
       <!-- Archive section -->
       {#if archivedProjects.length > 0}
-        <div class="mt-8 pt-6 border-t border-dark-200">
+        <div class="mt-8 pt-6 border-t border-dark-200 dark:border-dark-600">
           <button
             onclick={() => (showArchive = !showArchive)}
-            class="flex items-center gap-2 text-sm font-semibold text-dark-900/70 hover:text-dark-900"
+            class="flex items-center gap-2 text-sm font-semibold text-dark-900/70 dark:text-dark-100/70 hover:text-dark-900 dark:hover:text-dark-50"
           >
             <span>{showArchive ? '▼' : '▶'}</span>
             <span>📦 Archive ({archivedProjects.length})</span>
@@ -506,13 +506,13 @@
           {#if showArchive}
             <div class="mt-3 grid md:grid-cols-2 lg:grid-cols-3 gap-3">
               {#each archivedProjects as p}
-                <div class="bg-dark-50 border border-dark-200 rounded-xl p-4 opacity-80">
+                <div class="bg-dark-50 dark:bg-dark-900 border border-dark-200 dark:border-dark-600 rounded-xl p-4 opacity-80">
                   <div class="flex items-start justify-between mb-2">
-                    <h4 class="font-medium text-dark-900 line-clamp-1">{p.name}</h4>
-                    <span class="text-xs text-dark-900/50">📦</span>
+                    <h4 class="font-medium text-dark-900 dark:text-dark-50 line-clamp-1">{p.name}</h4>
+                    <span class="text-xs text-dark-900/50 dark:text-dark-100/50">📦</span>
                   </div>
-                  <p class="text-xs text-dark-900/60 mb-3">{p.industry || 'ไม่ระบุอุตสาหกรรม'}</p>
-                  <div class="text-xs text-dark-900/50 mb-3">
+                  <p class="text-xs text-dark-900/60 dark:text-dark-100/60 mb-3">{p.industry || 'ไม่ระบุอุตสาหกรรม'}</p>
+                  <div class="text-xs text-dark-900/50 dark:text-dark-100/50 mb-3">
                     Archived {formatDate(p.updated_at)}
                   </div>
                   <div class="flex gap-2">
@@ -524,7 +524,7 @@
                     </button>
                     <button
                       onclick={() => handlePermanentDelete(p.id, p.name)}
-                      class="flex-1 text-xs px-2 py-1.5 rounded bg-red-50 text-red-700 hover:bg-red-100 border border-red-200"
+                      class="flex-1 text-xs px-2 py-1.5 rounded bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/50 border border-red-200 dark:border-red-800"
                     >
                       🗑️ ลบถาวร
                     </button>
