@@ -154,34 +154,34 @@
   }
 </script>
 
-<div class="border border-dark-100 rounded-xl bg-white">
+<div class="border border-dark-100 dark:border-dark-700 rounded-xl bg-white dark:bg-dark-800">
   <!-- Header -->
   <button
     type="button"
     onclick={() => isExpanded = !isExpanded}
-    class="w-full px-4 py-3 flex items-center justify-between hover:bg-dark-50/50 transition"
+    class="w-full px-4 py-3 flex items-center justify-between hover:bg-dark-50/50 dark:hover:bg-dark-700/50 transition"
   >
     <div class="flex items-center gap-2 text-sm font-semibold">
       <span>💬 โน้ต + 📎 ไฟล์แนบ + 🔗 ลิงก์</span>
       {#if assets.length + links.length > 0}
-        <span class="text-xs px-1.5 py-0.5 rounded-full bg-primary-100 text-primary-700">{assets.length + links.length}</span>
+        <span class="text-xs px-1.5 py-0.5 rounded-full bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300">{assets.length + links.length}</span>
       {/if}
     </div>
-    <span class="text-dark-900/40 text-sm">{isExpanded ? '▼' : '▶'}</span>
+    <span class="text-dark-900/40 dark:text-dark-100/40 text-sm">{isExpanded ? '▼' : '▶'}</span>
   </button>
 
   {#if isExpanded}
-    <div class="border-t border-dark-100 p-4">
+    <div class="border-t border-dark-100 dark:border-dark-700 p-4">
       <!-- Tabs -->
-      <div class="flex gap-1 mb-4 border-b border-dark-100">
-        <button type="button" onclick={() => activeTab = 'notes'} class="px-3 py-1.5 text-sm {activeTab === 'notes' ? 'border-b-2 border-primary-500 font-semibold text-primary-700' : 'text-dark-900/60'}">
+      <div class="flex gap-1 mb-4 border-b border-dark-100 dark:border-dark-700">
+        <button type="button" onclick={() => activeTab = 'notes'} class="px-3 py-1.5 text-sm {activeTab === 'notes' ? 'border-b-2 border-primary-500 font-semibold text-primary-700 dark:text-primary-300' : 'text-dark-900/60 dark:text-dark-100/60'}">
           💬 โน้ต ({assets.filter(a => a.kind === 'note').length})
         </button>
-        <button type="button" onclick={() => activeTab = 'files'} class="px-3 py-1.5 text-sm {activeTab === 'files' ? 'border-b-2 border-primary-500 font-semibold text-primary-700' : 'text-dark-900/60'}">
+        <button type="button" onclick={() => activeTab = 'files'} class="px-3 py-1.5 text-sm {activeTab === 'files' ? 'border-b-2 border-primary-500 font-semibold text-primary-700 dark:text-primary-300' : 'text-dark-900/60 dark:text-dark-100/60'}">
           📎 ไฟล์ ({assets.filter(a => a.kind === 'file').length})
         </button>
         {#if canLink}
-          <button type="button" onclick={() => activeTab = 'links'} class="px-3 py-1.5 text-sm {activeTab === 'links' ? 'border-b-2 border-primary-500 font-semibold text-primary-700' : 'text-dark-900/60'}">
+          <button type="button" onclick={() => activeTab = 'links'} class="px-3 py-1.5 text-sm {activeTab === 'links' ? 'border-b-2 border-primary-500 font-semibold text-primary-700 dark:text-primary-300' : 'text-dark-900/60 dark:text-dark-100/60'}">
             🔗 ลิงก์ ({links.length})
           </button>
         {/if}
@@ -192,20 +192,20 @@
         <div class="space-y-3">
           {#if assets.filter(a => a.kind === 'note').length > 0}
             {#each assets.filter(a => a.kind === 'note') as note}
-              <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg group">
+              <div class="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-lg group">
                 <div class="flex items-start justify-between gap-2">
-                  <div class="font-semibold text-sm text-amber-900">📝 {note.title || 'Note'}</div>
-                  <button onclick={() => handleDeleteAsset(note.id)} class="text-xs text-red-600 opacity-0 group-hover:opacity-100">🗑️</button>
+                  <div class="font-semibold text-sm text-amber-900 dark:text-amber-200">📝 {note.title || 'Note'}</div>
+                  <button onclick={() => handleDeleteAsset(note.id)} class="text-xs text-red-600 dark:text-red-400 opacity-0 group-hover:opacity-100">🗑️</button>
                 </div>
-                <div class="text-sm text-dark-900/80 mt-1 whitespace-pre-wrap">{note.content}</div>
+                <div class="text-sm text-dark-900/80 dark:text-dark-100/80 mt-1 whitespace-pre-wrap">{note.content}</div>
               </div>
             {/each}
           {/if}
-          <details class="bg-dark-50 rounded-lg p-3">
+          <details class="bg-dark-50 dark:bg-dark-900 rounded-lg p-3">
             <summary class="text-sm font-semibold cursor-pointer">+ เพิ่มโน้ต</summary>
             <div class="mt-2 space-y-2">
-              <input type="text" bind:value={newNoteTitle} placeholder="ชื่อโน้ต (เช่น 'Focus group feedback')" class="w-full px-3 py-2 text-sm rounded border border-dark-200" />
-              <textarea bind:value={newNoteContent} rows="3" placeholder="โน้ต/บริบทเพิ่มเติม เช่น pain point ที่ค้นพบ, ข้อจำกัด, ตัวอย่าง" class="w-full px-3 py-2 text-sm rounded border border-dark-200"></textarea>
+              <input type="text" bind:value={newNoteTitle} placeholder="ชื่อโน้ต (เช่น 'Focus group feedback')" class="w-full px-3 py-2 text-sm rounded border border-dark-200 dark:border-dark-600" />
+              <textarea bind:value={newNoteContent} rows="3" placeholder="โน้ต/บริบทเพิ่มเติม เช่น pain point ที่ค้นพบ, ข้อจำกัด, ตัวอย่าง" class="w-full px-3 py-2 text-sm rounded border border-dark-200 dark:border-dark-600"></textarea>
               <button type="button" onclick={handleAddNote} disabled={isAddingNote || !newNoteContent.trim()} class="btn-secondary text-sm disabled:opacity-50">
                 {isAddingNote ? '...' : '💾 บันทึกโน้ต'}
               </button>
@@ -217,55 +217,55 @@
         <div class="space-y-3">
           {#if assets.filter(a => a.kind === 'file').length > 0}
             {#each assets.filter(a => a.kind === 'file') as file}
-              <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-3 group">
+              <div class="p-3 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-lg flex items-center gap-3 group">
                 <span class="text-2xl">{fileIcon(file.file_name)}</span>
                 <div class="flex-1 min-w-0">
                   <div class="font-semibold text-sm truncate">{file.title || file.file_name}</div>
-                  <div class="text-xs text-dark-900/60">
+                  <div class="text-xs text-dark-900/60 dark:text-dark-100/60">
                     {file.file_name} · {(file.file_size / 1024).toFixed(1)}KB
                   </div>
                 </div>
-                <button onclick={() => handleDeleteAsset(file.id)} class="text-xs text-red-600 opacity-0 group-hover:opacity-100">🗑️</button>
+                <button onclick={() => handleDeleteAsset(file.id)} class="text-xs text-red-600 dark:text-red-400 opacity-0 group-hover:opacity-100">🗑️</button>
               </div>
             {/each}
           {/if}
-          <details class="bg-dark-50 rounded-lg p-3">
+          <details class="bg-dark-50 dark:bg-dark-900 rounded-lg p-3">
             <summary class="text-sm font-semibold cursor-pointer">+ อัปโหลดไฟล์ context (text/csv/json ≤ 200KB)</summary>
             <div class="mt-2 space-y-2">
-              <input type="text" bind:value={newFileTitle} placeholder="ชื่อ (optional)" class="w-full px-3 py-2 text-sm rounded border border-dark-200" />
+              <input type="text" bind:value={newFileTitle} placeholder="ชื่อ (optional)" class="w-full px-3 py-2 text-sm rounded border border-dark-200 dark:border-dark-600" />
               <input type="file" accept=".txt,.csv,.json,.md,text/*" onchange={handleFileUpload} disabled={isUploadingFile} class="text-sm" />
-              <p class="text-xs text-dark-900/50">รองรับ text, csv, json — เนื้อหาจะถูกส่งให้ระบบอัจฉริยะเป็น context</p>
+              <p class="text-xs text-dark-900/50 dark:text-dark-100/50">รองรับ text, csv, json — เนื้อหาจะถูกส่งให้ระบบอัจฉริยะเป็น context</p>
             </div>
           </details>
         </div>
       {:else if activeTab === 'links' && canLink}
         <!-- Links tab -->
         <div class="space-y-3">
-          <div class="bg-purple-50 border border-purple-200 rounded-lg p-3 text-xs text-purple-900">
+          <div class="bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800 rounded-lg p-3 text-xs text-purple-900 dark:text-purple-200">
             💡 ใช้ข้อมูลจาก project อื่น (เช่น Brand Voice, Pain Points) หรือ saved tool result เป็น context ตอน generate
           </div>
           {#if links.length > 0}
             {#each links as link}
-              <div class="p-3 bg-purple-50 border border-purple-200 rounded-lg flex items-center gap-3 group">
+              <div class="p-3 bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800 rounded-lg flex items-center gap-3 group">
                 <span class="text-xl">{link.target_kind === 'project' ? '📊' : '🛠️'}</span>
                 <div class="flex-1 min-w-0">
                   <div class="font-semibold text-sm truncate">{link.target?.name || link.target_id}</div>
-                  <div class="text-xs text-dark-900/60">
+                  <div class="text-xs text-dark-900/60 dark:text-dark-100/60">
                     {link.target_kind === 'project' ? (link.target?.kind || 'project') : toolLabel(link.target?.tool_type || '')}
                     · ใช้ใน step {link.step_number}
                   </div>
                 </div>
-                <button onclick={() => handleDeleteLink(link.id)} class="text-xs text-red-600 opacity-0 group-hover:opacity-100">🗑️</button>
+                <button onclick={() => handleDeleteLink(link.id)} class="text-xs text-red-600 dark:text-red-400 opacity-0 group-hover:opacity-100">🗑️</button>
               </div>
             {/each}
           {/if}
-          <details class="bg-dark-50 rounded-lg p-3">
+          <details class="bg-dark-50 dark:bg-dark-900 rounded-lg p-3">
             <summary class="text-sm font-semibold cursor-pointer">+ เพิ่ม link</summary>
             <div class="mt-2 space-y-2">
               <div>
-                <label class="text-xs text-dark-900/60">จาก Project (Brand Voice, Pain Points, Persona, หรือ Playbook)</label>
+                <label class="text-xs text-dark-900/60 dark:text-dark-100/60">จาก Project (Brand Voice, Pain Points, Persona, หรือ Playbook)</label>
                 <div class="flex gap-2">
-                  <select bind:value={linkProjectId} class="flex-1 px-2 py-1.5 text-sm rounded border border-dark-200">
+                  <select bind:value={linkProjectId} class="flex-1 px-2 py-1.5 text-sm rounded border border-dark-200 dark:border-dark-600">
                     <option value="">— เลือก —</option>
                     {#each projects as p}
                       <option value={p.id}>{p.name} ({p.kind || 'playbook'})</option>
@@ -275,9 +275,9 @@
                 </div>
               </div>
               <div>
-                <label class="text-xs text-dark-900/60">จาก Saved Tool Result</label>
+                <label class="text-xs text-dark-900/60 dark:text-dark-100/60">จาก Saved Tool Result</label>
                 <div class="flex gap-2">
-                  <select bind:value={linkToolSaveId} class="flex-1 px-2 py-1.5 text-sm rounded border border-dark-200">
+                  <select bind:value={linkToolSaveId} class="flex-1 px-2 py-1.5 text-sm rounded border border-dark-200 dark:border-dark-600">
                     <option value="">— เลือก —</option>
                     {#each toolSaves as t}
                       <option value={t.id}>{t.title} ({toolLabel(t.tool_type)})</option>

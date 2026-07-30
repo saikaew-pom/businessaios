@@ -219,12 +219,12 @@
   <title>{project?.name || 'Project'} — Business Smart OS</title>
 </svelte:head>
 
-<div class="min-h-screen bg-dark-50">
+<div class="min-h-screen bg-dark-50 dark:bg-dark-950">
   <!-- Header -->
-  <header class="bg-white border-b border-dark-100 sticky top-0 z-10">
+  <header class="bg-white dark:bg-dark-800 border-b border-dark-100 dark:border-dark-700 sticky top-0 z-10">
     <div class="container-narrow flex items-center justify-between h-16">
       <div class="flex items-center gap-3">
-        <a href="/dashboard" class="text-dark-900/60 hover:text-dark-900">
+        <a href="/dashboard" class="text-dark-900/60 dark:text-dark-100/60 hover:text-dark-900 dark:hover:text-dark-50">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
         </a>
         <div class="flex items-center gap-2">
@@ -236,35 +236,35 @@
       </div>
       <div class="flex items-center gap-3">
         {#if $fullUser}
-          <span class="text-xs px-2 py-0.5 rounded-full bg-primary-50 text-primary-700" title="ระบบอัจฉริยะ credits คงเหลือ">⚡ {$fullUser.credits}</span>
+          <span class="text-xs px-2 py-0.5 rounded-full bg-primary-50 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300" title="ระบบอัจฉริยะ credits คงเหลือ">⚡ {$fullUser.credits}</span>
         {/if}
-        <a href="/dashboard" class="text-sm text-dark-900/60 hover:text-dark-900">← กลับ</a>
-        <a href="/profile" class="text-sm text-dark-900/60 hover:text-dark-900 hidden sm:inline">โปรไฟล์</a>
-        <button onclick={handleLogout} class="text-sm text-dark-900/60 hover:text-dark-900">ออก</button>
+        <a href="/dashboard" class="text-sm text-dark-900/60 dark:text-dark-100/60 hover:text-dark-900 dark:hover:text-dark-50">← กลับ</a>
+        <a href="/profile" class="text-sm text-dark-900/60 dark:text-dark-100/60 hover:text-dark-900 dark:hover:text-dark-50 hidden sm:inline">โปรไฟล์</a>
+        <button onclick={handleLogout} class="text-sm text-dark-900/60 dark:text-dark-100/60 hover:text-dark-900 dark:hover:text-dark-50">ออก</button>
       </div>
     </div>
   </header>
 
   <main class="container-narrow py-6">
     {#if isLoading}
-      <div class="text-center py-20 text-dark-900/60">กำลังโหลด...</div>
+      <div class="text-center py-20 text-dark-900/60 dark:text-dark-100/60">กำลังโหลด...</div>
     {:else if !project}
       <div class="text-center py-20">
-        <p class="text-red-600 mb-4">{error || 'ไม่พบโปรเจกต์'}</p>
+        <p class="text-red-600 dark:text-red-400 mb-4">{error || 'ไม่พบโปรเจกต์'}</p>
         <a href="/dashboard" class="btn-primary">กลับไป Dashboard</a>
       </div>
     {:else}
       <!-- Step tabs (desktop) -->
-      <div class="mb-6 bg-white rounded-2xl border border-dark-100 p-2 overflow-x-auto hidden sm:block">
+      <div class="mb-6 bg-white dark:bg-dark-800 rounded-2xl border border-dark-100 dark:border-dark-700 p-2 overflow-x-auto hidden sm:block">
         <div class="flex gap-1">
           {#each STEP_NAMES.slice(1) as step, i}
             {@const stepNum = i + 1}
             {@const isDone = getOutput(stepNum)}
             <button
               onclick={() => goToStep(stepNum)}
-              class="px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition flex items-center gap-2 {currentStep === stepNum ? 'bg-primary-500 text-white' : isDone ? 'text-green-700 bg-green-50' : 'text-dark-900/60 hover:bg-dark-50'}"
+              class="px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition flex items-center gap-2 {currentStep === stepNum ? 'bg-primary-500 text-white' : isDone ? 'text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-950/40' : 'text-dark-900/60 dark:text-dark-100/60 hover:bg-dark-50 dark:hover:bg-dark-700'}"
             >
-              <span class="w-5 h-5 rounded-full flex items-center justify-center text-xs {currentStep === stepNum ? 'bg-white text-primary-600' : isDone ? 'bg-green-500 text-white' : 'bg-dark-100'}">
+              <span class="w-5 h-5 rounded-full flex items-center justify-center text-xs {currentStep === stepNum ? 'bg-white dark:bg-dark-800 text-primary-600 dark:text-primary-400' : isDone ? 'bg-green-500 text-white' : 'bg-dark-100 dark:bg-dark-700'}">
                 {isDone && currentStep !== stepNum ? '✓' : stepNum}
               </span>
               {step?.th}
@@ -274,7 +274,7 @@
       </div>
 
       <!-- Step progress (mobile) — dots + current step name only, the full tab row overflows a 375px screen -->
-      <div class="mb-6 bg-white rounded-2xl border border-dark-100 p-4 sm:hidden">
+      <div class="mb-6 bg-white dark:bg-dark-800 rounded-2xl border border-dark-100 dark:border-dark-700 p-4 sm:hidden">
         <div class="flex items-center justify-center gap-1.5 mb-2">
           {#each STEP_NAMES.slice(1) as step, i}
             {@const stepNum = i + 1}
@@ -282,7 +282,7 @@
             <button
               onclick={() => goToStep(stepNum)}
               aria-label={`ไปขั้นที่ ${stepNum}: ${step?.th}`}
-              class="w-2.5 h-2.5 rounded-full transition {currentStep === stepNum ? 'bg-primary-500 w-6' : isDone ? 'bg-green-500' : 'bg-dark-200'}"
+              class="w-2.5 h-2.5 rounded-full transition {currentStep === stepNum ? 'bg-primary-500 w-6' : isDone ? 'bg-green-500' : 'bg-dark-200 dark:bg-dark-600'}"
             ></button>
           {/each}
         </div>
@@ -293,12 +293,12 @@
 
       <!-- Error / Success -->
       {#if error}
-        <div class="mb-4 p-4 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
+        <div class="mb-4 p-4 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-sm text-red-700 dark:text-red-400">
           {error}
         </div>
       {/if}
       {#if success}
-        <div class="mb-4 p-4 rounded-lg bg-green-50 border border-green-200 text-sm text-green-700">
+        <div class="mb-4 p-4 rounded-lg bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-800 text-sm text-green-700 dark:text-green-400">
           {success}
           {#if exportUrl}
             <a href={exportUrl} target="_blank" class="ml-2 underline font-semibold">เปิดหน้า Export</a>
@@ -307,11 +307,11 @@
       {/if}
 
       <!-- Step content -->
-      <div class="bg-white rounded-2xl border border-dark-100 p-6 sm:p-8">
+      <div class="bg-white dark:bg-dark-800 rounded-2xl border border-dark-100 dark:border-dark-700 p-6 sm:p-8">
         <div class="mb-6">
-          <div class="text-xs font-semibold text-primary-600 uppercase tracking-wider mb-1">ขั้นที่ {currentStep} จาก 7</div>
+          <div class="text-xs font-semibold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-1">ขั้นที่ {currentStep} จาก 7</div>
           <h2 class="heading-3 mb-1">{STEP_NAMES[currentStep]?.icon} {STEP_NAMES[currentStep]?.th}</h2>
-          <p class="text-xs text-dark-900/40">{STEP_NAMES[currentStep]?.en}</p>
+          <p class="text-xs text-dark-900/40 dark:text-dark-100/40">{STEP_NAMES[currentStep]?.en}</p>
         </div>
 
         <!-- Per-step context (notes + files + links) -->
@@ -324,72 +324,72 @@
           <div class="grid md:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium mb-1.5">ชื่อธุรกิจ *</label>
-              <input type="text" bind:value={s1.business_name} class="w-full px-3 py-2 rounded-lg border border-dark-200" placeholder="ก๋วยเตี๋ยวบ้านหมู" />
+              <input type="text" bind:value={s1.business_name} class="w-full px-3 py-2 rounded-lg border border-dark-200 dark:border-dark-600" placeholder="ก๋วยเตี๋ยวบ้านหมู" />
             </div>
             <div>
               <label class="block text-sm font-medium mb-1.5">ประเภท *</label>
-              <input type="text" bind:value={s1.business_type} class="w-full px-3 py-2 rounded-lg border border-dark-200" placeholder="ร้านอาหาร" />
+              <input type="text" bind:value={s1.business_type} class="w-full px-3 py-2 rounded-lg border border-dark-200 dark:border-dark-600" placeholder="ร้านอาหาร" />
             </div>
             <div>
               <label class="block text-sm font-medium mb-1.5">อุตสาหกรรม</label>
-              <input type="text" bind:value={s1.industry} class="w-full px-3 py-2 rounded-lg border border-dark-200" placeholder="F&B" />
+              <input type="text" bind:value={s1.industry} class="w-full px-3 py-2 rounded-lg border border-dark-200 dark:border-dark-600" placeholder="F&B" />
             </div>
             <div>
               <label class="block text-sm font-medium mb-1.5">ที่ตั้ง</label>
-              <input type="text" bind:value={s1.location} class="w-full px-3 py-2 rounded-lg border border-dark-200" placeholder="Bangkok" />
+              <input type="text" bind:value={s1.location} class="w-full px-3 py-2 rounded-lg border border-dark-200 dark:border-dark-600" placeholder="Bangkok" />
             </div>
             <div>
               <label class="block text-sm font-medium mb-1.5">อายุลูกค้า</label>
-              <input type="text" bind:value={s1.customer_age} class="w-full px-3 py-2 rounded-lg border border-dark-200" placeholder="28-40" />
+              <input type="text" bind:value={s1.customer_age} class="w-full px-3 py-2 rounded-lg border border-dark-200 dark:border-dark-600" placeholder="28-40" />
             </div>
             <div>
               <label class="block text-sm font-medium mb-1.5">อาชีพลูกค้า</label>
-              <input type="text" bind:value={s1.customer_job} class="w-full px-3 py-2 rounded-lg border border-dark-200" placeholder="พนักงานออฟฟิศ" />
+              <input type="text" bind:value={s1.customer_job} class="w-full px-3 py-2 rounded-lg border border-dark-200 dark:border-dark-600" placeholder="พนักงานออฟฟิศ" />
             </div>
             <div>
               <label class="block text-sm font-medium mb-1.5">รายได้ลูกค้า</label>
-              <input type="text" bind:value={s1.customer_income} class="w-full px-3 py-2 rounded-lg border border-dark-200" placeholder="40,000-70,000" />
+              <input type="text" bind:value={s1.customer_income} class="w-full px-3 py-2 rounded-lg border border-dark-200 dark:border-dark-600" placeholder="40,000-70,000" />
             </div>
             <div>
               <label class="block text-sm font-medium mb-1.5">ช่วงราคา</label>
-              <input type="text" bind:value={s1.price_range} class="w-full px-3 py-2 rounded-lg border border-dark-200" placeholder="กลาง" />
+              <input type="text" bind:value={s1.price_range} class="w-full px-3 py-2 rounded-lg border border-dark-200 dark:border-dark-600" placeholder="กลาง" />
             </div>
             <div class="md:col-span-2">
-              <p class="text-xs text-dark-900/60 -mb-1">
+              <p class="text-xs text-dark-900/60 dark:text-dark-100/60 -mb-1">
                 💡 <strong>ปัญหาลูกค้า (Pain Point)</strong> = ปัญหาที่ลูกค้าเจอจริง เช่น "หาของกินสายที่เปิดดึกไม่ได้"
               </p>
             </div>
             <div class="md:col-span-2">
               <label class="block text-sm font-medium mb-1.5">ปัญหาลูกค้า 1 *</label>
-              <input type="text" bind:value={s1.pain_point_1} class="w-full px-3 py-2 rounded-lg border border-dark-200" placeholder="อยากกิน comfort food แต่กลัวอ้วน" />
+              <input type="text" bind:value={s1.pain_point_1} class="w-full px-3 py-2 rounded-lg border border-dark-200 dark:border-dark-600" placeholder="อยากกิน comfort food แต่กลัวอ้วน" />
             </div>
             <div>
               <label class="block text-sm font-medium mb-1.5">ปัญหาลูกค้า 2 *</label>
-              <input type="text" bind:value={s1.pain_point_2} class="w-full px-3 py-2 rounded-lg border border-dark-200" />
+              <input type="text" bind:value={s1.pain_point_2} class="w-full px-3 py-2 rounded-lg border border-dark-200 dark:border-dark-600" />
             </div>
             <div>
               <label class="block text-sm font-medium mb-1.5">ปัญหาลูกค้า 3 *</label>
-              <input type="text" bind:value={s1.pain_point_3} class="w-full px-3 py-2 rounded-lg border border-dark-200" />
+              <input type="text" bind:value={s1.pain_point_3} class="w-full px-3 py-2 rounded-lg border border-dark-200 dark:border-dark-600" />
             </div>
             <div>
               <label class="block text-sm font-medium mb-1.5">คู่แข่ง 1</label>
-              <input type="text" bind:value={s1.competitor_1} class="w-full px-3 py-2 rounded-lg border border-dark-200" />
+              <input type="text" bind:value={s1.competitor_1} class="w-full px-3 py-2 rounded-lg border border-dark-200 dark:border-dark-600" />
             </div>
             <div>
               <label class="block text-sm font-medium mb-1.5">คู่แข่ง 2</label>
-              <input type="text" bind:value={s1.competitor_2} class="w-full px-3 py-2 rounded-lg border border-dark-200" />
+              <input type="text" bind:value={s1.competitor_2} class="w-full px-3 py-2 rounded-lg border border-dark-200 dark:border-dark-600" />
             </div>
             <div>
               <label class="block text-sm font-medium mb-1.5">คู่แข่ง 3</label>
-              <input type="text" bind:value={s1.competitor_3} class="w-full px-3 py-2 rounded-lg border border-dark-200" />
+              <input type="text" bind:value={s1.competitor_3} class="w-full px-3 py-2 rounded-lg border border-dark-200 dark:border-dark-600" />
             </div>
             <div class="md:col-span-2">
               <label class="block text-sm font-medium mb-1.5">จุดต่างจากคู่แข่ง</label>
-              <input type="text" bind:value={s1.differentiation} class="w-full px-3 py-2 rounded-lg border border-dark-200" />
+              <input type="text" bind:value={s1.differentiation} class="w-full px-3 py-2 rounded-lg border border-dark-200 dark:border-dark-600" />
             </div>
             <div class="md:col-span-2">
               <label class="block text-sm font-medium mb-1.5">เป้าหมาย 3 เดือน</label>
-              <input type="text" bind:value={s1.goal} class="w-full px-3 py-2 rounded-lg border border-dark-200" placeholder="Lead 100/เดือน" />
+              <input type="text" bind:value={s1.goal} class="w-full px-3 py-2 rounded-lg border border-dark-200 dark:border-dark-600" placeholder="Lead 100/เดือน" />
             </div>
           </div>
 
@@ -397,28 +397,28 @@
         {:else if currentStep === 2}
           <div>
             <label class="block text-sm font-medium mb-1.5">รีวิว/ข้อความจากลูกค้าจริง (50-100 รีวิว)</label>
-            <p class="text-xs text-dark-900/60 mb-2">
+            <p class="text-xs text-dark-900/60 dark:text-dark-100/60 mb-2">
               Paste รีวิวจาก Google/Facebook/Wongnai มาให้ ระบบอัจฉริยะ วิเคราะห์
-              <span class="block mt-1 text-primary-600">💡 ถ้ามี Brand Voice project / Pain Points project / saved tool result → กดแท็บ "🔗 ลิงก์" ด้านบนเพื่อดึงข้อมูลมาใช้</span>
+              <span class="block mt-1 text-primary-600 dark:text-primary-400">💡 ถ้ามี Brand Voice project / Pain Points project / saved tool result → กดแท็บ "🔗 ลิงก์" ด้านบนเพื่อดึงข้อมูลมาใช้</span>
             </p>
             <textarea
               bind:value={s2.reviews_text}
               rows="12"
-              class="w-full px-3 py-2 rounded-lg border border-dark-200 font-mono text-sm"
+              class="w-full px-3 py-2 rounded-lg border border-dark-200 dark:border-dark-600 font-mono text-sm"
               placeholder="รีวิว 1: อร่อยมาก แต่แพงไปนิด&#10;รีวิว 2: เส้น shirataki เจ๋ง ลดน้ำหนักได้จริง&#10;..."
             ></textarea>
           </div>
 
         <!-- Step 3: Customer Journey (uses step 1+2) -->
         {:else if currentStep === 3}
-          <p class="text-sm text-dark-900/60 mb-4">
+          <p class="text-sm text-dark-900/60 dark:text-dark-100/60 mb-4">
             Step 3 จะใช้ข้อมูลจาก Brand Card (Step 1) และ Persona (Step 2) มาออกแบบ Journey 5 จุด
             ไม่ต้องกรอกเพิ่ม — กดปุ่ม Generate ได้เลย
           </p>
 
         <!-- Step 4: Positioning (uses step 1+2) -->
         {:else if currentStep === 4}
-          <p class="text-sm text-dark-900/60 mb-4">
+          <p class="text-sm text-dark-900/60 dark:text-dark-100/60 mb-4">
             Step 4 จะใช้ข้อมูลจาก Brand Card (Step 1) และ Persona (Step 2) มาสร้าง Positioning
             ไม่ต้องกรอกเพิ่ม — กดปุ่ม Generate ได้เลย
           </p>
@@ -428,11 +428,11 @@
           <div class="space-y-4">
             <div>
               <label class="block text-sm font-medium mb-1.5">ช่องทาง (คั่นด้วยจุลภาค)</label>
-              <input type="text" bind:value={s5.channels} class="w-full px-3 py-2 rounded-lg border border-dark-200" />
+              <input type="text" bind:value={s5.channels} class="w-full px-3 py-2 rounded-lg border border-dark-200 dark:border-dark-600" />
             </div>
             <div>
               <label class="block text-sm font-medium mb-1.5">โพสต์ต่อสัปดาห์</label>
-              <input type="number" bind:value={s5.posts_per_week} min="1" max="20" class="w-full px-3 py-2 rounded-lg border border-dark-200" />
+              <input type="number" bind:value={s5.posts_per_week} min="1" max="20" class="w-full px-3 py-2 rounded-lg border border-dark-200 dark:border-dark-600" />
             </div>
           </div>
 
@@ -441,19 +441,19 @@
           <div class="space-y-4">
             <div>
               <label class="block text-sm font-medium mb-1.5">งาน marketing ที่ทำเป็นประจำ</label>
-              <textarea bind:value={s6.current_work} rows="3" class="w-full px-3 py-2 rounded-lg border border-dark-200"></textarea>
+              <textarea bind:value={s6.current_work} rows="3" class="w-full px-3 py-2 rounded-lg border border-dark-200 dark:border-dark-600"></textarea>
             </div>
             <div>
               <label class="block text-sm font-medium mb-1.5">ขนาดทีม (คน)</label>
-              <input type="number" bind:value={s6.team_size} min="1" class="w-full px-3 py-2 rounded-lg border border-dark-200" />
+              <input type="number" bind:value={s6.team_size} min="1" class="w-full px-3 py-2 rounded-lg border border-dark-200 dark:border-dark-600" />
             </div>
             <div>
               <label class="block text-sm font-medium mb-1.5">งบ ระบบอัจฉริยะ tools (บาท/เดือน)</label>
-              <input type="number" bind:value={s6.budget} min="0" class="w-full px-3 py-2 rounded-lg border border-dark-200" />
+              <input type="number" bind:value={s6.budget} min="0" class="w-full px-3 py-2 rounded-lg border border-dark-200 dark:border-dark-600" />
             </div>
             <div>
               <label class="block text-sm font-medium mb-1.5">เครื่องมือที่มี</label>
-              <input type="text" bind:value={s6.tools_available} class="w-full px-3 py-2 rounded-lg border border-dark-200" />
+              <input type="text" bind:value={s6.tools_available} class="w-full px-3 py-2 rounded-lg border border-dark-200 dark:border-dark-600" />
             </div>
           </div>
 
@@ -462,30 +462,30 @@
           <div class="grid md:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium mb-1.5">ประเภทธุรกิจ</label>
-              <input type="text" bind:value={s7.business_type} class="w-full px-3 py-2 rounded-lg border border-dark-200" placeholder="ร้านอาหาร" />
+              <input type="text" bind:value={s7.business_type} class="w-full px-3 py-2 rounded-lg border border-dark-200 dark:border-dark-600" placeholder="ร้านอาหาร" />
             </div>
             <div>
               <label class="block text-sm font-medium mb-1.5">รายได้ต่อเดือนปัจจุบัน (บาท)</label>
-              <input type="number" bind:value={s7.monthly_revenue} class="w-full px-3 py-2 rounded-lg border border-dark-200" />
+              <input type="number" bind:value={s7.monthly_revenue} class="w-full px-3 py-2 rounded-lg border border-dark-200 dark:border-dark-600" />
             </div>
             <div>
               <label class="block text-sm font-medium mb-1.5">เป้า 30 วัน</label>
-              <input type="text" bind:value={s7.goal_30} class="w-full px-3 py-2 rounded-lg border border-dark-200" placeholder="Lead 50" />
+              <input type="text" bind:value={s7.goal_30} class="w-full px-3 py-2 rounded-lg border border-dark-200 dark:border-dark-600" placeholder="Lead 50" />
             </div>
             <div>
               <label class="block text-sm font-medium mb-1.5">เป้า 90 วัน</label>
-              <input type="text" bind:value={s7.goal_90} class="w-full px-3 py-2 rounded-lg border border-dark-200" placeholder="Lead 150" />
+              <input type="text" bind:value={s7.goal_90} class="w-full px-3 py-2 rounded-lg border border-dark-200 dark:border-dark-600" placeholder="Lead 150" />
             </div>
             <div class="md:col-span-2">
               <label class="block text-sm font-medium mb-1.5">ตัวเลขปัจจุบัน (ถ้ามี)</label>
-              <textarea bind:value={s7.current_metrics} rows="3" class="w-full px-3 py-2 rounded-lg border border-dark-200" placeholder="Lead 5/สัปดาห์, Conversion 8%, Revenue 35,000 บาท/สัปดาห์"></textarea>
+              <textarea bind:value={s7.current_metrics} rows="3" class="w-full px-3 py-2 rounded-lg border border-dark-200 dark:border-dark-600" placeholder="Lead 5/สัปดาห์, Conversion 8%, Revenue 35,000 บาท/สัปดาห์"></textarea>
             </div>
           </div>
         {/if}
 
         <!-- Generate button -->
-        <div class="mt-6 pt-6 border-t border-dark-100 flex items-center justify-between flex-wrap gap-3">
-          <span class="text-xs text-dark-900/50">ใช้สูงสุด ~{CREDIT_ESTIMATE[currentStep]} เครดิต</span>
+        <div class="mt-6 pt-6 border-t border-dark-100 dark:border-dark-700 flex items-center justify-between flex-wrap gap-3">
+          <span class="text-xs text-dark-900/50 dark:text-dark-100/50">ใช้สูงสุด ~{CREDIT_ESTIMATE[currentStep]} เครดิต</span>
           <button
             onclick={handleGenerate}
             disabled={isGenerating}
@@ -497,9 +497,9 @@
 
         <!-- Output display -->
         {#if getOutput(currentStep)}
-          <div class="mt-6 pt-6 border-t border-dark-100">
+          <div class="mt-6 pt-6 border-t border-dark-100 dark:border-dark-700">
             <h3 class="font-semibold mb-4 flex items-center gap-2">
-              <span class="w-7 h-7 rounded-full bg-green-100 text-green-700 flex items-center justify-center">✓</span>
+              <span class="w-7 h-7 rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400 flex items-center justify-center">✓</span>
               <span class="text-lg">ผลลัพธ์: {STEP_NAMES[currentStep]?.th}</span>
               <button
                 onclick={() => {
@@ -507,7 +507,7 @@
                   navigator.clipboard.writeText(JSON.stringify(o, null, 2));
                   alert('คัดลอก JSON แล้ว');
                 }}
-                class="ml-auto text-xs text-dark-900/60 hover:text-primary-600 flex items-center gap-1"
+                class="ml-auto text-xs text-dark-900/60 dark:text-dark-100/60 hover:text-primary-600 dark:hover:text-primary-400 flex items-center gap-1"
                 title="คัดลอก JSON"
               >
                 📋 Copy JSON
@@ -535,7 +535,7 @@
             Generate จากข้อมูล {project.current_step - 1} ขั้นที่เสร็จแล้ว — เลือก format ที่ต้องการ
           </p>
           <div class="flex flex-wrap gap-2">
-            <button onclick={() => handleExport('html')} disabled={isExporting} class="bg-white text-primary-700 font-semibold px-4 py-2.5 rounded-lg hover:bg-white/90 transition disabled:opacity-50 text-sm">
+            <button onclick={() => handleExport('html')} disabled={isExporting} class="bg-white dark:bg-dark-800 text-primary-700 dark:text-primary-300 font-semibold px-4 py-2.5 rounded-lg hover:bg-white/90 transition disabled:opacity-50 text-sm">
               {isExporting ? '...' : '🖨️ HTML (Print→PDF)'}
             </button>
             <button onclick={() => handleExport('md')} disabled={isExporting} class="bg-white/10 backdrop-blur text-white font-semibold px-4 py-2.5 rounded-lg hover:bg-white/20 transition disabled:opacity-50 text-sm border border-white/20">
