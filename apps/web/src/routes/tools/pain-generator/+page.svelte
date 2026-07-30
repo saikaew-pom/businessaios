@@ -234,9 +234,9 @@
   }
 
   const pillarColor = (sev: string) => {
-    if (sev === 'high') return 'bg-red-50 border-red-300 text-red-900';
-    if (sev === 'medium') return 'bg-amber-50 border-amber-300 text-amber-900';
-    return 'bg-blue-50 border-blue-300 text-blue-900';
+    if (sev === 'high') return 'bg-red-50 dark:bg-red-950/40 border-red-300 dark:border-red-700 text-red-900 dark:text-red-200';
+    if (sev === 'medium') return 'bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-200';
+    return 'bg-blue-50 dark:bg-blue-950/40 border-blue-300 dark:border-blue-700 text-blue-900 dark:text-blue-200';
   };
 
   const pillarLabel = (sev: string) => {
@@ -254,9 +254,9 @@
 >
   {#if !output}
     <div class="space-y-5">
-      <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
-        <div class="font-semibold text-blue-900 mb-1">📐 SPICE Framework</div>
-        <div class="text-sm text-blue-800 space-y-1">
+      <div class="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
+        <div class="font-semibold text-blue-900 dark:text-blue-200 mb-1">📐 SPICE Framework</div>
+        <div class="text-sm text-blue-800 dark:text-blue-300 space-y-1">
           <div><b>S</b>ituation — กลุ่มเป้าหมาย + หมวดสินค้า</div>
           <div><b>P</b>ersona — สวมบทบาทนักวิเคราะห์ Unmet Need</div>
           <div><b>I</b>nstruction — วิเคราะห์ Pain Point ที่ยังแก้ไม่ตรงจุด</div>
@@ -271,7 +271,7 @@
           type="text"
           bind:value={business_name}
           placeholder="เช่น ร้านก๋วยเตี๋ยวลุงใบหยก"
-          class="w-full px-3 py-2.5 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+          class="w-full px-3 py-2.5 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-dark-800"
         />
       </div>
 
@@ -286,35 +286,35 @@
       />
 
       <!-- Pain category preset -->
-      <div class="bg-gradient-to-r from-red-50 to-orange-50 border border-red-200 rounded-xl p-4">
+      <div class="bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-950/40 dark:to-orange-950/40 border border-red-200 dark:border-red-800 rounded-xl p-4">
         <div class="mb-2">
-          <div class="font-semibold text-red-900">🎯 เลือกหมวด Pain Point ที่เน้น <span class="text-xs font-normal text-red-700">(เลือกได้หลายข้อ / ไม่เลือกก็ได้)</span></div>
-          <div class="text-xs text-red-700">ระบบอัจฉริยะ จะเน้น pain points ในหมวดที่เลือก — เลือก 0 ข้อถ้าอยากให้ ระบบอัจฉริยะ วิเคราะห์กว้างๆ</div>
+          <div class="font-semibold text-red-900 dark:text-red-200">🎯 เลือกหมวด Pain Point ที่เน้น <span class="text-xs font-normal text-red-700 dark:text-red-400">(เลือกได้หลายข้อ / ไม่เลือกก็ได้)</span></div>
+          <div class="text-xs text-red-700 dark:text-red-400">ระบบอัจฉริยะ จะเน้น pain points ในหมวดที่เลือก — เลือก 0 ข้อถ้าอยากให้ ระบบอัจฉริยะ วิเคราะห์กว้างๆ</div>
         </div>
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {#each PAIN_POINT_CATEGORIES as cat}
             <button
               type="button"
               onclick={() => toggleCategory(cat)}
-              class="text-left p-2.5 rounded-lg border-2 transition {selectedCategories.includes(cat.id) ? 'border-red-500 bg-white shadow-sm' : 'border-red-200 bg-white/50 hover:border-red-300 hover:bg-white'}"
+              class="text-left p-2.5 rounded-lg border-2 transition {selectedCategories.includes(cat.id) ? 'border-red-500 bg-white dark:bg-dark-800 shadow-sm' : 'border-red-200 dark:border-red-800 bg-white/50 dark:bg-dark-800/50 hover:border-red-300 dark:hover:border-red-600 hover:bg-white dark:hover:bg-dark-800'}"
               title={cat.description}
             >
               <div class="flex items-center gap-1.5">
                 <span class="text-xl">{cat.icon}</span>
                 {#if selectedCategories.includes(cat.id)}
-                  <span class="text-xs text-red-600">✓</span>
+                  <span class="text-xs text-red-600 dark:text-red-400">✓</span>
                 {/if}
               </div>
-              <div class="text-xs font-semibold text-dark-900 mt-1">{cat.label}</div>
+              <div class="text-xs font-semibold text-dark-900 dark:text-dark-50 mt-1">{cat.label}</div>
             </button>
           {/each}
         </div>
         {#if selectedCategories.length > 0}
           {@const selected = selectedCategories.map(id => PAIN_POINT_CATEGORIES.find(c => c.id === id)).filter((c): c is PainPointCategory => !!c)}
-          <div class="mt-3 p-2.5 bg-white rounded-lg border border-red-200 text-xs space-y-1">
+          <div class="mt-3 p-2.5 bg-white dark:bg-dark-800 rounded-lg border border-red-200 dark:border-red-800 text-xs space-y-1">
             {#each selected as cat}
-              <div class="text-dark-900/80">
-                <span class="font-semibold text-red-700">{cat.icon} {cat.label}:</span> {cat.description}
+              <div class="text-dark-900/80 dark:text-dark-100/80">
+                <span class="font-semibold text-red-700 dark:text-red-400">{cat.icon} {cat.label}:</span> {cat.description}
               </div>
             {/each}
           </div>
@@ -322,22 +322,22 @@
       </div>
 
       <div>
-        <label class="block text-sm font-semibold mb-1.5">กลุ่มเป้าหมายเพิ่มเติม <span class="text-dark-900/50 font-normal">(ระบุเอง ถ้ายังไม่ครบ)</span></label>
+        <label class="block text-sm font-semibold mb-1.5">กลุ่มเป้าหมายเพิ่มเติม <span class="text-dark-900/50 dark:text-dark-100/50 font-normal">(ระบุเอง ถ้ายังไม่ครบ)</span></label>
         <input
           type="text"
           bind:value={custom_audience_text}
           placeholder="เช่น พนักงานออฟฟิศอายุ 25-40 ที่ใส่ใจสุขภาพ"
-          class="w-full px-3 py-2.5 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+          class="w-full px-3 py-2.5 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-dark-800"
         />
       </div>
 
       {#if error}
-        <div class="p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
+        <div class="p-3 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-sm text-red-700 dark:text-red-400">
           {error}
         </div>
       {/if}
 
-      <div class="pt-4 flex items-center justify-end border-t border-dark-100">
+      <div class="pt-4 flex items-center justify-end border-t border-dark-100 dark:border-dark-700">
         <button
           onclick={handleGenerate}
           disabled={isGenerating}
@@ -351,15 +351,15 @@
     <!-- Results -->
     <div class="space-y-5">
       {#if output.summary}
-        <div class="bg-primary-50 border-l-4 border-primary-500 p-4 rounded-lg">
-          <div class="text-xs font-bold text-primary-700 uppercase tracking-wider mb-1">สรุป</div>
-          <div class="text-dark-900">{output.summary}</div>
+        <div class="bg-primary-50 dark:bg-primary-900/40 border-l-4 border-primary-500 p-4 rounded-lg">
+          <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wider mb-1">สรุป</div>
+          <div class="text-dark-900 dark:text-dark-50">{output.summary}</div>
         </div>
       {/if}
 
       {#if output.persona_insight}
-        <div class="bg-white border border-dark-100 rounded-xl p-4">
-          <div class="text-xs font-bold text-primary-600 uppercase tracking-wider mb-2">🔍 Persona Insight</div>
+        <div class="bg-white dark:bg-dark-800 border border-dark-100 dark:border-dark-700 rounded-xl p-4">
+          <div class="text-xs font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-2">🔍 Persona Insight</div>
           <div class="text-sm leading-relaxed">{output.persona_insight}</div>
         </div>
       {/if}
@@ -376,22 +376,22 @@
             </div>
             <p class="text-sm mb-3 leading-relaxed">{pp.description}</p>
             <div class="grid sm:grid-cols-2 gap-3 text-xs">
-              <div class="bg-white/60 rounded-lg p-2">
+              <div class="bg-white/60 dark:bg-dark-900/40 rounded-lg p-2">
                 <div class="font-bold opacity-70 mb-1">📊 ขนาดตลาด</div>
                 <div>{pp.market_size}</div>
               </div>
-              <div class="bg-white/60 rounded-lg p-2">
+              <div class="bg-white/60 dark:bg-dark-900/40 rounded-lg p-2">
                 <div class="font-bold opacity-70 mb-1">💡 โอกาสของคุณ</div>
                 <div>{pp.your_opportunity}</div>
               </div>
               {#if pp.current_solutions?.length}
-                <div class="bg-white/60 rounded-lg p-2 sm:col-span-2">
+                <div class="bg-white/60 dark:bg-dark-900/40 rounded-lg p-2 sm:col-span-2">
                   <div class="font-bold opacity-70 mb-1">🔧 วิธีที่ลูกค้าแก้ตอนนี้</div>
                   <ul class="space-y-0.5">{#each pp.current_solutions as s}<li>• {s}</li>{/each}</ul>
                 </div>
               {/if}
               {#if pp.why_existing_fails}
-                <div class="bg-white/60 rounded-lg p-2 sm:col-span-2">
+                <div class="bg-white/60 dark:bg-dark-900/40 rounded-lg p-2 sm:col-span-2">
                   <div class="font-bold opacity-70 mb-1">❌ ทำไมถึงยังไม่ตรงจุด</div>
                   <div>{pp.why_existing_fails}</div>
                 </div>
@@ -402,34 +402,34 @@
       </div>
 
       {#if output.quick_wins?.length}
-        <div class="bg-green-50 border border-green-300 rounded-xl p-4">
-          <div class="text-xs font-bold text-green-700 uppercase tracking-wider mb-2">⚡ Quick Wins (แก้ได้เร็ว)</div>
+        <div class="bg-green-50 dark:bg-green-950/40 border border-green-300 dark:border-green-700 rounded-xl p-4">
+          <div class="text-xs font-bold text-green-700 dark:text-green-400 uppercase tracking-wider mb-2">⚡ Quick Wins (แก้ได้เร็ว)</div>
           <ul class="space-y-1 text-sm">
-            {#each output.quick_wins as q}<li class="flex gap-2"><span class="text-green-600">→</span>{q}</li>{/each}
+            {#each output.quick_wins as q}<li class="flex gap-2"><span class="text-green-600 dark:text-green-400">→</span>{q}</li>{/each}
           </ul>
         </div>
       {/if}
 
       {#if output.moonshots?.length}
-        <div class="bg-purple-50 border border-purple-300 rounded-xl p-4">
-          <div class="text-xs font-bold text-purple-700 uppercase tracking-wider mb-2">🚀 Moonshots (payoff สูง แต่ใช้เวลา)</div>
+        <div class="bg-purple-50 dark:bg-purple-950/40 border border-purple-300 dark:border-purple-700 rounded-xl p-4">
+          <div class="text-xs font-bold text-purple-700 dark:text-purple-400 uppercase tracking-wider mb-2">🚀 Moonshots (payoff สูง แต่ใช้เวลา)</div>
           <ul class="space-y-1 text-sm">
-            {#each output.moonshots as m}<li class="flex gap-2"><span class="text-purple-600">→</span>{m}</li>{/each}
+            {#each output.moonshots as m}<li class="flex gap-2"><span class="text-purple-600 dark:text-purple-400">→</span>{m}</li>{/each}
           </ul>
         </div>
       {/if}
 
       <ToolChainHint current="pain_generator" />
 
-      <div class="flex items-center justify-between pt-4 border-t border-dark-100 flex-wrap gap-2">
-        <button onclick={() => { output = null; error = ''; saveId = null; saveMsg = ''; }} class="text-sm text-dark-900/60 hover:text-primary-600">
+      <div class="flex items-center justify-between pt-4 border-t border-dark-100 dark:border-dark-700 flex-wrap gap-2">
+        <button onclick={() => { output = null; error = ''; saveId = null; saveMsg = ''; }} class="text-sm text-dark-900/60 dark:text-dark-100/60 hover:text-primary-600 dark:hover:text-primary-400">
           ← วิเคราะห์ใหม่
         </button>
         <div class="flex items-center gap-2 flex-wrap">
           {#if saveMsg}
-            <span class="text-xs {saveMsg.startsWith('✓') ? 'text-green-700' : 'text-red-700'}">{saveMsg}</span>
+            <span class="text-xs {saveMsg.startsWith('✓') ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}">{saveMsg}</span>
           {/if}
-          <input type="text" bind:value={saveTitle} placeholder="ตั้งชื่อ (ไม่บังคับ)" class="text-xs px-2 py-1.5 rounded border border-dark-200 w-40" />
+          <input type="text" bind:value={saveTitle} placeholder="ตั้งชื่อ (ไม่บังคับ)" class="text-xs px-2 py-1.5 rounded border border-dark-200 dark:border-dark-600 w-40 dark:bg-dark-800" />
           <button onclick={handleSave} disabled={isSaving} class="text-sm btn-secondary disabled:opacity-50">
             {isSaving ? '...' : (saveId ? '✓ บันทึกแล้ว' : '💾 บันทึก')}
           </button>
@@ -441,7 +441,7 @@
         </div>
       </div>
       {#if promoteMsg}
-        <div class="mt-2 text-xs {promoteMsg.startsWith('✓') ? 'text-green-700' : 'text-red-700'}">{promoteMsg}</div>
+        <div class="mt-2 text-xs {promoteMsg.startsWith('✓') ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}">{promoteMsg}</div>
       {/if}
     </div>
   {/if}

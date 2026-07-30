@@ -40,12 +40,12 @@
   };
 </script>
 
-<div class="min-h-screen bg-dark-50">
+<div class="min-h-screen bg-dark-50 dark:bg-dark-950">
   <!-- Header -->
-  <header class="bg-white border-b border-dark-100 sticky top-0 z-10">
+  <header class="bg-white dark:bg-dark-800 border-b border-dark-100 dark:border-dark-700 sticky top-0 z-10">
     <div class="container-narrow flex items-center justify-between h-16">
       <div class="flex items-center gap-3">
-        <a href="/dashboard" class="text-dark-900/60 hover:text-dark-900">
+        <a href="/dashboard" class="text-dark-900/60 dark:text-dark-100/60 hover:text-dark-900 dark:hover:text-dark-50">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
         </a>
         <div class="flex items-center gap-2">
@@ -58,15 +58,15 @@
       <div class="flex items-center gap-3">
         <button
           onclick={toggleLocale}
-          class="text-xs font-semibold px-2.5 py-1 rounded border border-dark-200 hover:bg-dark-50 transition"
+          class="text-xs font-semibold px-2.5 py-1 rounded border border-dark-200 dark:border-dark-600 hover:bg-dark-50 dark:hover:bg-dark-700 transition"
           aria-label="Toggle language"
         >
           {$locale === 'th' ? 'EN' : 'TH'}
         </button>
         {#if $user}
-          <span class="text-sm text-dark-900/60 hidden sm:block">{$user.email}</span>
+          <span class="text-sm text-dark-900/60 dark:text-dark-100/60 hidden sm:block">{$user.email}</span>
         {/if}
-        <button onclick={handleLogout} class="text-sm text-dark-900/60 hover:text-dark-900">ออก</button>
+        <button onclick={handleLogout} class="text-sm text-dark-900/60 dark:text-dark-100/60 hover:text-dark-900 dark:hover:text-dark-50">ออก</button>
       </div>
     </div>
   </header>
@@ -80,13 +80,13 @@
     </div>
 
     <!-- Content slot -->
-    <div class="bg-white rounded-2xl border border-dark-100 p-6 sm:p-8">
+    <div class="bg-white dark:bg-dark-800 rounded-2xl border border-dark-100 dark:border-dark-700 p-6 sm:p-8">
       {@render children?.()}
     </div>
 
     <!-- Footer -->
-    <div class="mt-8 text-center text-sm text-dark-900/50">
-      <a href="/dashboard" class="hover:text-primary-600">← กลับไป Dashboard</a>
+    <div class="mt-8 text-center text-sm text-dark-900/50 dark:text-dark-100/50">
+      <a href="/dashboard" class="hover:text-primary-600 dark:hover:text-primary-400">← กลับไป Dashboard</a>
     </div>
   </main>
 </div>

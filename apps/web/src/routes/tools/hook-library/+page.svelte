@@ -218,18 +218,18 @@
 
   const categoryColor = (cat: string) => {
     const map: Record<string, string> = {
-      curiosity: 'bg-blue-100 text-blue-800 border-blue-300',
-      pain: 'bg-red-100 text-red-800 border-red-300',
-      story: 'bg-amber-100 text-amber-800 border-amber-300',
-      stat: 'bg-purple-100 text-purple-800 border-purple-300',
-      question: 'bg-cyan-100 text-cyan-800 border-cyan-300',
-      contrarian: 'bg-orange-100 text-orange-800 border-orange-300',
-      listicle: 'bg-green-100 text-green-800 border-green-300',
-      pattern_interrupt: 'bg-rose-100 text-rose-800 border-rose-300',
-      big_promise: 'bg-indigo-100 text-indigo-800 border-indigo-300',
-      identity: 'bg-pink-100 text-pink-800 border-pink-300',
+      curiosity: 'bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-700',
+      pain: 'bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300 border-red-300 dark:border-red-700',
+      story: 'bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-700',
+      stat: 'bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300 border-purple-300 dark:border-purple-700',
+      question: 'bg-cyan-100 dark:bg-cyan-900/40 text-cyan-800 dark:text-cyan-300 border-cyan-300 dark:border-cyan-700',
+      contrarian: 'bg-orange-100 dark:bg-orange-900/40 text-orange-800 dark:text-orange-300 border-orange-300 dark:border-orange-700',
+      listicle: 'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 border-green-300 dark:border-green-700',
+      pattern_interrupt: 'bg-rose-100 dark:bg-rose-900/40 text-rose-800 dark:text-rose-300 border-rose-300 dark:border-rose-700',
+      big_promise: 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-800 dark:text-indigo-300 border-indigo-300 dark:border-indigo-700',
+      identity: 'bg-pink-100 dark:bg-pink-900/40 text-pink-800 dark:text-pink-300 border-pink-300 dark:border-pink-700',
     };
-    return map[cat] || 'bg-gray-100 text-gray-800 border-gray-300';
+    return map[cat] || 'bg-gray-100 dark:bg-dark-700 text-gray-800 dark:text-dark-200 border-gray-300 dark:border-dark-600';
   };
 </script>
 
@@ -241,9 +241,9 @@
 >
   {#if !output}
     <div class="space-y-5">
-      <div class="bg-gradient-to-r from-teal-50 to-cyan-50 border border-teal-200 rounded-xl p-4">
-        <div class="font-semibold text-teal-900 mb-1">🎣 Hook Library</div>
-        <div class="text-sm text-teal-800 space-y-1">
+      <div class="bg-gradient-to-r from-teal-50 to-cyan-50 dark:from-teal-950/40 dark:to-cyan-950/40 border border-teal-200 dark:border-teal-800 rounded-xl p-4">
+        <div class="font-semibold text-teal-900 dark:text-teal-200 mb-1">🎣 Hook Library</div>
+        <div class="text-sm text-teal-800 dark:text-teal-300 space-y-1">
           <div><b>10 Hook Formulas:</b> Curiosity · Pain · Story · Stat · Question · Contrarian · Listicle · Pattern Interrupt · Big Promise · Identity</div>
           <div><b>6 Platforms:</b> Facebook · Instagram · YouTube · TikTok · Email · Landing Page</div>
           <div><b>Output:</b> 30-50 hooks + 5 headlines A/B test + platform-specific + A/B testing tips</div>
@@ -252,7 +252,7 @@
 
       <div>
         <label class="block text-sm font-semibold mb-1.5">ชื่อธุรกิจ *</label>
-        <input type="text" bind:value={business_name} placeholder="เช่น ขนมบ้านโกไข่" class="w-full px-3 py-2.5 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500" />
+        <input type="text" bind:value={business_name} placeholder="เช่น ขนมบ้านโกไข่" class="w-full px-3 py-2.5 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-dark-800" />
       </div>
 
       <BusinessContextFields
@@ -268,34 +268,34 @@
       <div class="grid sm:grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-semibold mb-1.5">ที่ตั้ง</label>
-          <input type="text" bind:value={location} placeholder="เช่น หาดใหญ่" class="w-full px-3 py-2.5 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500" />
+          <input type="text" bind:value={location} placeholder="เช่น หาดใหญ่" class="w-full px-3 py-2.5 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-dark-800" />
         </div>
         <div>
           <label class="block text-sm font-semibold mb-1.5">ช่วงราคา</label>
-          <input type="text" bind:value={price_range} placeholder="เช่น 100-500 บาท" class="w-full px-3 py-2.5 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500" />
+          <input type="text" bind:value={price_range} placeholder="เช่น 100-500 บาท" class="w-full px-3 py-2.5 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-dark-800" />
         </div>
       </div>
 
       <div>
         <label class="block text-sm font-semibold mb-1.5">จุดต่าง (ถ้ามี)</label>
-        <input type="text" bind:value={differentiation} placeholder="เช่น ขนมใต้สูตรโบราณ" class="w-full px-3 py-2.5 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500" />
+        <input type="text" bind:value={differentiation} placeholder="เช่น ขนมใต้สูตรโบราณ" class="w-full px-3 py-2.5 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-dark-800" />
       </div>
 
       <div>
         <label class="block text-sm font-semibold mb-1.5">Product / Service *</label>
-        <textarea bind:value={product_description} rows="3" placeholder="เช่น ขนมบ้านโกไข่ ขนมใต้สูตรโบราณ 28 สาขา" class="w-full px-3 py-2.5 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"></textarea>
+        <textarea bind:value={product_description} rows="3" placeholder="เช่น ขนมบ้านโกไข่ ขนมใต้สูตรโบราณ 28 สาขา" class="w-full px-3 py-2.5 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm dark:bg-dark-800"></textarea>
       </div>
 
       <div>
         <label class="block text-sm font-semibold mb-1.5">Features / จุดเด่น</label>
-        <textarea bind:value={product_features} rows="2" placeholder="เช่น 1) สูตรโบราณ 2) วัตถุดิบสด 3) ปั๊ม ปตท." class="w-full px-3 py-2.5 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"></textarea>
+        <textarea bind:value={product_features} rows="2" placeholder="เช่น 1) สูตรโบราณ 2) วัตถุดิบสด 3) ปั๊ม ปตท." class="w-full px-3 py-2.5 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm dark:bg-dark-800"></textarea>
       </div>
 
-      <div class="bg-gradient-to-r from-teal-50 to-cyan-50 border-2 border-teal-300 rounded-xl p-4 space-y-3">
-        <div class="font-semibold text-teal-900">🎣 Marketing Context (4 ตัวเลือก)</div>
+      <div class="bg-gradient-to-r from-teal-50 to-cyan-50 dark:from-teal-950/40 dark:to-cyan-950/40 border-2 border-teal-300 dark:border-teal-700 rounded-xl p-4 space-y-3">
+        <div class="font-semibold text-teal-900 dark:text-teal-200">🎣 Marketing Context (4 ตัวเลือก)</div>
         <div>
-          <label class="block text-xs font-semibold text-teal-800 mb-1">📱 Primary Platform</label>
-          <select bind:value={primary_platform} class="w-full px-2.5 py-1.5 rounded border border-teal-200 text-sm">
+          <label class="block text-xs font-semibold text-teal-800 dark:text-teal-300 mb-1">📱 Primary Platform</label>
+          <select bind:value={primary_platform} class="w-full px-2.5 py-1.5 rounded border border-teal-200 dark:border-teal-700 text-sm bg-white dark:bg-dark-800">
             <option value="">— เลือก / ปล่อยว่าง —</option>
             {#each PLATFORMS as p}
               <option value={p.id}>{p.label} — {p.desc}</option>
@@ -303,8 +303,8 @@
           </select>
         </div>
         <div>
-          <label class="block text-xs font-semibold text-teal-800 mb-1">😊 Brand Voice</label>
-          <select bind:value={brand_voice} class="w-full px-2.5 py-1.5 rounded border border-teal-200 text-sm">
+          <label class="block text-xs font-semibold text-teal-800 dark:text-teal-300 mb-1">😊 Brand Voice</label>
+          <select bind:value={brand_voice} class="w-full px-2.5 py-1.5 rounded border border-teal-200 dark:border-teal-700 text-sm bg-white dark:bg-dark-800">
             <option value="">— เลือก / ปล่อยว่าง —</option>
             {#each BRAND_VOICE_OPTIONS as v}
               <option value={v.id}>{v.label}</option>
@@ -312,8 +312,8 @@
           </select>
         </div>
         <div>
-          <label class="block text-xs font-semibold text-teal-800 mb-1">🎯 Campaign Goal</label>
-          <select bind:value={campaign_goal} class="w-full px-2.5 py-1.5 rounded border border-teal-200 text-sm">
+          <label class="block text-xs font-semibold text-teal-800 dark:text-teal-300 mb-1">🎯 Campaign Goal</label>
+          <select bind:value={campaign_goal} class="w-full px-2.5 py-1.5 rounded border border-teal-200 dark:border-teal-700 text-sm bg-white dark:bg-dark-800">
             <option value="">— เลือก / ปล่อยว่าง —</option>
             {#each CAMPAIGN_GOALS as g}
               <option value={g.id}>{g.label}</option>
@@ -321,8 +321,8 @@
           </select>
         </div>
         <div>
-          <label class="block text-xs font-semibold text-teal-800 mb-1">⭐ Top Hook Style ที่ชอบ</label>
-          <select bind:value={top_hook_style} class="w-full px-2.5 py-1.5 rounded border border-teal-200 text-sm">
+          <label class="block text-xs font-semibold text-teal-800 dark:text-teal-300 mb-1">⭐ Top Hook Style ที่ชอบ</label>
+          <select bind:value={top_hook_style} class="w-full px-2.5 py-1.5 rounded border border-teal-200 dark:border-teal-700 text-sm bg-white dark:bg-dark-800">
             <option value="">— เลือก / ปล่อยว่าง —</option>
             {#each HOOK_CATEGORIES as h}
               <option value={h.id}>{h.label} — {h.desc}</option>
@@ -332,16 +332,16 @@
       </div>
 
       {#if offer_saves.length > 0 || persona_saves.length > 0}
-        <div class="bg-amber-50 border border-amber-300 rounded-xl p-3 space-y-2">
-          <div class="font-semibold text-amber-900 text-sm">🔗 เชื่อม strategic tools (optional)</div>
+        <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700 rounded-xl p-3 space-y-2">
+          <div class="font-semibold text-amber-900 dark:text-amber-200 text-sm">🔗 เชื่อม strategic tools (optional)</div>
           {#if offer_saves.length > 0}
-            <select bind:value={selectedOfferId} class="w-full px-2.5 py-1.5 rounded border border-amber-200 text-sm">
+            <select bind:value={selectedOfferId} class="w-full px-2.5 py-1.5 rounded border border-amber-200 dark:border-amber-700 text-sm bg-white dark:bg-dark-800">
               <option value="">— ไม่ใช้ Offer —</option>
               {#each offer_saves as o}<option value={o.id}>💎 {o.title}</option>{/each}
             </select>
           {/if}
           {#if persona_saves.length > 0}
-            <select bind:value={selectedPersonaId} class="w-full px-2.5 py-1.5 rounded border border-amber-200 text-sm">
+            <select bind:value={selectedPersonaId} class="w-full px-2.5 py-1.5 rounded border border-amber-200 dark:border-amber-700 text-sm bg-white dark:bg-dark-800">
               <option value="">— ไม่ใช้ Persona —</option>
               {#each persona_saves as p}<option value={p.id}>👥 {p.title}</option>{/each}
             </select>
@@ -350,13 +350,13 @@
       {/if}
 
       <div>
-        <label class="block text-sm font-semibold mb-1.5">โน้ตเพิ่มเติม <span class="text-dark-900/50 font-normal">(optional)</span></label>
-        <textarea bind:value={user_notes} rows="2" placeholder="อะไรก็ได้ที่อยากให้ ระบบอัจฉริยะ รู้เพิ่ม..." class="w-full px-3 py-2.5 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500"></textarea>
+        <label class="block text-sm font-semibold mb-1.5">โน้ตเพิ่มเติม <span class="text-dark-900/50 dark:text-dark-100/50 font-normal">(optional)</span></label>
+        <textarea bind:value={user_notes} rows="2" placeholder="อะไรก็ได้ที่อยากให้ ระบบอัจฉริยะ รู้เพิ่ม..." class="w-full px-3 py-2.5 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-dark-800"></textarea>
       </div>
 
-      {#if error}<div class="p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">{error}</div>{/if}
+      {#if error}<div class="p-3 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-sm text-red-700 dark:text-red-400">{error}</div>{/if}
 
-      <div class="pt-4 flex items-center justify-end border-t border-dark-100">
+      <div class="pt-4 flex items-center justify-end border-t border-dark-100 dark:border-dark-700">
         <button onclick={handleGenerate} disabled={isGenerating} class="btn-primary disabled:opacity-50">
           {isGenerating ? '⏳ ระบบอัจฉริยะ กำลังสร้าง Hooks...' : '🎣 สร้าง Hook Library'}
         </button>
@@ -365,36 +365,36 @@
   {:else}
     <div class="space-y-5">
       {#if output.summary}
-        <div class="bg-primary-50 border-l-4 border-primary-500 p-4 rounded-lg">
-          <div class="text-xs font-bold text-primary-700 uppercase tracking-wider mb-1">สรุป Hook Library</div>
-          <div class="text-dark-900">{output.summary}</div>
+        <div class="bg-primary-50 dark:bg-primary-900/40 border-l-4 border-primary-500 p-4 rounded-lg">
+          <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wider mb-1">สรุป Hook Library</div>
+          <div class="text-dark-900 dark:text-dark-50">{output.summary}</div>
         </div>
       {/if}
 
       {#if output.brand_voice_summary}
-        <div class="bg-gradient-to-r from-teal-50 to-cyan-50 border-l-4 border-teal-500 p-3 rounded">
-          <div class="text-xs font-bold text-teal-700 uppercase mb-1">🎙️ Brand Voice</div>
-          <div class="text-sm italic text-teal-900">"{output.brand_voice_summary}"</div>
+        <div class="bg-gradient-to-r from-teal-50 to-cyan-50 dark:from-teal-950/40 dark:to-cyan-950/40 border-l-4 border-teal-500 p-3 rounded">
+          <div class="text-xs font-bold text-teal-700 dark:text-teal-400 uppercase mb-1">🎙️ Brand Voice</div>
+          <div class="text-sm italic text-teal-900 dark:text-teal-200">"{output.brand_voice_summary}"</div>
         </div>
       {/if}
 
       <!-- Hook Categories -->
       {#if output.hook_categories?.length}
         <div>
-          <h3 class="text-lg font-bold text-teal-900 mb-3">🎣 Hook Categories ({output.hook_categories.length})</h3>
+          <h3 class="text-lg font-bold text-teal-900 dark:text-teal-200 mb-3">🎣 Hook Categories ({output.hook_categories.length})</h3>
           <div class="space-y-3">
             {#each output.hook_categories as cat}
-              <div class="bg-white border-2 border-teal-200 rounded-xl p-4">
+              <div class="bg-white dark:bg-dark-800 border-2 border-teal-200 dark:border-teal-800 rounded-xl p-4">
                 <div class="flex items-center gap-2 mb-2 flex-wrap">
                   <span class="px-2 py-0.5 rounded text-xs border {categoryColor(cat.name)}">{cat.thai_label || cat.name}</span>
                 </div>
-                {#if cat.description}<div class="text-xs text-dark-900/70 mb-2 italic">{cat.description}</div>{/if}
+                {#if cat.description}<div class="text-xs text-dark-900/70 dark:text-dark-100/70 mb-2 italic">{cat.description}</div>{/if}
                 <div class="space-y-1.5">
                   {#each (cat.examples || []) as ex}
-                    <div class="bg-gradient-to-r from-teal-50 to-cyan-50 border-l-4 border-teal-400 rounded-r p-2 text-xs">
-                      <div class="font-semibold text-teal-900 mb-0.5">"{ex.hook}"</div>
-                      <div class="text-[10px] text-teal-700">→ <b>ทำไมได้ผล:</b> {ex.why_works}</div>
-                      <div class="text-[10px] text-dark-900/60 mt-0.5"><b>เหมาะ:</b> {ex.best_for} · <b>CTA:</b> {ex.cta}</div>
+                    <div class="bg-gradient-to-r from-teal-50 to-cyan-50 dark:from-teal-950/40 dark:to-cyan-950/40 border-l-4 border-teal-400 dark:border-teal-600 rounded-r p-2 text-xs">
+                      <div class="font-semibold text-teal-900 dark:text-teal-200 mb-0.5">"{ex.hook}"</div>
+                      <div class="text-[10px] text-teal-700 dark:text-teal-400">→ <b>ทำไมได้ผล:</b> {ex.why_works}</div>
+                      <div class="text-[10px] text-dark-900/60 dark:text-dark-100/60 mt-0.5"><b>เหมาะ:</b> {ex.best_for} · <b>CTA:</b> {ex.cta}</div>
                     </div>
                   {/each}
                 </div>
@@ -407,14 +407,14 @@
       <!-- Platform-Specific -->
       {#if output.platform_specific && Object.keys(output.platform_specific).length > 0}
         <div>
-          <h3 class="text-lg font-bold text-teal-900 mb-3">📱 Platform-Specific Hooks</h3>
+          <h3 class="text-lg font-bold text-teal-900 dark:text-teal-200 mb-3">📱 Platform-Specific Hooks</h3>
           <div class="grid md:grid-cols-2 gap-3">
             {#each Object.entries(output.platform_specific) as [platform, hooks]}
-              <div class="bg-white border-2 border-cyan-200 rounded-lg p-3">
-                <div class="font-bold text-cyan-900 mb-1.5 text-sm">📱 {platform}</div>
+              <div class="bg-white dark:bg-dark-800 border-2 border-cyan-200 dark:border-cyan-800 rounded-lg p-3">
+                <div class="font-bold text-cyan-900 dark:text-cyan-200 mb-1.5 text-sm">📱 {platform}</div>
                 <div class="space-y-1.5">
                   {#each (hooks as string[]) as h}
-                    <div class="bg-cyan-50 rounded p-1.5 text-xs text-cyan-900">"{h}"</div>
+                    <div class="bg-cyan-50 dark:bg-cyan-950/40 rounded p-1.5 text-xs text-cyan-900 dark:text-cyan-200">"{h}"</div>
                   {/each}
                 </div>
               </div>
@@ -425,12 +425,12 @@
 
       <!-- Headlines 5 -->
       {#if output.headlines_5?.length}
-        <div class="bg-gradient-to-r from-amber-50 to-yellow-50 border-2 border-amber-300 rounded-2xl p-4">
-          <h3 class="font-bold text-amber-900 mb-2 text-center">📰 Headlines 5 (A/B Test Variants)</h3>
+        <div class="bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/40 dark:to-yellow-950/40 border-2 border-amber-300 dark:border-amber-700 rounded-2xl p-4">
+          <h3 class="font-bold text-amber-900 dark:text-amber-200 mb-2 text-center">📰 Headlines 5 (A/B Test Variants)</h3>
           <div class="space-y-1.5">
             {#each output.headlines_5 as h, i}
-              <div class="bg-white rounded p-2 text-sm text-amber-900 border-l-4 border-amber-400">
-                <span class="text-[10px] font-bold text-amber-700 mr-1">#{i + 1}</span>{h}
+              <div class="bg-white dark:bg-dark-800 rounded p-2 text-sm text-amber-900 dark:text-amber-200 border-l-4 border-amber-400 dark:border-amber-600">
+                <span class="text-[10px] font-bold text-amber-700 dark:text-amber-400 mr-1">#{i + 1}</span>{h}
               </div>
             {/each}
           </div>
@@ -439,9 +439,9 @@
 
       <!-- A/B Testing Tips -->
       {#if output.ab_testing_tips?.length}
-        <div class="bg-white border-2 border-indigo-200 rounded-xl p-3">
-          <h3 class="font-bold text-indigo-900 mb-2 text-sm">🧪 A/B Testing Tips</h3>
-          <ul class="text-sm text-indigo-900 space-y-0.5">
+        <div class="bg-white dark:bg-dark-800 border-2 border-indigo-200 dark:border-indigo-800 rounded-xl p-3">
+          <h3 class="font-bold text-indigo-900 dark:text-indigo-200 mb-2 text-sm">🧪 A/B Testing Tips</h3>
+          <ul class="text-sm text-indigo-900 dark:text-indigo-200 space-y-0.5">
             {#each output.ab_testing_tips as t}<li>✓ {t}</li>{/each}
           </ul>
         </div>
@@ -449,28 +449,28 @@
 
       <!-- Next Steps -->
       {#if output.next_steps?.length}
-        <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3">
-          <div class="font-bold text-emerald-800 uppercase text-xs mb-1.5">➡️ Next Steps</div>
-          <ul class="text-sm text-emerald-900">
+        <div class="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl p-3">
+          <div class="font-bold text-emerald-800 dark:text-emerald-300 uppercase text-xs mb-1.5">➡️ Next Steps</div>
+          <ul class="text-sm text-emerald-900 dark:text-emerald-200">
             {#each output.next_steps as s}<li>→ {s}</li>{/each}
           </ul>
         </div>
       {/if}
 
       {#if output.reasoning}
-        <div class="bg-white border border-dark-100 rounded-xl p-4 text-sm italic text-dark-900/70">
+        <div class="bg-white dark:bg-dark-800 border border-dark-100 dark:border-dark-700 rounded-xl p-4 text-sm italic text-dark-900/70 dark:text-dark-100/70">
           💡 {output.reasoning}
         </div>
       {/if}
 
       <!-- Action bar -->
-      <div class="flex items-center justify-between pt-4 border-t border-dark-100 flex-wrap gap-2">
-        <button onclick={() => { output = null; error = ''; saveId = null; saveMsg = ''; }} class="text-sm text-dark-900/60 hover:text-primary-600">
+      <div class="flex items-center justify-between pt-4 border-t border-dark-100 dark:border-dark-700 flex-wrap gap-2">
+        <button onclick={() => { output = null; error = ''; saveId = null; saveMsg = ''; }} class="text-sm text-dark-900/60 dark:text-dark-100/60 hover:text-primary-600 dark:hover:text-primary-400">
           ← สร้างใหม่
         </button>
         <div class="flex items-center gap-2 flex-wrap">
-          {#if saveMsg}<span class="text-xs {saveMsg.startsWith('✓') ? 'text-green-700' : 'text-red-700'}">{saveMsg}</span>{/if}
-          <input type="text" bind:value={saveTitle} placeholder="ตั้งชื่อ" class="text-xs px-2 py-1.5 rounded border border-dark-200 w-40" />
+          {#if saveMsg}<span class="text-xs {saveMsg.startsWith('✓') ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}">{saveMsg}</span>{/if}
+          <input type="text" bind:value={saveTitle} placeholder="ตั้งชื่อ" class="text-xs px-2 py-1.5 rounded border border-dark-200 dark:border-dark-600 w-40 dark:bg-dark-800" />
           <button onclick={handleSave} disabled={isSaving} class="text-sm btn-secondary disabled:opacity-50">
             {isSaving ? '...' : (saveId ? '✓ บันทึกแล้ว' : '💾 บันทึก')}
           </button>
@@ -482,7 +482,7 @@
           <button onclick={() => handleExport('json')} class="text-sm btn-secondary">📥 .json</button>
         </div>
       </div>
-      {#if promoteMsg}<div class="mt-2 text-xs {promoteMsg.startsWith('✓') ? 'text-green-700' : 'text-red-700'}">{promoteMsg}</div>{/if}
+      {#if promoteMsg}<div class="mt-2 text-xs {promoteMsg.startsWith('✓') ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}">{promoteMsg}</div>{/if}
     </div>
   {/if}
 </ToolLayout>

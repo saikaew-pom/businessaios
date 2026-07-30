@@ -11,14 +11,14 @@
 </script>
 
 {#if pos && next.length > 0}
-  <div class="mt-4 rounded-xl border-2 border-dashed border-dark-200 bg-gradient-to-br from-slate-50 to-blue-50/40 p-4">
+  <div class="mt-4 rounded-xl border-2 border-dashed border-dark-200 dark:border-dark-600 bg-gradient-to-br from-slate-50 to-blue-50/40 dark:from-dark-900 dark:to-blue-950/20 p-4">
     <div class="flex items-center gap-2 mb-2">
       <span class="text-base">🧭</span>
-      <div class="text-xs font-bold text-dark-700 uppercase tracking-wide">Strategic Tool Chain</div>
-      <span class="text-[10px] text-dark-500 ml-1">ขั้น {pos.index + 1}/{pos.total} — {pos.current.emoji} {pos.current.label}</span>
+      <div class="text-xs font-bold text-dark-700 dark:text-dark-200 uppercase tracking-wide">Strategic Tool Chain</div>
+      <span class="text-[10px] text-dark-500 dark:text-dark-400 ml-1">ขั้น {pos.index + 1}/{pos.total} — {pos.current.emoji} {pos.current.label}</span>
     </div>
 
-    <div class="text-xs text-dark-600 mb-3">
+    <div class="text-xs text-dark-600 dark:text-dark-300 mb-3">
       ผ่าน {pos.current.label} แล้ว — ต่อไปทำเครื่องมือเหล่านี้เพื่อต่อยอด:
     </div>
 
@@ -26,7 +26,7 @@
       {#each next as tool, i (tool.id)}
         <a
           href={`/tools/${tool.slug}`}
-          class="group flex items-center gap-2 px-3 py-2 rounded-lg border-2 bg-white hover:shadow-md transition-all"
+          class="group flex items-center gap-2 px-3 py-2 rounded-lg border-2 bg-white dark:bg-dark-800 hover:shadow-md transition-all"
           style="border-color: {tool.color}40;"
         >
           <div
@@ -36,20 +36,20 @@
             {tool.emoji}
           </div>
           <div>
-            <div class="text-xs font-bold text-dark-800 group-hover:underline">
+            <div class="text-xs font-bold text-dark-800 dark:text-dark-100 group-hover:underline">
               {i + 1}. {tool.label}
             </div>
-            <div class="text-[10px] text-dark-500 leading-tight">{tool.hint}</div>
+            <div class="text-[10px] text-dark-500 dark:text-dark-400 leading-tight">{tool.hint}</div>
           </div>
-          <span class="text-dark-400 group-hover:text-dark-700 text-sm">→</span>
+          <span class="text-dark-400 dark:text-dark-500 group-hover:text-dark-700 dark:group-hover:text-dark-200 text-sm">→</span>
         </a>
         {#if i < next.length - 1}
-          <span class="text-dark-300 text-sm">→</span>
+          <span class="text-dark-300 dark:text-dark-600 text-sm">→</span>
         {/if}
       {/each}
     </div>
 
-    <div class="mt-3 pt-3 border-t border-dark-100 text-[10px] text-dark-500 leading-relaxed">
+    <div class="mt-3 pt-3 border-t border-dark-100 dark:border-dark-700 text-[10px] text-dark-500 dark:text-dark-400 leading-relaxed">
       💡 <b>Tips:</b> ทุก output ของ {pos.current.label} จะกลายเป็น input อัตโนมัติของ tool ถัดไป — ไม่ต้องกรอกใหม่
     </div>
   </div>
