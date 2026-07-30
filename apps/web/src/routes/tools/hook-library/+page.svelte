@@ -429,11 +429,18 @@
           <h3 class="font-bold text-amber-900 dark:text-amber-200 mb-2 text-center">📰 Headlines 5 (A/B Test Variants)</h3>
           <div class="space-y-1.5">
             {#each output.headlines_5 as h, i}
-              <div class="bg-white dark:bg-dark-800 rounded p-2 text-sm text-amber-900 dark:text-amber-200 border-l-4 border-amber-400 dark:border-amber-600">
-                <span class="text-[10px] font-bold text-amber-700 dark:text-amber-400 mr-1">#{i + 1}</span>{h}
+              {@const isPick = output.recommended_pick && Number(output.recommended_pick.index) === i}
+              <div class="rounded p-2 text-sm border-l-4 {isPick ? 'bg-primary-50 dark:bg-primary-900/40 border-primary-500 text-dark-900 dark:text-dark-50' : 'bg-white dark:bg-dark-800 border-amber-400 dark:border-amber-600 text-amber-900 dark:text-amber-200'}">
+                <span class="text-[10px] font-bold {isPick ? 'text-primary-700 dark:text-primary-300' : 'text-amber-700 dark:text-amber-400'} mr-1">#{i + 1}{isPick ? ' 🥇 แนะนำ' : ''}</span>{h}
               </div>
             {/each}
           </div>
+          {#if output.recommended_pick?.why}
+            <div class="mt-2 text-xs text-primary-700 dark:text-primary-300 bg-white/60 dark:bg-dark-900/40 rounded-lg p-2">
+              🥇 <span class="font-semibold">ทำไมควรใช้อันนี้ก่อน:</span> {output.recommended_pick.why}
+              {#if output.recommended_pick.best_platform}<span class="block mt-0.5 opacity-80">เหมาะกับ: {output.recommended_pick.best_platform}</span>{/if}
+            </div>
+          {/if}
         </div>
       {/if}
 

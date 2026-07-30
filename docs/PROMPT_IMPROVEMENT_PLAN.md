@@ -27,23 +27,25 @@
 
 ---
 
-## เฟส M — pain-generator, brand-voice, hook-library
+## เฟส M — pain-generator, brand-voice, hook-library — ✅ ทำแล้ว, deploy แล้ว (item [สูง] ของทั้ง 3 เครื่องมือ — [กลาง]/[ต่ำ] ที่เหลือยังไม่ทำ ดูรายละเอียดด้านล่าง)
 
-### M.1 Pain Generator (`painGeneratorPrompt`)
-**ยังไม่ audit** (ไม่มี skill ชื่อตรงในคลัง) — ก่อนเริ่มเฟส M ให้ audit ก่อนโดยเทียบกับ methodology ที่เกี่ยวข้อง (JTBD pain, SPICE ที่ prompt เองอ้าง) และดูว่า output ครบ: pain ranked ตาม severity/frequency/reach, มี evidence/root-cause, มี "ปัญหาไหนคุ้มแก้ก่อน" (prioritization) หรือยัง แล้วเติมรายการ improvement ตรงนี้
+### M.1 Pain Generator (`painGeneratorPrompt`) — audit เสร็จแล้ว, verdict: solid ranked-list แต่ไม่มี actionable "เริ่มตรงไหนก่อน" + ไม่มี honesty caveat (persona-builder มีแต่ตัวนี้ไม่มี)
+เทียบกับ SPICE ที่ prompt เองอ้าง + pattern ความสม่ำเสมอกับเครื่องมืออื่นในกลุ่มเดียวกัน (persona-builder มี `disclaimer`/`validation_methods` อยู่แล้ว — pain-generator ควรมีเหมือนกันเพราะ input ก็เป็น industry-pattern-based ไม่ใช่ real customer data เหมือนกัน):
+1. ✅ **[สูง] เพิ่ม `priority_pick`** — ทำแล้ว, deploy แล้ว. ทดสอบ generate จริงยืนยัน: reference pain point #1 พร้อมเหตุผลจริง ("Pain Point เรื่อง 'เวลารอคิว' แก้ได้เร็วที่สุดด้วยระบบสั่งล่วงหน้าผ่าน LINE OA...")
+2. ✅ **[สูง] เพิ่ม `validation_note`** — ทำแล้ว, deploy แล้ว. ทดสอบ generate จริงยืนยัน: caveat + วิธี validate ที่เจาะจงจริง ("แนะนำให้สัมภาษณ์ลูกค้า 5-10 คนที่ร้าน หรือทำแบบสอบถาม Google Form...")
 
 ### M.2 Brand Voice (`brandVoicePrompt`) — verdict: solid, มีช่องว่างจริง
 เรียงตาม impact กับ SME ไทย:
-1. **[สูง] เพิ่ม "หมายถึง / ไม่ได้หมายถึง" ต่อ voice attribute แต่ละตัว** — ตอนนี้ `personality_archetype`/`tone` เป็น string เดี่ยวไม่มี guardrail ทำให้เป็นแค่คำคุณศัพท์ลอย ๆ คนเขียน content เอาไปใช้ยาก → เพิ่ม field เช่น `voice_attributes: [{ attribute, means, does_not_mean }]`
-2. **[กลาง] เพิ่มกฎ mechanics การเขียน** — ความยาวประโยค, การใช้ emoji/เครื่องหมาย, สรรพนามบุคคลที่ 1 → เพิ่ม field `writing_mechanics: { sentence_length, emoji_rule, punctuation_rule, pronoun }`
-3. **[กลาง] เพิ่ม writer's checklist ท้ายผลลัพธ์** — 8-10 ข้อให้คนเขียน content ใช้ self-review ก่อนโพสต์ (skill ทำเป็น deliverable มาตรฐาน) → field `self_check_list: string[]`
-4. **[ต่ำ] anti-brand contrast** — "แบรนด์เราไม่ควรฟังดูเหมือน ___" → field `anti_voice`
-5. **[ต่ำ] TikTok field** — instruction พูดถึง TikTok แต่ `content_examples` มีแค่ FB/IG/LINE → เพิ่ม TikTok ให้ครบ
+1. ✅ **[สูง] เพิ่ม "หมายถึง / ไม่ได้หมายถึง" ต่อ voice attribute แต่ละตัว** — ทำแล้ว, deploy แล้ว. field `voice_attributes: [{ attribute, means, does_not_mean }]`. ทดสอบ generate จริงยืนยัน: 4 attribute จริงเฉพาะแบรนด์ ไม่ generic
+2. **[กลาง] เพิ่มกฎ mechanics การเขียน** — ยังไม่ทำ (ไม่ได้อยู่ใน scope [สูง] รอบนี้)
+3. ✅ **[กลาง] เพิ่ม writer's checklist ท้ายผลลัพธ์** — ทำแล้ว, deploy แล้ว. field `self_check_list: string[]`. ทดสอบ generate จริงยืนยัน: 10 ข้อจริงเฉพาะแบรนด์ เช่น "มีคำต้องห้ามอย่าง 'ดีที่สุด' 'ครบวงจร' 'มืออาชีพ' ปนอยู่ไหม"
+4. **[ต่ำ] anti-brand contrast** — ยังไม่ทำ
+5. **[ต่ำ] TikTok field** — ยังไม่ทำ
 
 ### M.3 Hook Library (`hookLibraryPrompt`) — verdict: solid, claim "10 formula + 6 platform + A/B" ตรงกับโค้ดจริง
-1. **[สูง] เพิ่มการจัดอันดับ + เหตุผล** — ตอนนี้ `headlines_5` เป็น string เปล่า ๆ ให้ 5 อันแต่ไม่บอกว่าอันไหนควรใช้ก่อน → เพิ่ม `recommended_pick: { index, why, best_platform }` (SME อยากได้ "บอกมาเลยอันไหนดีสุด")
-2. **[กลาง] เพิ่ม 2 formula ที่ conversion สูง** — Social Proof ("1,000 คนแล้ว") + Urgency ("เหลือ 3 ที่") ทั้งคู่เหมาะกับ SME ไทยมาก
-3. **[กลาง] guardrail กันตัวเลขมั่ว** — anti-pattern เดิมคุมแค่ tone (ไม่ clickbait/CAPS) แต่ไม่ห้าม AI แต่งสถิติเองตอน `product_features` ไม่มีตัวเลขจริง → เพิ่ม instruction
+1. ✅ **[สูง] เพิ่มการจัดอันดับ + เหตุผล** — ทำแล้ว, deploy แล้ว. field `recommended_pick: { index, why, best_platform }`. ทดสอบ generate จริงยืนยัน (4 ครั้ง): highlight headline ที่ถูกต้อง 1 ตัวเสมอ (ไม่เคย 0 หรือมากกว่า 1), `index` บางครั้ง AI ตอบเป็น string ("1"/"0") — `Number(...)` coerce ถูกต้องยืนยันแล้ว
+2. **[กลาง] เพิ่ม 2 formula ที่ conversion สูง** — ยังไม่ทำ (ไม่ได้อยู่ใน scope [สูง] รอบนี้)
+3. ✅ **[กลาง] guardrail กันตัวเลขมั่ว** — ทำแล้ว, deploy แล้ว. **code-reviewer เจอบั๊กจริงระหว่างทดสอบ**: guardrail เดิมคุมแค่ %/ยอดขาย แต่ AI ยังแต่งรายละเอียดปฏิบัติการที่ไม่มีหลักฐาน (ระยะทาง 800 กม., เวลาเปิด-ปิดเจาะจง, ระยะเวลาคั่ว, จำนวนถ้วยในเรื่องเล่าลูกค้า) เพื่อเติม stat category ที่บังคับต้องมี — ขยาย guardrail ให้ครอบคลุมรายละเอียดปฏิบัติการด้วย + ให้แนวทางตอนไม่มีตัวเลขจริง (ใช้มุมกระบวนการ/ที่มาแทน) re-test ยืนยันว่า AI รายงานความสอดคล้องเองใน `reasoning` field
 
 ---
 

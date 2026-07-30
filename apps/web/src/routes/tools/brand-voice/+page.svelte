@@ -352,6 +352,23 @@
         </div>
       {/if}
 
+      {#if output.voice_attributes?.length}
+        <div class="bg-white dark:bg-dark-800 border border-dark-100 dark:border-dark-700 rounded-xl p-5">
+          <div class="text-xs font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-3">🎯 Voice Attributes — หมายถึง / ไม่ได้หมายถึง</div>
+          <div class="space-y-3">
+            {#each output.voice_attributes as attr}
+              <div class="bg-dark-50 dark:bg-dark-900 rounded-lg p-3">
+                <div class="font-semibold text-sm mb-1.5">{attr.attribute}</div>
+                <div class="grid sm:grid-cols-2 gap-2 text-xs">
+                  <div><span class="font-semibold text-green-700 dark:text-green-400">✓ หมายถึง:</span> {attr.means}</div>
+                  <div><span class="font-semibold text-red-700 dark:text-red-400">✗ ไม่ได้หมายถึง:</span> {attr.does_not_mean}</div>
+                </div>
+              </div>
+            {/each}
+          </div>
+        </div>
+      {/if}
+
       {#if output.voice_dimensions}
         <div class="bg-white dark:bg-dark-800 border border-dark-100 dark:border-dark-700 rounded-xl p-5">
           <div class="text-xs font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-3">📊 Voice Dimensions</div>
@@ -437,6 +454,15 @@
               </div>
             {/each}
           </div>
+        </div>
+      {/if}
+
+      {#if output.self_check_list?.length}
+        <div class="bg-dark-50 dark:bg-dark-900 border border-dark-200 dark:border-dark-600 rounded-xl p-4">
+          <div class="text-xs font-bold text-dark-900/70 dark:text-dark-100/70 uppercase tracking-wider mb-2">✅ Checklist ก่อนโพสต์</div>
+          <ul class="space-y-1 text-sm">
+            {#each output.self_check_list as item}<li class="flex gap-2"><input type="checkbox" class="mt-1" /><span>{item}</span></li>{/each}
+          </ul>
         </div>
       {/if}
 

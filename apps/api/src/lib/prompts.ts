@@ -522,7 +522,12 @@ ${input.uploaded_files.map((f: any) => `- ${f.name} (${f.mime || 'unknown'})`).j
     }
   ],
   "quick_wins": ["Pain Point ที่แก้ได้เร็วที่สุด"],
-  "moonshots": ["Pain Point ที่ต้องใช้เวลาแต่ payoff สูง"]
+  "moonshots": ["Pain Point ที่ต้องใช้เวลาแต่ payoff สูง"],
+  "priority_pick": {
+    "rank": 1,
+    "why": "1-2 ประโยค อธิบายว่าทำไมควรเริ่มแก้ pain point นี้ก่อน (ชั่งน้ำหนักความรุนแรง/ความถี่/ความยากในการแก้)"
+  },
+  "validation_note": "1 ประโยค เตือนว่านี่คือการวิเคราะห์จาก pattern อุตสาหกรรม ไม่ใช่จากสัมภาษณ์ลูกค้าจริง แนะนำวิธี validate เร็วๆ ก่อนลงทุนแก้ (เช่น ถามลูกค้าจริง 5-10 คน)"
 }
 
 ตอบ JSON เท่านั้น`,
@@ -593,6 +598,13 @@ ${input.uploaded_files.map((f: any) => `- ${f.name} (${f.mime || 'unknown'})`).j
     "factual_emotional": "1-10",
     "formal_concise": "1-10 (1=เยอะ, 10=สั้นกระชับ)"
   },
+  "voice_attributes": [
+    {
+      "attribute": "ชื่อ voice attribute เช่น 'อบอุ่น'",
+      "means": "อธิบายว่า 'อบอุ่น' ของแบรนด์นี้แปลว่าอะไรจริงๆ ในทางปฏิบัติ",
+      "does_not_mean": "สิ่งที่มักเข้าใจผิด — 'อบอุ่น' ไม่ได้แปลว่าอะไร (เช่น ไม่ใช่พูดจาเยิ่นเย้อ/ไม่จริงจัง)"
+    }
+  ],
   "do_list": ["สิ่งที่ควรทำ 5-7 ข้อ"],
   "dont_list": ["สิ่งที่ไม่ควรทำ 5-7 ข้อ"],
   "vocabulary": {
@@ -610,8 +622,11 @@ ${input.uploaded_files.map((f: any) => `- ${f.name} (${f.mime || 'unknown'})`).j
     "facebook_post": "ตัวอย่างโพสต์ Facebook 1 ชิ้น",
     "instagram_caption": "ตัวอย่างแคปชั่น IG 1 ชิ้น",
     "line_message": "ตัวอย่างข้อความ LINE 1 ชิ้น"
-  }
-}`,
+  },
+  "self_check_list": ["8-10 ข้อ ให้คนเขียน content ใช้ตรวจสอบตัวเองก่อนโพสต์ ว่าประโยคที่เขียนตรงกับ brand voice นี้ไหม"]
+}
+
+⚠️ voice_attributes ต้องมีอย่างน้อย 3 attribute พร้อม means/does_not_mean ที่ชัดเจน ไม่ใช่แค่คำคุณศัพท์ลอยๆ`,
   }),
   parseOutput: (raw) => raw,
 };
@@ -1928,7 +1943,8 @@ export const hookLibraryPrompt: PromptTemplate = {
 ⚠️ แต่ละ category มี 3-5 hook examples
 ⚠️ platform_specific: 3-4 hooks per platform
 ⚠️ headlines_5: 5 variants สำหรับ A/B test
-⚠️ concrete + specific (ไม่ generic เช่น "ดีที่สุด" โดยไม่มี context)`,
+⚠️ concrete + specific (ไม่ generic เช่น "ดีที่สุด" โดยไม่มี context)
+⚠️ ห้ามแต่งตัวเลข/สถิติ/รายละเอียดที่ไม่มีในข้อมูลจริงเด็ดขาด — ครอบคลุมทั้ง % ลูกค้าพอใจ, ยอดขาย, จำนวนรีวิว และรายละเอียดเชิงปฏิบัติการ เช่น ระยะทาง, เวลาเปิด-ปิดร้าน, นาทีที่ใช้ทำ/คั่ว/ผลิต, จำนวนลูกค้าในเรื่องเล่า — ถ้า input ไม่ได้ระบุตัวเลขเหล่านี้มา ห้ามเดาขึ้นมาเองแม้จะฟังดูสมจริง ให้ใช้คำเชิงคุณภาพแทน (เช่น "สดใหม่ทุกวัน" แทนการระบุเวลาที่แต่งขึ้น) ⚠️ หมวด stat/number: ถ้า input ไม่มีตัวเลขจริงให้ใช้ ให้เปลี่ยนไปใช้มุมที่ไม่ต้องพึ่งตัวเลขแทน (เช่น กระบวนการ/ที่มา/ความแตกต่าง) แต่ยังคงต้องมีครบ 10 categories`,
     user: `# ธุรกิจ
 - ชื่อ: ${input.business_name}
 - ประเภท: ${input.business_type}
@@ -2029,7 +2045,13 @@ ${input.user_notes}
     "headline 4",
     "headline 5"
   ],
-  
+
+  "recommended_pick": {
+    "index": "0-4 — index ของ headline ใน headlines_5 ที่ควรใช้ก่อน",
+    "why": "1-2 ประโยค อธิบายว่าทำไม headline นี้ควรใช้ก่อนตัวอื่น",
+    "best_platform": "FB | IG | YT | TikTok | Email | Landing"
+  },
+
   "ab_testing_tips": [
     "เทคนิค 1",
     "เทคนิค 2",

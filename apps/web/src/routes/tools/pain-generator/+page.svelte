@@ -364,6 +364,13 @@
         </div>
       {/if}
 
+      {#if output.validation_note}
+        <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-lg p-3 text-xs text-amber-800 dark:text-amber-200 flex gap-2">
+          <span>⚠️</span>
+          <span>{output.validation_note}</span>
+        </div>
+      {/if}
+
       <div class="space-y-3">
         <h3 class="font-semibold text-lg">🎯 Pain Points (เรียงตามความรุนแรง)</h3>
         {#each (output.pain_points || []) as pp, i}
@@ -400,6 +407,13 @@
           </div>
         {/each}
       </div>
+
+      {#if output.priority_pick}
+        <div class="bg-primary-50 dark:bg-primary-900/40 border-2 border-primary-500 rounded-xl p-4">
+          <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wider mb-1">🥇 เริ่มตรงนี้ก่อน — Pain Point #{output.priority_pick.rank}</div>
+          <div class="text-sm text-dark-900 dark:text-dark-50">{output.priority_pick.why}</div>
+        </div>
+      {/if}
 
       {#if output.quick_wins?.length}
         <div class="bg-green-50 dark:bg-green-950/40 border border-green-300 dark:border-green-700 rounded-xl p-4">
