@@ -123,11 +123,11 @@
   ];
 </script>
 
-<div class="min-h-screen bg-dark-50">
-  <header class="bg-white border-b border-dark-100 sticky top-0 z-10">
+<div class="min-h-screen bg-dark-50 dark:bg-dark-950">
+  <header class="bg-white dark:bg-dark-800 border-b border-dark-100 dark:border-dark-700 sticky top-0 z-10">
     <div class="container-narrow flex items-center justify-between h-16">
       <div class="flex items-center gap-3">
-        <a href="/dashboard" class="text-dark-900/60 hover:text-dark-900">
+        <a href="/dashboard" class="text-dark-900/60 dark:text-dark-100/60 hover:text-dark-900 dark:hover:text-dark-50">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
         </a>
         <div class="flex items-center gap-2">
@@ -137,7 +137,7 @@
           <span class="font-bold">เครื่องมือ</span>
         </div>
       </div>
-      <button onclick={toggleLocale} class="text-xs font-semibold px-2.5 py-1 rounded border border-dark-200 hover:bg-dark-50 transition">
+      <button onclick={toggleLocale} class="text-xs font-semibold px-2.5 py-1 rounded border border-dark-200 dark:border-dark-600 hover:bg-dark-50 dark:hover:bg-dark-700 transition">
         {$locale === 'th' ? 'EN' : 'TH'}
       </button>
     </div>
@@ -145,29 +145,29 @@
 
   <main class="container-narrow py-8 max-w-5xl">
     <div class="mb-8 text-center">
-      <div class="inline-block px-3 py-1 rounded-full bg-primary-50 border border-primary-200 text-xs font-semibold text-primary-700 mb-3">
+      <div class="inline-block px-3 py-1 rounded-full bg-primary-50 dark:bg-primary-900/40 border border-primary-200 dark:border-primary-800 text-xs font-semibold text-primary-700 dark:text-primary-300 mb-3">
         ⚡ เครื่องมือ ระบบอัจฉริยะ แยกต่างหาก
       </div>
       <h1 class="text-3xl sm:text-4xl font-bold mb-2">เครื่องมือ ระบบอัจฉริยะ Marketing</h1>
-      <p class="text-dark-900/70 max-w-2xl mx-auto">
+      <p class="text-dark-900/70 dark:text-dark-100/70 max-w-2xl mx-auto">
         ใช้ได้โดยไม่ต้องสร้างโปรเจกต์ — เหมาะกับงานเฉพาะจุด เช่น หาปัญหาลูกค้า สร้างโทนแบรนด์ วาดภาพลูกค้าในฝัน
       </p>
     </div>
 
     {#each categories as cat}
       <div class="mb-10">
-        <h2 class="text-sm font-bold uppercase tracking-wider text-dark-900/50 mb-4">{cat.name}</h2>
+        <h2 class="text-sm font-bold uppercase tracking-wider text-dark-900/50 dark:text-dark-100/50 mb-4">{cat.name}</h2>
         <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {#each cat.tools as tool}
-            <a href={tool.href} class="group block bg-white border border-dark-100 rounded-2xl p-6 hover:border-primary-300 hover:shadow-xl hover:-translate-y-1 transition-all relative">
+            <a href={tool.href} class="group block bg-white dark:bg-dark-800 border border-dark-100 dark:border-dark-700 rounded-2xl p-6 hover:border-primary-300 dark:hover:border-primary-600 hover:shadow-xl hover:-translate-y-1 transition-all relative">
               {#if tool.isNew}
                 <span class="absolute top-3 right-3 px-2 py-0.5 bg-gradient-to-r from-pink-500 to-rose-500 text-white text-xs font-bold rounded-full">NEW</span>
               {/if}
               <div class="text-5xl mb-3">{tool.icon}</div>
-              <h3 class="text-lg font-bold mb-1 group-hover:text-primary-600 transition">{tool.title}</h3>
-              <p class="text-sm text-dark-900/70 leading-relaxed mb-3">{tool.subtitle}</p>
-              <p class="text-xs text-dark-900/40">{tool.principle}</p>
-              <div class="mt-4 text-sm text-primary-600 font-semibold flex items-center gap-1 group-hover:gap-2 transition-all">
+              <h3 class="text-lg font-bold mb-1 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition">{tool.title}</h3>
+              <p class="text-sm text-dark-900/70 dark:text-dark-100/70 leading-relaxed mb-3">{tool.subtitle}</p>
+              <p class="text-xs text-dark-900/40 dark:text-dark-100/40">{tool.principle}</p>
+              <div class="mt-4 text-sm text-primary-600 dark:text-primary-400 font-semibold flex items-center gap-1 group-hover:gap-2 transition-all">
                 เปิดเครื่องมือ
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
               </div>
@@ -177,9 +177,9 @@
       </div>
     {/each}
 
-    <div class="mt-10 bg-gradient-to-br from-primary-50 to-white border border-primary-200 rounded-2xl p-6 text-center">
+    <div class="mt-10 bg-gradient-to-br from-primary-50 to-white dark:from-primary-900/40 dark:to-dark-900 border border-primary-200 dark:border-primary-800 rounded-2xl p-6 text-center">
       <h2 class="text-xl font-bold mb-2">💡 ต้องการ Marketing System ครบทั้ง 7 ขั้น?</h2>
-      <p class="text-sm text-dark-900/70 mb-4">สร้างโปรเจกต์ใหม่ใน Dashboard เพื่อใช้ Wizard 7 ขั้น (Brand Card, Persona, Journey, Positioning, Content Calendar, Workflow, KPI)</p>
+      <p class="text-sm text-dark-900/70 dark:text-dark-100/70 mb-4">สร้างโปรเจกต์ใหม่ใน Dashboard เพื่อใช้ Wizard 7 ขั้น (Brand Card, Persona, Journey, Positioning, Content Calendar, Workflow, KPI)</p>
       <a href="/dashboard" class="btn-primary inline-block">ไปที่ Dashboard</a>
     </div>
   </main>

@@ -48,7 +48,7 @@
   <title>ยืนยันอีเมล — Business Smart OS</title>
 </svelte:head>
 
-<div class="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-50 flex items-center justify-center p-4">
+<div class="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-50 dark:from-dark-950 dark:via-dark-900 dark:to-dark-950 flex items-center justify-center p-4">
   <div class="w-full max-w-md">
     <a href="/dashboard" class="flex items-center gap-2 justify-center mb-8">
       <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
@@ -57,28 +57,28 @@
       <span class="font-bold text-xl">Business Smart OS</span>
     </a>
 
-    <div class="bg-white rounded-2xl shadow-xl border border-dark-100 p-8 text-center">
+    <div class="bg-white dark:bg-dark-800 rounded-2xl shadow-xl border border-dark-100 dark:border-dark-700 p-8 text-center">
       {#if status === 'verifying'}
         <div class="text-5xl mb-4">⏳</div>
         <h1 class="text-xl font-bold mb-2">กำลังยืนยันอีเมล...</h1>
       {:else if status === 'success'}
         <div class="text-5xl mb-4">✅</div>
-        <h1 class="text-xl font-bold mb-2 text-green-700">ยืนยันอีเมลสำเร็จ!</h1>
-        <p class="text-sm text-dark-900/60">กำลังพากลับไปยัง Dashboard...</p>
+        <h1 class="text-xl font-bold mb-2 text-green-700 dark:text-green-400">ยืนยันอีเมลสำเร็จ!</h1>
+        <p class="text-sm text-dark-900/60 dark:text-dark-100/60">กำลังพากลับไปยัง Dashboard...</p>
       {:else if status === 'error'}
         <div class="text-5xl mb-4">❌</div>
-        <h1 class="text-xl font-bold mb-2 text-red-700">ยืนยันไม่สำเร็จ</h1>
-        <p class="text-sm text-dark-900/60 mb-4">{message}</p>
+        <h1 class="text-xl font-bold mb-2 text-red-700 dark:text-red-400">ยืนยันไม่สำเร็จ</h1>
+        <p class="text-sm text-dark-900/60 dark:text-dark-100/60 mb-4">{message}</p>
         <button onclick={handleResend} class="btn-primary">ส่งอีเมลยืนยันใหม่</button>
-        <a href="/dashboard" class="block mt-3 text-sm text-dark-900/60 hover:underline">กลับไป Dashboard</a>
+        <a href="/dashboard" class="block mt-3 text-sm text-dark-900/60 dark:text-dark-100/60 hover:underline">กลับไป Dashboard</a>
       {:else}
         <div class="text-5xl mb-4">📧</div>
         <h1 class="text-xl font-bold mb-2">ยืนยันอีเมล</h1>
-        <p class="text-sm text-dark-900/60 mb-6">
+        <p class="text-sm text-dark-900/60 dark:text-dark-100/60 mb-6">
           กรุณาคลิกลิงก์ในอีเมลที่ส่งไป เพื่อยืนยันการสมัคร
         </p>
         <button onclick={handleResend} class="btn-primary">ส่งอีเมลยืนยันอีกครั้ง</button>
-        <a href="/dashboard" class="block mt-3 text-sm text-dark-900/60 hover:underline">กลับไป Dashboard</a>
+        <a href="/dashboard" class="block mt-3 text-sm text-dark-900/60 dark:text-dark-100/60 hover:underline">กลับไป Dashboard</a>
       {/if}
     </div>
   </div>
