@@ -78,15 +78,15 @@
 ## เฟส O — competitor-analysis, value-proposition-canvas
 
 ### O.1 Competitor Analysis (`competitorAnalysisPrompt`) — verdict: solid, มี white_space ที่ skill ไม่มีด้วยซ้ำ
-1. **[สูงสุด] เพิ่ม "recommended response" ต่อคู่แข่งแต่ละราย** — ตอนนี้มีแค่ `recommended_strategy` รวม ไม่มี "จะทำอะไรกับคู่แข่งรายนี้โดยเฉพาะ" → เพิ่ม `response` ใน object คู่แข่งแต่ละตัว
-2. **[กลาง] เพิ่ม positioning archetype taxonomy** — Price Leader / Quality Leader / Niche Specialist / Full-Service / Disruptor ต่อคู่แข่ง (ตอนนี้ `positioning` เป็น free text เทียบข้ามรายไม่ได้)
-3. **[กลาง] บังคับ threat-level variance** — เพิ่ม instruction กัน AI ให้ "สูง" ทุกราย (skill เตือนตรง ๆ)
-4. **[กลาง] เพิ่ม "difficulty to exploit" บน gap** — LOW/MEDIUM/HIGH effort ช่วย SME จัดลำดับ
-5. **[ต่ำ] quarterly review nudge** ใน output
+1. ✅ **[สูงสุด] เพิ่ม "recommended response" ต่อคู่แข่งแต่ละราย** — ทำแล้ว, deploy แล้ว. field `response` ใน object คู่แข่งแต่ละตัว. ทดสอบ generate จริงยืนยัน: 5 คู่แข่ง response เจาะจงแต่ละรายจริง ไม่ generic
+2. **[กลาง] เพิ่ม positioning archetype taxonomy** — ยังไม่ทำ (ไม่ได้อยู่ใน scope [สูง] รอบนี้)
+3. ✅ **[กลาง] บังคับ threat-level variance** — ทำแล้ว, deploy แล้ว. ทดสอบ generate จริงยืนยัน: 5 คู่แข่งได้ 🟢low×1 🟡medium×2 🔴high×2 (ไม่ high ทุกเจ้า)
+4. **[กลาง] เพิ่ม "difficulty to exploit" บน gap** — ยังไม่ทำ
+5. **[ต่ำ] quarterly review nudge** ใน output — ยังไม่ทำ
 
 ### O.2 Value Proposition Canvas (`valuePropositionCanvasPrompt`) — verdict: solid ที่สุด จริง ๆ ลึกกว่า skill (orphans, fit types, taxonomy ครบ)
-1. **[สูงสุด] เพิ่ม application guide** — ตอนนี้ `next_steps` ชี้ไป BMC/สัมภาษณ์/A-B test แต่ไม่มี "เอา VP ไปเขียน headline/โฆษณา/support script ยังไง" ซึ่งเป็น use case หลักของ tool การตลาด → เพิ่ม `application_guide: { ad_headlines, landing_copy, ... }`
-2. **[สูง] เพิ่ม messaging hierarchy** — ข้อความหลัก 1 + รอง 2-3 + proof points (skill Phase 4.2) เอาไปเขียน copy ต่อได้ทันที → field `messaging_hierarchy`
+1. ✅ **[สูงสุด] เพิ่ม application guide** — ทำแล้ว, deploy แล้ว. field `application_guide: { ad_headlines, landing_page_copy, sales_talking_points }`. ทดสอบ generate จริงยืนยัน: headline/copy พร้อมใช้จริง เฉพาะธุรกิจ ไม่ generic
+2. ✅ **[สูง] เพิ่ม messaging hierarchy** — ทำแล้ว, deploy แล้ว. field `messaging_hierarchy: { primary_message, supporting_messages, proof_points }`. **เพิ่ม instruction เลือก segment เดียวถ้า input มีหลาย segment ปน** (item 3 เดิม) ด้วยในรอบนี้ — ไม่ต้องเพิ่ม field ใหม่ แค่ instruction. code-reviewer เจอบั๊กจริงระหว่าง dark mode conversion (opacity suffix หลุดใน light mode) — แก้แล้ว, ไม่เกี่ยวกับ prompt field เอง
 3. **[กลาง] เตือน multi-segment** — รับ `target_audience` เดียว ทำ canvas เดียว ควรเพิ่ม instruction ให้ flag ถ้า input มีหลาย segment ปน (เช่น "ลูกค้าองค์กร + รายบุคคล")
 
 ---

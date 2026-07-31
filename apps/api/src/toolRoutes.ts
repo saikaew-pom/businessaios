@@ -584,8 +584,11 @@ app.post('/api/tools/value-proposition-canvas', requireAuth, rateLimit, async (c
 
   // Reserve credits before calling the AI (atomic; refunded/trued-up below
   // once real usage is known) — same pattern as /api/projects/:id/generate/:step.
+  // Bumped 10000 -> 14000: messaging_hierarchy/application_guide fields added
+  // to the prompt pushed real usage to 78% of the old ceiling (7780/10000
+  // tokens on a real test generation) — too close for comfort.
   const toolRunId = generateId();
-  const toolMaxTokens = 10000;
+  const toolMaxTokens = 14000;
   const estPromptTokens = Math.ceil((system.length + userMsg.length) / 3);
   const reserveCredits = calculateCredits({ prompt_tokens: estPromptTokens, completion_tokens: toolMaxTokens });
   const reservation = await deductCredits(env, user.id, reserveCredits, 'generation_reserve', toolRunId);

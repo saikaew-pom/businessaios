@@ -251,14 +251,14 @@
   }
 
   const threatBadge = (lvl: string) => {
-    if (lvl === 'high') return { cls: 'bg-red-100 border-red-400 text-red-900', label: '🔴 ภัยสูง' };
-    if (lvl === 'medium') return { cls: 'bg-amber-100 border-amber-400 text-amber-900', label: '🟡 ปานกลาง' };
-    return { cls: 'bg-blue-100 border-blue-400 text-blue-900', label: '🟢 ต่ำ' };
+    if (lvl === 'high') return { cls: 'bg-red-100 dark:bg-red-950/40 border-red-400 dark:border-red-600 text-red-900 dark:text-red-200', label: '🔴 ภัยสูง' };
+    if (lvl === 'medium') return { cls: 'bg-amber-100 dark:bg-amber-950/40 border-amber-400 dark:border-amber-600 text-amber-900 dark:text-amber-200', label: '🟡 ปานกลาง' };
+    return { cls: 'bg-blue-100 dark:bg-blue-950/40 border-blue-400 dark:border-blue-600 text-blue-900 dark:text-blue-200', label: '🟢 ต่ำ' };
   };
   const gapSizeBadge = (s: string) => {
-    if (s === 'big') return { cls: 'bg-green-100 text-green-800', label: '🟢 โอกาสใหญ่' };
-    if (s === 'medium') return { cls: 'bg-amber-100 text-amber-800', label: '🟡 กลาง' };
-    return { cls: 'bg-blue-100 text-blue-800', label: '⚪ เล็ก' };
+    if (s === 'big') return { cls: 'bg-green-100 dark:bg-green-950/40 text-green-800 dark:text-green-300', label: '🟢 โอกาสใหญ่' };
+    if (s === 'medium') return { cls: 'bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300', label: '🟡 กลาง' };
+    return { cls: 'bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300', label: '⚪ เล็ก' };
   };
 </script>
 
@@ -270,9 +270,9 @@
 >
   {#if !output}
     <div class="space-y-5">
-      <div class="bg-gradient-to-r from-red-50 to-orange-50 border border-red-200 rounded-xl p-4">
-        <div class="font-semibold text-red-900 mb-1">📐 SPICE Framework + Outside-In</div>
-        <div class="text-sm text-red-800 space-y-1">
+      <div class="bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-950/40 dark:to-orange-950/40 border border-red-200 dark:border-red-800 rounded-xl p-4">
+        <div class="font-semibold text-red-900 dark:text-red-200 mb-1">📐 SPICE Framework + Outside-In</div>
+        <div class="text-sm text-red-800 dark:text-red-300 space-y-1">
           <div><b>S</b>ituation — ธุรกิจ + ตลาด + คู่แข่ง</div>
           <div><b>P</b>ersona — สวมบทบาท Competitive Intelligence Analyst</div>
           <div><b>I</b>nstruction — วิเคราะห์คู่แข่ง + market gaps + white space</div>
@@ -287,7 +287,7 @@
           type="text"
           bind:value={business_name}
           placeholder="เช่น ร้านก๋วยเตี๋ยวลุงใบหยก"
-          class="w-full px-3 py-2.5 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+          class="w-full px-3 py-2.5 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500"
         />
       </div>
 
@@ -308,7 +308,7 @@
             type="text"
             bind:value={location}
             placeholder="เช่น หาดใหญ่, กรุงเทพ, ออนไลน์"
-            class="w-full px-3 py-2.5 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+            class="w-full px-3 py-2.5 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
         </div>
         <div>
@@ -317,7 +317,7 @@
             type="text"
             bind:value={price_range}
             placeholder="เช่น 50-150 บาท, ฿ / ฿฿ / ฿฿฿"
-            class="w-full px-3 py-2.5 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+            class="w-full px-3 py-2.5 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
         </div>
       </div>
@@ -328,18 +328,18 @@
           type="text"
           bind:value={differentiation}
           placeholder="เช่น ใช้วัตถุดิบออร์แกนิค, ส่งฟรีใน 30 นาที, รับประกันคืนเงิน"
-          class="w-full px-3 py-2.5 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+          class="w-full px-3 py-2.5 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500"
         />
       </div>
 
       <!-- Competitor mode toggle -->
-      <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4">
-        <div class="font-semibold text-blue-900 mb-2">👥 คู่แข่ง</div>
+      <div class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/40 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
+        <div class="font-semibold text-blue-900 dark:text-blue-200 mb-2">👥 คู่แข่ง</div>
         <div class="flex gap-2 mb-3">
           <button
             type="button"
             onclick={() => competitor_mode = 'auto_find'}
-            class="flex-1 px-3 py-2.5 rounded-lg border-2 text-sm font-medium transition {competitor_mode === 'auto_find' ? 'border-blue-500 bg-white text-blue-900 shadow-sm' : 'border-blue-200 bg-white/50 text-blue-700 hover:border-blue-300'}"
+            class="flex-1 px-3 py-2.5 rounded-lg border-2 text-sm font-medium transition {competitor_mode === 'auto_find' ? 'border-blue-500 bg-white dark:bg-dark-800 text-blue-900 dark:text-blue-200 shadow-sm' : 'border-blue-200 dark:border-blue-800 bg-white/50 dark:bg-dark-900/40 text-blue-700 dark:text-blue-400 hover:border-blue-300 dark:hover:border-blue-600'}"
           >
             <div class="text-lg mb-0.5">🤖</div>
             <div>Auto-find</div>
@@ -348,7 +348,7 @@
           <button
             type="button"
             onclick={() => competitor_mode = 'manual'}
-            class="flex-1 px-3 py-2.5 rounded-lg border-2 text-sm font-medium transition {competitor_mode === 'manual' ? 'border-blue-500 bg-white text-blue-900 shadow-sm' : 'border-blue-200 bg-white/50 text-blue-700 hover:border-blue-300'}"
+            class="flex-1 px-3 py-2.5 rounded-lg border-2 text-sm font-medium transition {competitor_mode === 'manual' ? 'border-blue-500 bg-white dark:bg-dark-800 text-blue-900 dark:text-blue-200 shadow-sm' : 'border-blue-200 dark:border-blue-800 bg-white/50 dark:bg-dark-900/40 text-blue-700 dark:text-blue-400 hover:border-blue-300 dark:hover:border-blue-600'}"
           >
             <div class="text-lg mb-0.5">✍️</div>
             <div>Manual</div>
@@ -357,7 +357,7 @@
         </div>
 
         {#if competitor_mode === 'auto_find'}
-          <div class="bg-white/70 rounded-lg p-3 text-xs text-blue-800">
+          <div class="bg-white/70 dark:bg-dark-900/40 rounded-lg p-3 text-xs text-blue-800 dark:text-blue-300">
             💡 <b>แนะนำสำหรับมือใหม่:</b> ระบบอัจฉริยะ จะเดาคู่แข่ง 3-5 เจ้าที่น่าจะอยู่ในตลาดของคุณ (เช่น ร้านอาหารใต้ในหาดใหญ่) และระบุว่าเป็นการประมาณการณ์
           </div>
         {:else}
@@ -366,78 +366,78 @@
               type="text"
               bind:value={competitor_1}
               placeholder="ชื่อคู่แข่ง 1 (required)"
-              class="w-full px-3 py-2 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+              class="w-full px-3 py-2 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
             />
             <input
               type="text"
               bind:value={competitor_2}
               placeholder="ชื่อคู่แข่ง 2 (optional)"
-              class="w-full px-3 py-2 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+              class="w-full px-3 py-2 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
             />
             <input
               type="text"
               bind:value={competitor_3}
               placeholder="ชื่อคู่แข่ง 3 (optional)"
-              class="w-full px-3 py-2 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+              class="w-full px-3 py-2 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
             />
             <input
               type="text"
               bind:value={competitor_4}
               placeholder="ชื่อคู่แข่ง 4 (optional)"
-              class="w-full px-3 py-2 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+              class="w-full px-3 py-2 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
             />
             <input
               type="text"
               bind:value={competitor_5}
               placeholder="ชื่อคู่แข่ง 5 (optional)"
-              class="w-full px-3 py-2 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+              class="w-full px-3 py-2 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
             />
           </div>
         {/if}
       </div>
 
       <!-- Focus areas -->
-      <div class="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-4">
+      <div class="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/40 dark:to-pink-950/40 border border-purple-200 dark:border-purple-800 rounded-xl p-4">
         <div class="mb-2">
-          <div class="font-semibold text-purple-900">🎯 โฟกัสเรื่องอะไรเป็นพิเศษ <span class="text-xs font-normal text-purple-700">(เลือกได้หลายข้อ / ไม่เลือก = วิเคราะห์ครบทุกมิติ)</span></div>
+          <div class="font-semibold text-purple-900 dark:text-purple-200">🎯 โฟกัสเรื่องอะไรเป็นพิเศษ <span class="text-xs font-normal text-purple-700 dark:text-purple-400">(เลือกได้หลายข้อ / ไม่เลือก = วิเคราะห์ครบทุกมิติ)</span></div>
         </div>
         <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
           {#each COMPETITOR_FOCUS_AREAS as fa}
             <button
               type="button"
               onclick={() => toggleFocus(fa.id)}
-              class="text-left p-2.5 rounded-lg border-2 transition {selectedFocusAreas.includes(fa.id) ? 'border-purple-500 bg-white shadow-sm' : 'border-purple-200 bg-white/50 hover:border-purple-300 hover:bg-white'}"
+              class="text-left p-2.5 rounded-lg border-2 transition {selectedFocusAreas.includes(fa.id) ? 'border-purple-500 dark:border-purple-600 bg-white dark:bg-dark-800 shadow-sm' : 'border-purple-200 dark:border-purple-800 bg-white/50 dark:bg-dark-900/40 hover:border-purple-300 hover:bg-white dark:hover:bg-dark-800'}"
               title={fa.description}
             >
               <div class="flex items-center gap-1.5">
                 <span class="text-xl">{fa.icon}</span>
                 {#if selectedFocusAreas.includes(fa.id)}
-                  <span class="text-xs text-purple-600">✓</span>
+                  <span class="text-xs text-purple-600 dark:text-purple-400">✓</span>
                 {/if}
               </div>
-              <div class="text-xs font-semibold text-dark-900 mt-1">{fa.label}</div>
+              <div class="text-xs font-semibold text-dark-900 dark:text-dark-50 mt-1">{fa.label}</div>
             </button>
           {/each}
         </div>
       </div>
 
       <div>
-        <label class="block text-sm font-semibold mb-1.5">โน้ตเพิ่มเติม <span class="text-dark-900/50 font-normal">(optional)</span></label>
+        <label class="block text-sm font-semibold mb-1.5">โน้ตเพิ่มเติม <span class="text-dark-900/50 dark:text-dark-100/50 font-normal">(optional)</span></label>
         <textarea
           bind:value={user_notes}
           rows="2"
           placeholder="เช่น สนใจแข่งในกลุ่ม premium, มีหน้าร้าน 3 สาขาแล้ว..."
-          class="w-full px-3 py-2.5 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+          class="w-full px-3 py-2.5 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500"
         ></textarea>
       </div>
 
       {#if error}
-        <div class="p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
+        <div class="p-3 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-sm text-red-700 dark:text-red-400">
           {error}
         </div>
       {/if}
 
-      <div class="pt-4 flex items-center justify-end border-t border-dark-100">
+      <div class="pt-4 flex items-center justify-end border-t border-dark-100 dark:border-dark-700">
         <button
           onclick={handleGenerate}
           disabled={isGenerating}
@@ -451,21 +451,21 @@
     <!-- Results -->
     <div class="space-y-5">
       {#if output.summary}
-        <div class="bg-primary-50 border-l-4 border-primary-500 p-4 rounded-lg">
-          <div class="text-xs font-bold text-primary-700 uppercase tracking-wider mb-1">ภาพรวมตลาด</div>
-          <div class="text-dark-900">{output.summary}</div>
+        <div class="bg-primary-50 dark:bg-primary-900/40 border-l-4 border-primary-500 p-4 rounded-lg">
+          <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wider mb-1">ภาพรวมตลาด</div>
+          <div class="text-dark-900 dark:text-dark-50">{output.summary}</div>
         </div>
       {/if}
 
       {#if output.is_estimated}
-        <div class="bg-amber-50 border-l-4 border-amber-500 p-3 rounded-lg text-sm text-amber-900">
+        <div class="bg-amber-50 dark:bg-amber-950/40 border-l-4 border-amber-500 dark:border-amber-600 p-3 rounded-lg text-sm text-amber-900 dark:text-amber-200">
           ⚠️ <b>โหมด Auto-find:</b> {output.estimation_note || 'คู่แข่งเหล่านี้เป็นการประมาณการณ์จากบริบทธุรกิจ ควรไปตรวจสอบข้อมูลจริงอีกครั้ง'}
         </div>
       {/if}
 
       {#if output.market_dynamics}
-        <div class="bg-white border border-dark-100 rounded-xl p-4">
-          <div class="text-xs font-bold text-primary-600 uppercase tracking-wider mb-2">📊 Market Dynamics</div>
+        <div class="bg-white dark:bg-dark-800 border border-dark-100 dark:border-dark-700 rounded-xl p-4">
+          <div class="text-xs font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-2">📊 Market Dynamics</div>
           <div class="text-sm leading-relaxed">{output.market_dynamics}</div>
         </div>
       {/if}
@@ -475,55 +475,61 @@
         <h3 class="font-semibold text-lg">👥 คู่แข่ง ({output.competitors?.length || 0} เจ้า)</h3>
         {#each (output.competitors || []) as comp, i}
           {@const tb = threatBadge(comp.threat_level)}
-          <div class="rounded-xl border-2 border-dark-200 p-4 bg-white">
+          <div class="rounded-xl border-2 border-dark-200 dark:border-dark-600 p-4 bg-white dark:bg-dark-800">
             <div class="flex items-start justify-between gap-3 mb-2">
               <div>
                 <div class="flex items-center gap-2">
-                  <span class="text-lg font-bold text-dark-900">#{i+1} {comp.name}</span>
+                  <span class="text-lg font-bold text-dark-900 dark:text-dark-50">#{i+1} {comp.name}</span>
                   <span class="text-xs px-2 py-0.5 rounded-full border {tb.cls}">{tb.label}</span>
                 </div>
                 {#if comp.tagline}
-                  <div class="text-xs text-dark-900/60 italic mt-0.5">"{comp.tagline}"</div>
+                  <div class="text-xs text-dark-900/60 dark:text-dark-100/60 italic mt-0.5">"{comp.tagline}"</div>
                 {/if}
               </div>
             </div>
             <div class="text-sm mb-3">
-              <span class="font-semibold text-dark-900/70">Positioning:</span> {comp.positioning}
+              <span class="font-semibold text-dark-900/70 dark:text-dark-100/70">Positioning:</span> {comp.positioning}
               {#if comp.price_range}
-                · <span class="font-semibold text-dark-900/70">ราคา:</span> {comp.price_range}
+                · <span class="font-semibold text-dark-900/70 dark:text-dark-100/70">ราคา:</span> {comp.price_range}
               {/if}
             </div>
             <div class="grid sm:grid-cols-2 gap-3 text-xs">
-              <div class="bg-green-50 rounded-lg p-2.5">
-                <div class="font-bold text-green-800 mb-1">💪 จุดแข็ง</div>
-                <ul class="space-y-0.5 text-green-900">
+              <div class="bg-green-50 dark:bg-green-950/40 rounded-lg p-2.5">
+                <div class="font-bold text-green-800 dark:text-green-300 mb-1">💪 จุดแข็ง</div>
+                <ul class="space-y-0.5 text-green-900 dark:text-green-200">
                   {#each comp.strengths || [] as s}<li>• {s}</li>{/each}
                 </ul>
               </div>
-              <div class="bg-red-50 rounded-lg p-2.5">
-                <div class="font-bold text-red-800 mb-1">⚠️ จุดอ่อน</div>
-                <ul class="space-y-0.5 text-red-900">
+              <div class="bg-red-50 dark:bg-red-950/40 rounded-lg p-2.5">
+                <div class="font-bold text-red-800 dark:text-red-300 mb-1">⚠️ จุดอ่อน</div>
+                <ul class="space-y-0.5 text-red-900 dark:text-red-200">
                   {#each comp.weaknesses || [] as w}<li>• {w}</li>{/each}
                 </ul>
               </div>
               {#if comp.marketing_channels?.length}
-                <div class="bg-white border border-dark-200 rounded-lg p-2.5">
-                  <div class="font-bold text-dark-900/70 mb-1">📣 Channels</div>
+                <div class="bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 rounded-lg p-2.5">
+                  <div class="font-bold text-dark-900/70 dark:text-dark-100/70 mb-1">📣 Channels</div>
                   <div class="flex flex-wrap gap-1">
-                    {#each comp.marketing_channels as ch}<span class="px-1.5 py-0.5 bg-blue-50 text-blue-800 rounded text-[10px]">{ch}</span>{/each}
+                    {#each comp.marketing_channels as ch}<span class="px-1.5 py-0.5 bg-blue-50 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 rounded text-[10px]">{ch}</span>{/each}
                   </div>
                 </div>
               {/if}
               {#if comp.content_style}
-                <div class="bg-white border border-dark-200 rounded-lg p-2.5">
-                  <div class="font-bold text-dark-900/70 mb-1">🎨 Content style</div>
+                <div class="bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 rounded-lg p-2.5">
+                  <div class="font-bold text-dark-900/70 dark:text-dark-100/70 mb-1">🎨 Content style</div>
                   <div>{comp.content_style}</div>
                 </div>
               {/if}
               {#if comp.why_threat}
-                <div class="bg-amber-50 rounded-lg p-2.5 sm:col-span-2">
-                  <div class="font-bold text-amber-800 mb-1">🎯 ทำไมเป็นภัย</div>
-                  <div class="text-amber-900">{comp.why_threat}</div>
+                <div class="bg-amber-50 dark:bg-amber-950/40 rounded-lg p-2.5 sm:col-span-2">
+                  <div class="font-bold text-amber-800 dark:text-amber-300 mb-1">🎯 ทำไมเป็นภัย</div>
+                  <div class="text-amber-900 dark:text-amber-200">{comp.why_threat}</div>
+                </div>
+              {/if}
+              {#if comp.response}
+                <div class="bg-primary-50 dark:bg-primary-900/40 rounded-lg p-2.5 sm:col-span-2">
+                  <div class="font-bold text-primary-700 dark:text-primary-300 mb-1">⚔️ เราจะทำอะไรกับรายนี้</div>
+                  <div class="text-dark-900 dark:text-dark-50">{comp.response}</div>
                 </div>
               {/if}
             </div>
@@ -537,16 +543,16 @@
           <h3 class="font-semibold text-lg">🎯 Market Gaps (โอกาสที่คู่แข่งทำไม่ดี)</h3>
           {#each output.market_gaps as g, i}
             {@const sb = gapSizeBadge(g.opportunity_size)}
-            <div class="rounded-xl border-2 border-emerald-200 bg-emerald-50/50 p-4">
+            <div class="rounded-xl border-2 border-emerald-200 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/30 p-4">
               <div class="flex items-start justify-between gap-2 mb-2">
-                <div class="font-semibold text-emerald-900">#{i+1} {g.gap}</div>
+                <div class="font-semibold text-emerald-900 dark:text-emerald-200">#{i+1} {g.gap}</div>
                 <span class="text-xs px-2 py-0.5 rounded-full {sb.cls} whitespace-nowrap">{sb.label}</span>
               </div>
               {#if g.evidence}
-                <div class="text-xs text-dark-900/70 mb-1"><b>หลักฐาน:</b> {g.evidence}</div>
+                <div class="text-xs text-dark-900/70 dark:text-dark-100/70 mb-1"><b>หลักฐาน:</b> {g.evidence}</div>
               {/if}
               {#if g.your_advantage}
-                <div class="text-xs text-emerald-800"><b>โอกาสของเรา:</b> {g.your_advantage}</div>
+                <div class="text-xs text-emerald-800 dark:text-emerald-300"><b>โอกาสของเรา:</b> {g.your_advantage}</div>
               {/if}
             </div>
           {/each}
@@ -555,31 +561,31 @@
 
       <!-- White space -->
       {#if output.white_space}
-        <div class="bg-gradient-to-br from-primary-50 to-blue-50 border-2 border-primary-300 rounded-2xl p-5">
-          <h3 class="font-semibold text-lg mb-3 text-primary-900">🚀 White Space (ตำแหน่งที่เราควรยึด)</h3>
+        <div class="bg-gradient-to-br from-primary-50 to-blue-50 dark:from-primary-900/40 dark:to-blue-950/40 border-2 border-primary-300 dark:border-primary-700 rounded-2xl p-5">
+          <h3 class="font-semibold text-lg mb-3 text-primary-900 dark:text-primary-200">🚀 White Space (ตำแหน่งที่เราควรยึด)</h3>
           <div class="space-y-3 text-sm">
             {#if output.white_space.positioning}
               <div>
-                <div class="text-xs font-bold text-primary-700 uppercase mb-1">Positioning</div>
+                <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase mb-1">Positioning</div>
                 <div>{output.white_space.positioning}</div>
               </div>
             {/if}
             {#if output.white_space.uvp}
               <div>
-                <div class="text-xs font-bold text-primary-700 uppercase mb-1">UVP</div>
+                <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase mb-1">UVP</div>
                 <div>{output.white_space.uvp}</div>
               </div>
             {/if}
             {#if output.white_space.key_message}
-              <div class="bg-white rounded-lg p-3 border border-primary-200">
-                <div class="text-xs font-bold text-primary-700 uppercase mb-1">💬 Key Message</div>
+              <div class="bg-white dark:bg-dark-800 rounded-lg p-3 border border-primary-200 dark:border-primary-800">
+                <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase mb-1">💬 Key Message</div>
                 <div class="italic">"{output.white_space.key_message}"</div>
               </div>
             {/if}
             {#if output.white_space.anti_positioning}
-              <div class="bg-amber-50 border-l-4 border-amber-400 p-2 rounded">
-                <div class="text-xs font-bold text-amber-800 uppercase mb-1">ไม่ใช่ลูกค้าเรา</div>
-                <div class="text-amber-900 text-xs">{output.white_space.anti_positioning}</div>
+              <div class="bg-amber-50 dark:bg-amber-950/40 border-l-4 border-amber-400 dark:border-amber-600 p-2 rounded">
+                <div class="text-xs font-bold text-amber-800 dark:text-amber-300 uppercase mb-1">ไม่ใช่ลูกค้าเรา</div>
+                <div class="text-amber-900 dark:text-amber-200 text-xs">{output.white_space.anti_positioning}</div>
               </div>
             {/if}
           </div>
@@ -591,52 +597,52 @@
         <div class="space-y-3">
           <h3 class="font-semibold text-lg">📋 แผนรุก</h3>
           {#if output.recommended_strategy.now}
-            <div class="bg-red-50 border-l-4 border-red-500 p-3 rounded">
-              <div class="text-xs font-bold text-red-800 uppercase mb-1">🔥 ทำด่วนที่สุด</div>
-              <div class="text-sm text-red-900">{output.recommended_strategy.now}</div>
+            <div class="bg-red-50 dark:bg-red-950/40 border-l-4 border-red-500 dark:border-red-600 p-3 rounded">
+              <div class="text-xs font-bold text-red-800 dark:text-red-300 uppercase mb-1">🔥 ทำด่วนที่สุด</div>
+              <div class="text-sm text-red-900 dark:text-red-200">{output.recommended_strategy.now}</div>
             </div>
           {/if}
           {#if output.recommended_strategy.next_30_days?.length}
-            <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
-              <div class="text-xs font-bold text-blue-800 uppercase mb-2">📅 30 วันข้างหน้า</div>
+            <div class="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
+              <div class="text-xs font-bold text-blue-800 dark:text-blue-300 uppercase mb-2">📅 30 วันข้างหน้า</div>
               <ul class="space-y-1 text-sm">
-                {#each output.recommended_strategy.next_30_days as a}<li class="flex gap-2"><span class="text-blue-600">→</span>{a}</li>{/each}
+                {#each output.recommended_strategy.next_30_days as a}<li class="flex gap-2"><span class="text-blue-600 dark:text-blue-400">→</span>{a}</li>{/each}
               </ul>
             </div>
           {/if}
           {#if output.recommended_strategy.next_90_days?.length}
-            <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4">
-              <div class="text-xs font-bold text-indigo-800 uppercase mb-2">🎯 90 วันข้างหน้า</div>
+            <div class="bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 rounded-xl p-4">
+              <div class="text-xs font-bold text-indigo-800 dark:text-indigo-300 uppercase mb-2">🎯 90 วันข้างหน้า</div>
               <ul class="space-y-1 text-sm">
-                {#each output.recommended_strategy.next_90_days as a}<li class="flex gap-2"><span class="text-indigo-600">→</span>{a}</li>{/each}
+                {#each output.recommended_strategy.next_90_days as a}<li class="flex gap-2"><span class="text-indigo-600 dark:text-indigo-400">→</span>{a}</li>{/each}
               </ul>
             </div>
           {/if}
           {#if output.recommended_strategy.avoid}
-            <div class="bg-rose-50 border-l-4 border-rose-400 p-3 rounded text-sm">
-              <div class="text-xs font-bold text-rose-800 uppercase mb-1">🚫 ห้ามทำ</div>
-              <div class="text-rose-900">{output.recommended_strategy.avoid}</div>
+            <div class="bg-rose-50 dark:bg-rose-950/40 border-l-4 border-rose-400 dark:border-rose-600 p-3 rounded text-sm">
+              <div class="text-xs font-bold text-rose-800 dark:text-rose-300 uppercase mb-1">🚫 ห้ามทำ</div>
+              <div class="text-rose-900 dark:text-rose-200">{output.recommended_strategy.avoid}</div>
             </div>
           {/if}
         </div>
       {/if}
 
       {#if output.reasoning}
-        <div class="bg-white border border-dark-100 rounded-xl p-4 text-sm italic text-dark-900/70">
+        <div class="bg-white dark:bg-dark-800 border border-dark-100 dark:border-dark-700 rounded-xl p-4 text-sm italic text-dark-900/70 dark:text-dark-100/70">
           💡 {output.reasoning}
         </div>
       {/if}
 
       <!-- Action bar -->
-      <div class="flex items-center justify-between pt-4 border-t border-dark-100 flex-wrap gap-2">
-        <button onclick={() => { output = null; error = ''; saveId = null; saveMsg = ''; }} class="text-sm text-dark-900/60 hover:text-primary-600">
+      <div class="flex items-center justify-between pt-4 border-t border-dark-100 dark:border-dark-700 flex-wrap gap-2">
+        <button onclick={() => { output = null; error = ''; saveId = null; saveMsg = ''; }} class="text-sm text-dark-900/60 dark:text-dark-100/60 hover:text-primary-600">
           ← วิเคราะห์ใหม่
         </button>
         <div class="flex items-center gap-2 flex-wrap">
           {#if saveMsg}
-            <span class="text-xs {saveMsg.startsWith('✓') ? 'text-green-700' : 'text-red-700'}">{saveMsg}</span>
+            <span class="text-xs {saveMsg.startsWith('✓') ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}">{saveMsg}</span>
           {/if}
-          <input type="text" bind:value={saveTitle} placeholder="ตั้งชื่อ (ไม่บังคับ)" class="text-xs px-2 py-1.5 rounded border border-dark-200 w-40" />
+          <input type="text" bind:value={saveTitle} placeholder="ตั้งชื่อ (ไม่บังคับ)" class="text-xs px-2 py-1.5 rounded border border-dark-200 dark:border-dark-600 w-40" />
           <button onclick={handleSave} disabled={isSaving} class="text-sm btn-secondary disabled:opacity-50">
             {isSaving ? '...' : (saveId ? '✓ บันทึกแล้ว' : '💾 บันทึก')}
           </button>
@@ -648,7 +654,7 @@
         </div>
       </div>
       {#if promoteMsg}
-        <div class="mt-2 text-xs {promoteMsg.startsWith('✓') ? 'text-green-700' : 'text-red-700'}">{promoteMsg}</div>
+        <div class="mt-2 text-xs {promoteMsg.startsWith('✓') ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}">{promoteMsg}</div>
       {/if}
     </div>
   {/if}

@@ -254,19 +254,19 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
   }
 
   const intensityColor = (i: string) => {
-    if (i === 'extreme') return 'bg-red-100 text-red-800 border-red-300';
-    if (i === 'high' || i === 'essential') return 'bg-red-100 text-red-800 border-red-300';
-    if (i === 'medium' || i === 'important') return 'bg-amber-100 text-amber-800 border-amber-300';
-    return 'bg-blue-100 text-blue-800 border-blue-300';
+    if (i === 'extreme') return 'bg-red-100 dark:bg-red-950/40 text-red-800 dark:text-red-300 border-red-300 dark:border-red-700';
+    if (i === 'high' || i === 'essential') return 'bg-red-100 dark:bg-red-950/40 text-red-800 dark:text-red-300 border-red-300 dark:border-red-700';
+    if (i === 'medium' || i === 'important') return 'bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-700';
+    return 'bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-700';
   };
   const intensityLabel = (i: string) => {
     return ({ extreme: '🔥 extreme', essential: '⭐ essential', high: '🔴 high', important: '🟡 important', medium: '🟡 medium', low: '🟢 low', nice_to_have: '🟢 nice-to-have', strong: '💪 strong' } as any)[i] || i;
   };
   const fitScoreColor = (s: number) => {
-    if (s >= 8) return 'bg-emerald-100 text-emerald-800 border-emerald-300';
-    if (s >= 6) return 'bg-amber-100 text-amber-800 border-amber-300';
-    if (s >= 4) return 'bg-orange-100 text-orange-800 border-orange-300';
-    return 'bg-red-100 text-red-800 border-red-300';
+    if (s >= 8) return 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700';
+    if (s >= 6) return 'bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-700';
+    if (s >= 4) return 'bg-orange-100 dark:bg-orange-950/40 text-orange-800 dark:text-orange-300 border-orange-300 dark:border-orange-700';
+    return 'bg-red-100 dark:bg-red-950/40 text-red-800 dark:text-red-300 border-red-300 dark:border-red-700';
   };
 </script>
 
@@ -278,9 +278,9 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
 >
   {#if !output}
     <div class="space-y-5">
-      <div class="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-4">
-        <div class="font-semibold text-purple-900 mb-1">💎 Value Proposition Canvas (Osterwalder 2014)</div>
-        <div class="text-sm text-purple-800 space-y-1">
+      <div class="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/40 dark:to-pink-950/40 border border-purple-200 dark:border-purple-800 rounded-xl p-4">
+        <div class="font-semibold text-purple-900 dark:text-purple-200 mb-1">💎 Value Proposition Canvas (Osterwalder 2014)</div>
+        <div class="text-sm text-purple-800 dark:text-purple-300 space-y-1">
           <div><b>2 ฝั่ง:</b> Customer Profile (Jobs + Pains + Gains) ↔ Value Map (Products + Pain Relievers + Gain Creators)</div>
           <div><b>Goal:</b> FIT = top pains ถูก relievers + top gains ถูก creators</div>
           <div><b>3 Types of Fit:</b> Problem-Solution → Product-Market → Business Model</div>
@@ -294,7 +294,7 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
           type="text"
           bind:value={business_name}
           placeholder="เช่น ร้านก๋วยเตี๋ยวลุงใบหยก"
-          class="w-full px-3 py-2.5 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+          class="w-full px-3 py-2.5 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500"
         />
       </div>
 
@@ -311,94 +311,94 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
       <div class="grid sm:grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-semibold mb-1.5">ที่ตั้ง</label>
-          <input type="text" bind:value={location} placeholder="เช่น หาดใหญ่" class="w-full px-3 py-2.5 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500" />
+          <input type="text" bind:value={location} placeholder="เช่น หาดใหญ่" class="w-full px-3 py-2.5 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500" />
         </div>
         <div>
           <label class="block text-sm font-semibold mb-1.5">ช่วงราคา</label>
-          <input type="text" bind:value={price_range} placeholder="เช่น 50-150 บาท" class="w-full px-3 py-2.5 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500" />
+          <input type="text" bind:value={price_range} placeholder="เช่น 50-150 บาท" class="w-full px-3 py-2.5 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500" />
         </div>
       </div>
 
       <div>
         <label class="block text-sm font-semibold mb-1.5">จุดต่าง (ถ้ามี)</label>
-        <input type="text" bind:value={differentiation} placeholder="เช่น ใช้วัตถุดิบออร์แกนิค" class="w-full px-3 py-2.5 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500" />
+        <input type="text" bind:value={differentiation} placeholder="เช่น ใช้วัตถุดิบออร์แกนิค" class="w-full px-3 py-2.5 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500" />
       </div>
 
       <!-- Customer profile (mini) -->
-      <div class="bg-gradient-to-r from-cyan-50 to-blue-50 border border-cyan-200 rounded-xl p-4">
-        <div class="font-semibold text-cyan-900 mb-2">👤 Customer (สำหรับ Customer Profile)</div>
+      <div class="bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-950/40 dark:to-blue-950/40 border border-cyan-200 dark:border-cyan-800 rounded-xl p-4">
+        <div class="font-semibold text-cyan-900 dark:text-cyan-200 mb-2">👤 Customer (สำหรับ Customer Profile)</div>
         <div class="grid sm:grid-cols-3 gap-3">
           <div>
-            <label class="block text-xs font-semibold text-cyan-800 mb-1">อายุ</label>
-            <input type="text" bind:value={customer_age} placeholder="28-40" class="w-full px-2.5 py-1.5 rounded border border-cyan-200 text-sm" />
+            <label class="block text-xs font-semibold text-cyan-800 dark:text-cyan-300 mb-1">อายุ</label>
+            <input type="text" bind:value={customer_age} placeholder="28-40" class="w-full px-2.5 py-1.5 rounded border border-cyan-200 dark:border-cyan-800 text-sm" />
           </div>
           <div>
-            <label class="block text-xs font-semibold text-cyan-800 mb-1">อาชีพ</label>
-            <input type="text" bind:value={customer_job} placeholder="พนักงานออฟฟิศ" class="w-full px-2.5 py-1.5 rounded border border-cyan-200 text-sm" />
+            <label class="block text-xs font-semibold text-cyan-800 dark:text-cyan-300 mb-1">อาชีพ</label>
+            <input type="text" bind:value={customer_job} placeholder="พนักงานออฟฟิศ" class="w-full px-2.5 py-1.5 rounded border border-cyan-200 dark:border-cyan-800 text-sm" />
           </div>
           <div>
-            <label class="block text-xs font-semibold text-cyan-800 mb-1">รายได้</label>
-            <input type="text" bind:value={customer_income} placeholder="25,000-50,000" class="w-full px-2.5 py-1.5 rounded border border-cyan-200 text-sm" />
+            <label class="block text-xs font-semibold text-cyan-800 dark:text-cyan-300 mb-1">รายได้</label>
+            <input type="text" bind:value={customer_income} placeholder="25,000-50,000" class="w-full px-2.5 py-1.5 rounded border border-cyan-200 dark:border-cyan-800 text-sm" />
           </div>
         </div>
       </div>
 
       <!-- Product/Service (the heart of Value Map) -->
-      <div class="bg-gradient-to-r from-rose-50 to-pink-50 border-2 border-rose-300 rounded-xl p-4 space-y-3">
-        <div class="font-semibold text-rose-900">📦 Product / Service (สำหรับ Value Map) *</div>
+      <div class="bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-950/40 dark:to-pink-950/40 border-2 border-rose-300 dark:border-rose-700 rounded-xl p-4 space-y-3">
+        <div class="font-semibold text-rose-900 dark:text-rose-200">📦 Product / Service (สำหรับ Value Map) *</div>
         <div>
-          <label class="block text-xs font-semibold text-rose-800 mb-1">📦 Product/Service คืออะไร *</label>
-          <textarea bind:value={product_description} rows="3" placeholder="เช่น ขนมบ้านโกไข่ เป็นร้านขนมใต้สูตรโบราณ มี 28 สาขาในกรุงเทพ + ภาคใต้ เน้นขนมคุณภาพสูง บรรจุภัณฑ์สวย ขายทั้งหน้าร้าน + ออนไลน์" class="w-full px-2.5 py-1.5 rounded border border-rose-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"></textarea>
+          <label class="block text-xs font-semibold text-rose-800 dark:text-rose-300 mb-1">📦 Product/Service คืออะไร *</label>
+          <textarea bind:value={product_description} rows="3" placeholder="เช่น ขนมบ้านโกไข่ เป็นร้านขนมใต้สูตรโบราณ มี 28 สาขาในกรุงเทพ + ภาคใต้ เน้นขนมคุณภาพสูง บรรจุภัณฑ์สวย ขายทั้งหน้าร้าน + ออนไลน์" class="w-full px-2.5 py-1.5 rounded border border-rose-200 dark:border-rose-800 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"></textarea>
         </div>
         <div>
-          <label class="block text-xs font-semibold text-rose-800 mb-1">✨ Features / จุดเด่น</label>
-          <textarea bind:value={product_features} rows="2" placeholder="เช่น 1) สูตรโบราณจากครอบครัว 2) ใช้วัตถุดิบสดใหม่ทุกวัน 3) บรรจุภัณฑ์ premium 4) ส่งฟรีในกรุงเทพ 5) มีหน้าร้านให้สัมผัส 28 สาขา" class="w-full px-2.5 py-1.5 rounded border border-rose-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"></textarea>
+          <label class="block text-xs font-semibold text-rose-800 dark:text-rose-300 mb-1">✨ Features / จุดเด่น</label>
+          <textarea bind:value={product_features} rows="2" placeholder="เช่น 1) สูตรโบราณจากครอบครัว 2) ใช้วัตถุดิบสดใหม่ทุกวัน 3) บรรจุภัณฑ์ premium 4) ส่งฟรีในกรุงเทพ 5) มีหน้าร้านให้สัมผัส 28 สาขา" class="w-full px-2.5 py-1.5 rounded border border-rose-200 dark:border-rose-800 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"></textarea>
         </div>
       </div>
 
       <!-- Customer Context (for Customer Profile) -->
-      <div class="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-4 space-y-3">
-        <div class="font-semibold text-amber-900">🧠 Customer Context (สำหรับ Customer Profile)</div>
+      <div class="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/40 border border-amber-200 dark:border-amber-800 rounded-xl p-4 space-y-3">
+        <div class="font-semibold text-amber-900 dark:text-amber-200">🧠 Customer Context (สำหรับ Customer Profile)</div>
         <div>
-          <label class="block text-xs font-semibold text-amber-800 mb-1">😰 Main Problem — ลูกค้าเจอปัญหาอะไร</label>
-          <textarea bind:value={main_problem} rows="2" placeholder="เช่น อยากกินขนมใต้แท้ในกรุงเทพ แต่หาซื้อยาก กลัวได้ของไม่สด" class="w-full px-2.5 py-1.5 rounded border border-amber-200 text-sm"></textarea>
+          <label class="block text-xs font-semibold text-amber-800 dark:text-amber-300 mb-1">😰 Main Problem — ลูกค้าเจอปัญหาอะไร</label>
+          <textarea bind:value={main_problem} rows="2" placeholder="เช่น อยากกินขนมใต้แท้ในกรุงเทพ แต่หาซื้อยาก กลัวได้ของไม่สด" class="w-full px-2.5 py-1.5 rounded border border-amber-200 dark:border-amber-800 text-sm"></textarea>
         </div>
         <div>
-          <label class="block text-xs font-semibold text-amber-800 mb-1">🛠 Current Solutions — ตอนนี้ใช้อะไรอยู่</label>
-          <textarea bind:value={current_solutions} rows="2" placeholder="เช่น ซื้อขนมจากห้าง แต่รสไม่ใช่ขนมใต้แท้ / สั่งออนไลน์แต่รอนาน" class="w-full px-2.5 py-1.5 rounded border border-amber-200 text-sm"></textarea>
+          <label class="block text-xs font-semibold text-amber-800 dark:text-amber-300 mb-1">🛠 Current Solutions — ตอนนี้ใช้อะไรอยู่</label>
+          <textarea bind:value={current_solutions} rows="2" placeholder="เช่น ซื้อขนมจากห้าง แต่รสไม่ใช่ขนมใต้แท้ / สั่งออนไลน์แต่รอนาน" class="w-full px-2.5 py-1.5 rounded border border-amber-200 dark:border-amber-800 text-sm"></textarea>
         </div>
         <div>
-          <label class="block text-xs font-semibold text-amber-800 mb-1">✨ Desired Outcome — ลูกค้าอยากได้อะไร</label>
-          <textarea bind:value={desired_outcome} rows="2" placeholder="เช่น ได้กินขนมใต้แท้รสชาติเหมือนอยู่บ้าน สะดวก ราคาไม่แพง ได้ความภูมิใจ" class="w-full px-2.5 py-1.5 rounded border border-amber-200 text-sm"></textarea>
+          <label class="block text-xs font-semibold text-amber-800 dark:text-amber-300 mb-1">✨ Desired Outcome — ลูกค้าอยากได้อะไร</label>
+          <textarea bind:value={desired_outcome} rows="2" placeholder="เช่น ได้กินขนมใต้แท้รสชาติเหมือนอยู่บ้าน สะดวก ราคาไม่แพง ได้ความภูมิใจ" class="w-full px-2.5 py-1.5 rounded border border-amber-200 dark:border-amber-800 text-sm"></textarea>
         </div>
       </div>
 
       <!-- Optional JTBD pre-fill -->
       {#if jtbd_saves.length > 0}
-        <div class="bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-300 rounded-xl p-3">
-          <div class="font-semibold text-amber-900 mb-2 text-sm">🔗 เชื่อม JTBD ที่เคยวิเคราะห์ไว้ (optional — แนะนำ)</div>
-          <select bind:value={selectedJtbdId} class="w-full px-3 py-2 rounded border border-amber-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+        <div class="bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/40 dark:to-yellow-950/40 border border-amber-300 dark:border-amber-700 rounded-xl p-3">
+          <div class="font-semibold text-amber-900 dark:text-amber-200 mb-2 text-sm">🔗 เชื่อม JTBD ที่เคยวิเคราะห์ไว้ (optional — แนะนำ)</div>
+          <select bind:value={selectedJtbdId} class="w-full px-3 py-2 rounded border border-amber-200 dark:border-amber-800 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
             <option value="">— ไม่ใช้ JTBD —</option>
             {#each jtbd_saves as jtbd}
               <option value={jtbd.id}>📋 {jtbd.title} ({new Date(jtbd.created_at).toLocaleDateString('th-TH')})</option>
             {/each}
           </select>
-          <div class="text-xs text-amber-700 mt-1.5">ถ้าเลือก ระบบจะ pre-fill Customer Profile จาก JTBD ที่เคยวิเคราะห์ไว้</div>
+          <div class="text-xs text-amber-700 dark:text-amber-400 mt-1.5">ถ้าเลือก ระบบจะ pre-fill Customer Profile จาก JTBD ที่เคยวิเคราะห์ไว้</div>
         </div>
       {/if}
 
       <div>
-        <label class="block text-sm font-semibold mb-1.5">โน้ตเพิ่มเติม <span class="text-dark-900/50 font-normal">(optional)</span></label>
-        <textarea bind:value={user_notes} rows="2" placeholder="อะไรก็ได้ที่อยากให้ ระบบอัจฉริยะ รู้เพิ่ม..." class="w-full px-3 py-2.5 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500"></textarea>
+        <label class="block text-sm font-semibold mb-1.5">โน้ตเพิ่มเติม <span class="text-dark-900/50 dark:text-dark-100/50 font-normal">(optional)</span></label>
+        <textarea bind:value={user_notes} rows="2" placeholder="อะไรก็ได้ที่อยากให้ ระบบอัจฉริยะ รู้เพิ่ม..." class="w-full px-3 py-2.5 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500"></textarea>
       </div>
 
       {#if error}
-        <div class="p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
+        <div class="p-3 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-sm text-red-700 dark:text-red-400">
           {error}
         </div>
       {/if}
 
-      <div class="pt-4 flex items-center justify-end border-t border-dark-100">
+      <div class="pt-4 flex items-center justify-end border-t border-dark-100 dark:border-dark-700">
         <button
           onclick={handleGenerate}
           disabled={isGenerating}
@@ -412,18 +412,18 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
     <!-- Results -->
     <div class="space-y-5">
       {#if output.summary}
-        <div class="bg-primary-50 border-l-4 border-primary-500 p-4 rounded-lg">
-          <div class="text-xs font-bold text-primary-700 uppercase tracking-wider mb-1">สรุป VPC</div>
-          <div class="text-dark-900">{output.summary}</div>
+        <div class="bg-primary-50 dark:bg-primary-900/40 border-l-4 border-primary-500 p-4 rounded-lg">
+          <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wider mb-1">สรุป VPC</div>
+          <div class="text-dark-900 dark:text-dark-50">{output.summary}</div>
         </div>
       {/if}
 
       <!-- Customer Segment -->
       {#if output.customer_segment}
-        <div class="bg-gradient-to-r from-blue-50 to-cyan-50 border-l-4 border-blue-500 p-3 rounded">
-          <div class="text-xs font-bold text-blue-700 uppercase mb-1">👤 Customer Segment</div>
-          <div class="text-sm font-semibold text-blue-900">{output.customer_segment.name || '-'}</div>
-          <div class="text-xs text-blue-800 mt-0.5">{output.customer_segment.description || '-'}</div>
+        <div class="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/40 dark:to-cyan-950/40 border-l-4 border-blue-500 dark:border-blue-600 p-3 rounded">
+          <div class="text-xs font-bold text-blue-700 dark:text-blue-400 uppercase mb-1">👤 Customer Segment</div>
+          <div class="text-sm font-semibold text-blue-900 dark:text-blue-200">{output.customer_segment.name || '-'}</div>
+          <div class="text-xs text-blue-800 dark:text-blue-300 mt-0.5">{output.customer_segment.description || '-'}</div>
         </div>
       {/if}
 
@@ -433,52 +433,52 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
         <div class="space-y-3">
           <h3 class="font-semibold text-lg flex items-center gap-2">
             <span>👤 Customer Profile</span>
-            <span class="text-xs text-dark-900/50">(right circle)</span>
+            <span class="text-xs text-dark-900/50 dark:text-dark-100/50">(right circle)</span>
           </h3>
           {#if output.customer_profile?.jobs?.length}
-            <div class="bg-white border-2 border-blue-200 rounded-lg p-3">
-              <div class="text-xs font-bold text-blue-700 uppercase mb-2">🔧 Jobs (3-{output.customer_profile.jobs.length})</div>
+            <div class="bg-white dark:bg-dark-800 border-2 border-blue-200 dark:border-blue-800 rounded-lg p-3">
+              <div class="text-xs font-bold text-blue-700 dark:text-blue-400 uppercase mb-2">🔧 Jobs (3-{output.customer_profile.jobs.length})</div>
               <div class="space-y-1.5">
                 {#each output.customer_profile.jobs as j}
-                  <div class="bg-blue-50 rounded p-2 text-xs">
+                  <div class="bg-blue-50 dark:bg-blue-950/40 rounded p-2 text-xs">
                     <div class="flex items-center gap-1.5 mb-0.5">
                       <span class="px-1.5 py-0.5 rounded text-[10px] border {intensityColor(j.importance)}">{intensityLabel(j.importance)}</span>
-                      <span class="text-[10px] text-dark-900/60">[{j.type}]</span>
+                      <span class="text-[10px] text-dark-900/60 dark:text-dark-100/60">[{j.type}]</span>
                     </div>
-                    <div class="text-dark-900">{j.job}</div>
+                    <div class="text-dark-900 dark:text-dark-50">{j.job}</div>
                   </div>
                 {/each}
               </div>
             </div>
           {/if}
           {#if output.customer_profile?.pains?.length}
-            <div class="bg-white border-2 border-red-200 rounded-lg p-3">
-              <div class="text-xs font-bold text-red-700 uppercase mb-2">😰 Pains (3-{output.customer_profile.pains.length})</div>
+            <div class="bg-white dark:bg-dark-800 border-2 border-red-200 dark:border-red-800 rounded-lg p-3">
+              <div class="text-xs font-bold text-red-700 dark:text-red-400 uppercase mb-2">😰 Pains (3-{output.customer_profile.pains.length})</div>
               <div class="space-y-1.5">
                 {#each output.customer_profile.pains as p}
-                  <div class="bg-red-50 rounded p-2 text-xs">
+                  <div class="bg-red-50 dark:bg-red-950/40 rounded p-2 text-xs">
                     <div class="flex items-center gap-1.5 mb-0.5 flex-wrap">
                       <span class="px-1.5 py-0.5 rounded text-[10px] border {intensityColor(p.intensity)}">{intensityLabel(p.intensity)}</span>
-                      <span class="text-[10px] text-dark-900/60">{p.frequency}</span>
-                      <span class="text-[10px] text-dark-900/60">[{p.category}]</span>
+                      <span class="text-[10px] text-dark-900/60 dark:text-dark-100/60">{p.frequency}</span>
+                      <span class="text-[10px] text-dark-900/60 dark:text-dark-100/60">[{p.category}]</span>
                     </div>
-                    <div class="text-red-900">{p.pain}</div>
+                    <div class="text-red-900 dark:text-red-200">{p.pain}</div>
                   </div>
                 {/each}
               </div>
             </div>
           {/if}
           {#if output.customer_profile?.gains?.length}
-            <div class="bg-white border-2 border-emerald-200 rounded-lg p-3">
-              <div class="text-xs font-bold text-emerald-700 uppercase mb-2">✨ Gains (3-{output.customer_profile.gains.length})</div>
+            <div class="bg-white dark:bg-dark-800 border-2 border-emerald-200 dark:border-emerald-800 rounded-lg p-3">
+              <div class="text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase mb-2">✨ Gains (3-{output.customer_profile.gains.length})</div>
               <div class="space-y-1.5">
                 {#each output.customer_profile.gains as g}
-                  <div class="bg-emerald-50 rounded p-2 text-xs">
+                  <div class="bg-emerald-50 dark:bg-emerald-950/40 rounded p-2 text-xs">
                     <div class="flex items-center gap-1.5 mb-0.5 flex-wrap">
                       <span class="px-1.5 py-0.5 rounded text-[10px] border {intensityColor(g.relevance)}">{intensityLabel(g.relevance)}</span>
-                      <span class="text-[10px] text-dark-900/60">[{g.category}]</span>
+                      <span class="text-[10px] text-dark-900/60 dark:text-dark-100/60">[{g.category}]</span>
                     </div>
-                    <div class="text-emerald-900">{g.gain}</div>
+                    <div class="text-emerald-900 dark:text-emerald-200">{g.gain}</div>
                   </div>
                 {/each}
               </div>
@@ -490,37 +490,37 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
         <div class="space-y-3">
           <h3 class="font-semibold text-lg flex items-center gap-2">
             <span>🗺️ Value Map</span>
-            <span class="text-xs text-dark-900/50">(left square)</span>
+            <span class="text-xs text-dark-900/50 dark:text-dark-100/50">(left square)</span>
           </h3>
           {#if output.value_map?.products_services?.length}
-            <div class="bg-white border-2 border-purple-200 rounded-lg p-3">
-              <div class="text-xs font-bold text-purple-700 uppercase mb-2">📦 Products & Services (3-{output.value_map.products_services.length})</div>
+            <div class="bg-white dark:bg-dark-800 border-2 border-purple-200 dark:border-purple-800 rounded-lg p-3">
+              <div class="text-xs font-bold text-purple-700 dark:text-purple-400 uppercase mb-2">📦 Products & Services (3-{output.value_map.products_services.length})</div>
               <div class="space-y-1.5">
                 {#each output.value_map.products_services as ps}
-                  <div class="bg-purple-50 rounded p-2 text-xs">
+                  <div class="bg-purple-50 dark:bg-purple-950/40 rounded p-2 text-xs">
                     <div class="flex items-center gap-1.5 mb-0.5">
-                      <span class="font-bold text-purple-900">{ps.name}</span>
-                      <span class="text-[10px] text-dark-900/60">[{ps.type}]</span>
+                      <span class="font-bold text-purple-900 dark:text-purple-200">{ps.name}</span>
+                      <span class="text-[10px] text-dark-900/60 dark:text-dark-100/60">[{ps.type}]</span>
                     </div>
-                    <div class="text-purple-900">{ps.description}</div>
+                    <div class="text-purple-900 dark:text-purple-200">{ps.description}</div>
                   </div>
                 {/each}
               </div>
             </div>
           {/if}
           {#if output.value_map?.pain_relievers?.length}
-            <div class="bg-white border-2 border-orange-200 rounded-lg p-3">
-              <div class="text-xs font-bold text-orange-700 uppercase mb-2">💊 Pain Relievers (3-{output.value_map.pain_relievers.length})</div>
+            <div class="bg-white dark:bg-dark-800 border-2 border-orange-200 dark:border-orange-800 rounded-lg p-3">
+              <div class="text-xs font-bold text-orange-700 dark:text-orange-400 uppercase mb-2">💊 Pain Relievers (3-{output.value_map.pain_relievers.length})</div>
               <div class="space-y-1.5">
                 {#each output.value_map.pain_relievers as r}
-                  <div class="bg-orange-50 rounded p-2 text-xs">
+                  <div class="bg-orange-50 dark:bg-orange-950/40 rounded p-2 text-xs">
                     <div class="flex items-center gap-1.5 mb-0.5 flex-wrap">
                       <span class="px-1.5 py-0.5 rounded text-[10px] border {intensityColor(r.intensity)}">{intensityLabel(r.intensity)}</span>
-                      <span class="text-[10px] text-dark-900/60">[{r.pattern}]</span>
+                      <span class="text-[10px] text-dark-900/60 dark:text-dark-100/60">[{r.pattern}]</span>
                     </div>
-                    <div class="text-orange-900">{r.reliever}</div>
+                    <div class="text-orange-900 dark:text-orange-200">{r.reliever}</div>
                     {#if r.addresses_pain}
-                      <div class="text-[10px] text-orange-700/70 mt-0.5">→ แก้: {r.addresses_pain}</div>
+                      <div class="text-[10px] text-orange-700/70 dark:text-orange-400/70 mt-0.5">→ แก้: {r.addresses_pain}</div>
                     {/if}
                   </div>
                 {/each}
@@ -528,18 +528,18 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
             </div>
           {/if}
           {#if output.value_map?.gain_creators?.length}
-            <div class="bg-white border-2 border-teal-200 rounded-lg p-3">
-              <div class="text-xs font-bold text-teal-700 uppercase mb-2">🎁 Gain Creators (3-{output.value_map.gain_creators.length})</div>
+            <div class="bg-white dark:bg-dark-800 border-2 border-teal-200 dark:border-teal-800 rounded-lg p-3">
+              <div class="text-xs font-bold text-teal-700 dark:text-teal-400 uppercase mb-2">🎁 Gain Creators (3-{output.value_map.gain_creators.length})</div>
               <div class="space-y-1.5">
                 {#each output.value_map.gain_creators as c}
-                  <div class="bg-teal-50 rounded p-2 text-xs">
+                  <div class="bg-teal-50 dark:bg-teal-950/40 rounded p-2 text-xs">
                     <div class="flex items-center gap-1.5 mb-0.5 flex-wrap">
                       <span class="px-1.5 py-0.5 rounded text-[10px] border {intensityColor(c.strength)}">{intensityLabel(c.strength)}</span>
-                      <span class="text-[10px] text-dark-900/60">[{c.pattern}]</span>
+                      <span class="text-[10px] text-dark-900/60 dark:text-dark-100/60">[{c.pattern}]</span>
                     </div>
-                    <div class="text-teal-900">{c.creator}</div>
+                    <div class="text-teal-900 dark:text-teal-200">{c.creator}</div>
                     {#if c.addresses_gain}
-                      <div class="text-[10px] text-teal-700/70 mt-0.5">→ ตอบ: {c.addresses_gain}</div>
+                      <div class="text-[10px] text-teal-700/70 dark:text-teal-400/70 mt-0.5">→ ตอบ: {c.addresses_gain}</div>
                     {/if}
                   </div>
                 {/each}
@@ -552,10 +552,10 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
       <!-- Fit Analysis -->
       {#if output.fit_analysis}
         {@const fa = output.fit_analysis}
-        <div class="bg-gradient-to-br from-indigo-50 to-purple-50 border-2 border-indigo-300 rounded-2xl p-5">
-          <h3 class="font-semibold text-lg mb-3 text-indigo-900">⚖️ Fit Analysis</h3>
+        <div class="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-950/40 dark:to-purple-950/40 border-2 border-indigo-300 dark:border-indigo-700 rounded-2xl p-5">
+          <h3 class="font-semibold text-lg mb-3 text-indigo-900 dark:text-indigo-200">⚖️ Fit Analysis</h3>
           <div class="flex items-center gap-3 mb-3">
-            <div class="text-xs font-bold text-indigo-700">Overall Fit:</div>
+            <div class="text-xs font-bold text-indigo-700 dark:text-indigo-400">Overall Fit:</div>
             <span class="px-3 py-1 rounded-lg border-2 text-sm font-bold {fitScoreColor(fa.overall_fit_score || 0)}">
               {fa.overall_fit_score || '-'}/10 — {fa.fit_verdict || '-'}
             </span>
@@ -563,9 +563,9 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
 
           <div class="grid sm:grid-cols-2 gap-3 mb-3">
             {#if fa.matched_pains?.length}
-              <div class="bg-white border border-emerald-300 rounded p-2.5">
-                <div class="text-xs font-bold text-emerald-800 mb-1.5">✅ Matched Pains ({fa.matched_pains.length})</div>
-                <ul class="space-y-0.5 text-xs text-emerald-900">
+              <div class="bg-white dark:bg-dark-800 border border-emerald-300 dark:border-emerald-700 rounded p-2.5">
+                <div class="text-xs font-bold text-emerald-800 dark:text-emerald-300 mb-1.5">✅ Matched Pains ({fa.matched_pains.length})</div>
+                <ul class="space-y-0.5 text-xs text-emerald-900 dark:text-emerald-200">
                   {#each fa.matched_pains as m}
                     <li>• <b>{m.pain}</b> → {m.reliever} [{m.strength}]</li>
                   {/each}
@@ -573,9 +573,9 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
               </div>
             {/if}
             {#if fa.matched_gains?.length}
-              <div class="bg-white border border-emerald-300 rounded p-2.5">
-                <div class="text-xs font-bold text-emerald-800 mb-1.5">✅ Matched Gains ({fa.matched_gains.length})</div>
-                <ul class="space-y-0.5 text-xs text-emerald-900">
+              <div class="bg-white dark:bg-dark-800 border border-emerald-300 dark:border-emerald-700 rounded p-2.5">
+                <div class="text-xs font-bold text-emerald-800 dark:text-emerald-300 mb-1.5">✅ Matched Gains ({fa.matched_gains.length})</div>
+                <ul class="space-y-0.5 text-xs text-emerald-900 dark:text-emerald-200">
                   {#each fa.matched_gains as m}
                     <li>• <b>{m.gain}</b> → {m.creator} [{m.strength}]</li>
                   {/each}
@@ -583,9 +583,9 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
               </div>
             {/if}
             {#if fa.uncovered_pains?.length}
-              <div class="bg-white border border-rose-300 rounded p-2.5">
-                <div class="text-xs font-bold text-rose-800 mb-1.5">⚠️ Uncovered Pains ({fa.uncovered_pains.length})</div>
-                <ul class="space-y-1 text-xs text-rose-900">
+              <div class="bg-white dark:bg-dark-800 border border-rose-300 dark:border-rose-700 rounded p-2.5">
+                <div class="text-xs font-bold text-rose-800 dark:text-rose-300 mb-1.5">⚠️ Uncovered Pains ({fa.uncovered_pains.length})</div>
+                <ul class="space-y-1 text-xs text-rose-900 dark:text-rose-200">
                   {#each fa.uncovered_pains as u}
                     <li>• <b>{u.pain}</b> [{u.intensity}] → {u.recommendation}</li>
                   {/each}
@@ -593,9 +593,9 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
               </div>
             {/if}
             {#if fa.uncovered_gains?.length}
-              <div class="bg-white border border-rose-300 rounded p-2.5">
-                <div class="text-xs font-bold text-rose-800 mb-1.5">⚠️ Uncovered Gains ({fa.uncovered_gains.length})</div>
-                <ul class="space-y-1 text-xs text-rose-900">
+              <div class="bg-white dark:bg-dark-800 border border-rose-300 dark:border-rose-700 rounded p-2.5">
+                <div class="text-xs font-bold text-rose-800 dark:text-rose-300 mb-1.5">⚠️ Uncovered Gains ({fa.uncovered_gains.length})</div>
+                <ul class="space-y-1 text-xs text-rose-900 dark:text-rose-200">
                   {#each fa.uncovered_gains as u}
                     <li>• <b>{u.gain}</b> [{u.relevance}] → {u.recommendation}</li>
                   {/each}
@@ -605,7 +605,7 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
           </div>
 
           {#if fa.orphans?.length}
-            <div class="bg-amber-50 border-l-4 border-amber-400 rounded-r p-2.5 text-xs text-amber-900">
+            <div class="bg-amber-50 dark:bg-amber-950/40 border-l-4 border-amber-400 dark:border-amber-600 rounded-r p-2.5 text-xs text-amber-900 dark:text-amber-200">
               <b>🗑️ Orphans (over-engineering):</b>
               <ul class="mt-1 space-y-0.5">
                 {#each fa.orphans as o}
@@ -619,33 +619,76 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
 
       <!-- Value Proposition Statement -->
       {#if output.value_proposition_statement}
-        <div class="bg-gradient-to-br from-rose-50 to-pink-50 border-2 border-rose-400 rounded-2xl p-5">
-          <h3 class="font-semibold text-lg mb-2 text-rose-900">💎 Value Proposition Statement</h3>
-          <div class="bg-white rounded-lg p-4 border border-rose-200 italic text-rose-900">
+        <div class="bg-gradient-to-br from-rose-50 to-pink-50 dark:from-rose-950/40 dark:to-pink-950/40 border-2 border-rose-400 dark:border-rose-600 rounded-2xl p-5">
+          <h3 class="font-semibold text-lg mb-2 text-rose-900 dark:text-rose-200">💎 Value Proposition Statement</h3>
+          <div class="bg-white dark:bg-dark-800 rounded-lg p-4 border border-rose-200 dark:border-rose-800 italic text-rose-900 dark:text-rose-200">
             "{output.value_proposition_statement}"
           </div>
         </div>
       {/if}
 
       {#if output.elevator_pitch}
-        <div class="bg-amber-50 border-l-4 border-amber-400 p-3 rounded">
-          <div class="text-xs font-bold text-amber-800 uppercase mb-1">⏱️ 30-Second Elevator Pitch</div>
-          <div class="text-sm italic text-amber-900">"{output.elevator_pitch}"</div>
+        <div class="bg-amber-50 dark:bg-amber-950/40 border-l-4 border-amber-400 dark:border-amber-600 p-3 rounded">
+          <div class="text-xs font-bold text-amber-800 dark:text-amber-300 uppercase mb-1">⏱️ 30-Second Elevator Pitch</div>
+          <div class="text-sm italic text-amber-900 dark:text-amber-200">"{output.elevator_pitch}"</div>
+        </div>
+      {/if}
+
+      {#if output.messaging_hierarchy}
+        <div class="bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 rounded-xl p-4">
+          <div class="text-xs font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-2">📢 Messaging Hierarchy</div>
+          {#if output.messaging_hierarchy.primary_message}
+            <div class="bg-primary-50 dark:bg-primary-900/40 rounded-lg p-2.5 mb-2 text-sm font-semibold">{output.messaging_hierarchy.primary_message}</div>
+          {/if}
+          {#if output.messaging_hierarchy.supporting_messages?.length}
+            <ul class="text-sm space-y-1 mb-2">
+              {#each output.messaging_hierarchy.supporting_messages as m}<li class="flex gap-1.5"><span class="text-primary-500">•</span>{m}</li>{/each}
+            </ul>
+          {/if}
+          {#if output.messaging_hierarchy.proof_points?.length}
+            <div class="text-xs text-dark-900/60 dark:text-dark-100/60">
+              <b>หลักฐาน:</b> {output.messaging_hierarchy.proof_points.join(' · ')}
+            </div>
+          {/if}
+        </div>
+      {/if}
+
+      {#if output.application_guide}
+        <div class="bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 rounded-xl p-4">
+          <div class="text-xs font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-2">🛠️ เอาไปใช้ยังไง</div>
+          {#if output.application_guide.ad_headlines?.length}
+            <div class="mb-2">
+              <div class="text-xs font-semibold text-dark-900/60 dark:text-dark-100/60 mb-1">Headline โฆษณา</div>
+              <ul class="text-sm space-y-0.5">{#each output.application_guide.ad_headlines as h}<li>• {h}</li>{/each}</ul>
+            </div>
+          {/if}
+          {#if output.application_guide.landing_page_copy}
+            <div class="mb-2">
+              <div class="text-xs font-semibold text-dark-900/60 dark:text-dark-100/60 mb-1">Landing Page Copy</div>
+              <div class="text-sm italic">{output.application_guide.landing_page_copy}</div>
+            </div>
+          {/if}
+          {#if output.application_guide.sales_talking_points?.length}
+            <div>
+              <div class="text-xs font-semibold text-dark-900/60 dark:text-dark-100/60 mb-1">พูดกับลูกค้ายังไง</div>
+              <ul class="text-sm space-y-0.5">{#each output.application_guide.sales_talking_points as p}<li>• {p}</li>{/each}</ul>
+            </div>
+          {/if}
         </div>
       {/if}
 
       <!-- What most brands get wrong -->
       {#if output.what_most_brands_get_wrong}
-        <div class="bg-rose-50 border-l-4 border-rose-400 p-3 rounded text-sm text-rose-900">
+        <div class="bg-rose-50 dark:bg-rose-950/40 border-l-4 border-rose-400 dark:border-rose-600 p-3 rounded text-sm text-rose-900 dark:text-rose-200">
           <b>⚠️ ที่แบรนด์ส่วนใหญ่ทำผิด:</b> {output.what_most_brands_get_wrong}
         </div>
       {/if}
 
       <!-- Validation methods -->
       {#if output.validation_methods?.length}
-        <div class="bg-white border border-dark-200 rounded-lg p-3">
-          <div class="text-xs font-bold text-dark-900/60 uppercase mb-1.5">🔬 Validation Methods</div>
-          <ul class="space-y-0.5 text-sm text-dark-900/80">
+        <div class="bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 rounded-lg p-3">
+          <div class="text-xs font-bold text-dark-900/60 dark:text-dark-100/60 uppercase mb-1.5">🔬 Validation Methods</div>
+          <ul class="space-y-0.5 text-sm text-dark-900/80 dark:text-dark-100/80">
             {#each output.validation_methods as v}
               <li>• {v}</li>
             {/each}
@@ -655,9 +698,9 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
 
       <!-- Next steps -->
       {#if output.next_steps?.length}
-        <div class="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl p-3">
-          <div class="text-xs font-bold text-emerald-800 uppercase mb-1.5">➡️ Next Steps</div>
-          <ul class="space-y-0.5 text-sm text-emerald-900">
+        <div class="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-teal-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl p-3">
+          <div class="text-xs font-bold text-emerald-800 dark:text-emerald-300 uppercase mb-1.5">➡️ Next Steps</div>
+          <ul class="space-y-0.5 text-sm text-emerald-900 dark:text-emerald-200">
             {#each output.next_steps as s}
               <li class="flex gap-1.5"><span>→</span>{s}</li>
             {/each}
@@ -666,22 +709,22 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
       {/if}
 
       {#if output.reasoning}
-        <div class="bg-white border border-dark-100 rounded-xl p-4 text-sm italic text-dark-900/70">
+        <div class="bg-white dark:bg-dark-800 border border-dark-100 dark:border-dark-700 rounded-xl p-4 text-sm italic text-dark-900/70 dark:text-dark-100/70">
           💡 {output.reasoning}
         </div>
       {/if}
 
       <!-- Action bar -->
       <ToolChainHint current="value_proposition_canvas" />
-      <div class="flex items-center justify-between pt-4 border-t border-dark-100 flex-wrap gap-2">
-        <button onclick={() => { output = null; error = ''; saveId = null; saveMsg = ''; }} class="text-sm text-dark-900/60 hover:text-primary-600">
+      <div class="flex items-center justify-between pt-4 border-t border-dark-100 dark:border-dark-700 flex-wrap gap-2">
+        <button onclick={() => { output = null; error = ''; saveId = null; saveMsg = ''; }} class="text-sm text-dark-900/60 dark:text-dark-100/60 hover:text-primary-600 dark:hover:text-primary-400">
           ← ออกแบบใหม่
         </button>
         <div class="flex items-center gap-2 flex-wrap">
           {#if saveMsg}
-            <span class="text-xs {saveMsg.startsWith('✓') ? 'text-green-700' : 'text-red-700'}">{saveMsg}</span>
+            <span class="text-xs {saveMsg.startsWith('✓') ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}">{saveMsg}</span>
           {/if}
-          <input type="text" bind:value={saveTitle} placeholder="ตั้งชื่อ (ไม่บังคับ)" class="text-xs px-2 py-1.5 rounded border border-dark-200 w-40" />
+          <input type="text" bind:value={saveTitle} placeholder="ตั้งชื่อ (ไม่บังคับ)" class="text-xs px-2 py-1.5 rounded border border-dark-200 dark:border-dark-600 w-40" />
           <button onclick={handleSave} disabled={isSaving} class="text-sm btn-secondary disabled:opacity-50">
             {isSaving ? '...' : (saveId ? '✓ บันทึกแล้ว' : '💾 บันทึก')}
           </button>
@@ -695,7 +738,7 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
         </div>
       </div>
       {#if promoteMsg}
-        <div class="mt-2 text-xs {promoteMsg.startsWith('✓') ? 'text-green-700' : 'text-red-700'}">{promoteMsg}</div>
+        <div class="mt-2 text-xs {promoteMsg.startsWith('✓') ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}">{promoteMsg}</div>
       {/if}
     </div>
   {/if}

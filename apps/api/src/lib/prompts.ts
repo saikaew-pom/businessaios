@@ -801,7 +801,8 @@ ${input.uploaded_files.map((f: any) => `- ${f.name} (${f.mime || 'unknown'})`).j
       "marketing_channels": ["Facebook", "LINE OA", "หน้าร้าน"],
       "content_style": "วิดีโอสั้น / เล่าเรื่อง / โปรโมชั่น / รีวิว",
       "threat_level": "high | medium | low",
-      "why_threat": "ทำไมถึงเป็นภัยคุกคาม"
+      "why_threat": "ทำไมถึงเป็นภัยคุกคาม",
+      "response": "จะทำอะไรกับคู่แข่งรายนี้โดยเฉพาะ (1-2 ประโยค เจาะจงรายนี้ ไม่ใช่ strategy รวม)"
     }
   ],
   "market_gaps": [
@@ -830,7 +831,8 @@ ${input.uploaded_files.map((f: any) => `- ${f.name} (${f.mime || 'unknown'})`).j
 ⚠️ ตอบ JSON เท่านั้น
 ⚠️ แต่ละ competitor ต้องมี strengths 3 ข้อ + weaknesses 3 ข้อ + threat_level
 ⚠️ market_gaps ต้องมี 3-5 ข้อ
-⚠️ ใช้ภาษาที่ actionable ไม่ใช่ทฤษฎี`,
+⚠️ ใช้ภาษาที่ actionable ไม่ใช่ทฤษฎี
+⚠️ threat_level ห้ามให้ "high" ทุกเจ้า — ต้องมีความหลากหลายจริงตามข้อมูล (คู่แข่งบางเจ้าอาจแค่ medium/low) ไม่ใช่ default ไปทาง high เพื่อความปลอดภัย`,
   }),
   parseOutput: (raw) => raw,
 };
@@ -1205,9 +1207,21 @@ ${input.uploaded_files.map((f: any) => `- ${f.name} (${f.mime || 'unknown'})`).j
   },
   
   "value_proposition_statement": "เราช่วย [customer segment] ที่ต้องการ [top jobs] โดย [products/services] ที่ [pain relievers + gain creators] — ไม่เหมือน [alternatives/competitors] เพราะ [unique advantage]",
-  
+
   "elevator_pitch": "30 วินาที version",
-  
+
+  "messaging_hierarchy": {
+    "primary_message": "ข้อความหลัก 1 ข้อความ — ใช้เป็น headline โฆษณา/หน้าแรกเว็บ",
+    "supporting_messages": ["ข้อความรอง 2-3 ข้อ ขยายความ primary message"],
+    "proof_points": ["หลักฐาน/เหตุผลที่ทำให้เชื่อ 2-3 ข้อ"]
+  },
+
+  "application_guide": {
+    "ad_headlines": ["ตัวอย่าง headline โฆษณา 2-3 อัน ที่เอา VP ไปใช้ได้ทันที"],
+    "landing_page_copy": "ตัวอย่างข้อความหน้า landing page สั้นๆ 2-3 ประโยค",
+    "sales_talking_points": ["ประเด็นที่ทีมขายใช้พูดกับลูกค้า 2-3 ข้อ"]
+  },
+
   "what_most_brands_get_wrong": "...",
   
   "validation_methods": [
@@ -1230,7 +1244,8 @@ ${input.uploaded_files.map((f: any) => `- ${f.name} (${f.mime || 'unknown'})`).j
 ⚠️ value_map.pain_relievers/gain_creators 3-5 ข้อ พร้อม pattern + addresses
 ⚠️ fit_analysis ต้องครบ: overall_score, verdict, matched_pains, matched_gains, uncovered_pains, uncovered_gains, orphans
 ⚠️ next_steps 1-2 ข้อ
-⚠️ value_proposition_statement 1 ประโยคเดียว — clear + concrete`,
+⚠️ value_proposition_statement 1 ประโยคเดียว — clear + concrete
+⚠️ ถ้าข้อมูลลูกค้าที่ user ให้ดูเหมือนมีหลาย segment ปนกัน (เช่น "ลูกค้าองค์กร + ลูกค้ารายบุคคล") ให้เลือกโฟกัส segment เดียวที่ตรงกับ context ส่วนใหญ่ และระบุใน customer_segment.description ว่าเลือกโฟกัส segment ไหนและทำไม`,
   }),
   parseOutput: (raw) => raw,
 };
