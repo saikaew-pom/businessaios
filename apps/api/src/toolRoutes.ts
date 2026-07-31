@@ -900,8 +900,11 @@ app.post('/api/tools/objection-handler', requireAuth, rateLimit, async (c) => {
 
   // Reserve credits before calling the AI (atomic; refunded/trued-up below
   // once real usage is known) — same pattern as /api/projects/:id/generate/:step.
+  // Bumped 16000 -> 20000: the explore_question/second_response fields added
+  // to the prompt pushed real usage to 88% of the old ceiling (7 objections,
+  // 14104/16000 tokens) — too close for comfort at 8 objections.
   const toolRunId = generateId();
-  const toolMaxTokens = 16000;
+  const toolMaxTokens = 20000;
   const estPromptTokens = Math.ceil((system.length + userMsg.length) / 3);
   const reserveCredits = calculateCredits({ prompt_tokens: estPromptTokens, completion_tokens: toolMaxTokens });
   const reservation = await deductCredits(env, user.id, reserveCredits, 'generation_reserve', toolRunId);

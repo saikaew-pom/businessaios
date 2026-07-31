@@ -232,15 +232,15 @@ Guarantee: ${s.output?.guarantee?.name || '-'}`;
 
   const categoryColor = (cat: string) => {
     const map: Record<string, string> = {
-      price: 'bg-red-100 text-red-800 border-red-300',
-      trust: 'bg-blue-100 text-blue-800 border-blue-300',
-      need: 'bg-purple-100 text-purple-800 border-purple-300',
-      time: 'bg-amber-100 text-amber-800 border-amber-300',
-      authority: 'bg-cyan-100 text-cyan-800 border-cyan-300',
-      comparison: 'bg-pink-100 text-pink-800 border-pink-300',
-      risk: 'bg-orange-100 text-orange-800 border-orange-300',
+      price: 'bg-red-100 dark:bg-red-950/40 text-red-800 dark:text-red-300 border-red-300 dark:border-red-700',
+      trust: 'bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-700',
+      need: 'bg-purple-100 dark:bg-purple-950/40 text-purple-800 dark:text-purple-300 border-purple-300 dark:border-purple-700',
+      time: 'bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-700',
+      authority: 'bg-cyan-100 dark:bg-cyan-950/40 text-cyan-800 dark:text-cyan-300 border-cyan-300 dark:border-cyan-700',
+      comparison: 'bg-pink-100 dark:bg-pink-950/40 text-pink-800 dark:text-pink-300 border-pink-300 dark:border-pink-700',
+      risk: 'bg-orange-100 dark:bg-orange-950/40 text-orange-800 dark:text-orange-300 border-orange-300 dark:border-orange-700',
     };
-    return map[cat] || 'bg-gray-100 text-gray-800 border-gray-300';
+    return map[cat] || 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300 border-gray-300 dark:border-gray-600';
   };
 </script>
 
@@ -252,9 +252,9 @@ Guarantee: ${s.output?.guarantee?.name || '-'}`;
 >
   {#if !output}
     <div class="space-y-5">
-      <div class="bg-gradient-to-r from-rose-50 to-pink-50 border border-rose-200 rounded-xl p-4">
-        <div class="font-semibold text-rose-900 mb-1">🛡️ Objection Handler</div>
-        <div class="text-sm text-rose-800 space-y-1">
+      <div class="bg-gradient-to-r from-rose-50 dark:from-rose-950/40 to-pink-50 dark:to-dark-900 border border-rose-200 dark:border-rose-800 rounded-xl p-4">
+        <div class="font-semibold text-rose-900 dark:text-rose-200 mb-1">🛡️ Objection Handler</div>
+        <div class="text-sm text-rose-800 dark:text-rose-300 space-y-1">
           <div><b>7 Objection Categories:</b> Price · Trust · Need · Time · Authority · Comparison · Risk</div>
           <div><b>LAER Framework:</b> Listen → Acknowledge → Explore → Respond</div>
           <div><b>Reframing:</b> Value / Cost of Inaction / Comparison / Risk Reversal / Identity / Time / ROI</div>
@@ -264,7 +264,7 @@ Guarantee: ${s.output?.guarantee?.name || '-'}`;
 
       <div>
         <label class="block text-sm font-semibold mb-1.5">ชื่อธุรกิจ *</label>
-        <input type="text" bind:value={business_name} placeholder="เช่น ขนมบ้านโกไข่" class="w-full px-3 py-2.5 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500" />
+        <input type="text" bind:value={business_name} placeholder="เช่น ขนมบ้านโกไข่" class="w-full px-3 py-2.5 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500" />
       </div>
 
       <BusinessContextFields
@@ -280,35 +280,35 @@ Guarantee: ${s.output?.guarantee?.name || '-'}`;
       <div class="grid sm:grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-semibold mb-1.5">ที่ตั้ง</label>
-          <input type="text" bind:value={location} placeholder="เช่น หาดใหญ่" class="w-full px-3 py-2.5 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500" />
+          <input type="text" bind:value={location} placeholder="เช่น หาดใหญ่" class="w-full px-3 py-2.5 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500" />
         </div>
         <div>
           <label class="block text-sm font-semibold mb-1.5">ช่วงราคา</label>
-          <input type="text" bind:value={price_range} placeholder="เช่น 50-500 บาท" class="w-full px-3 py-2.5 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500" />
+          <input type="text" bind:value={price_range} placeholder="เช่น 50-500 บาท" class="w-full px-3 py-2.5 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500" />
         </div>
       </div>
 
       <div>
         <label class="block text-sm font-semibold mb-1.5">จุดต่าง (ถ้ามี)</label>
-        <input type="text" bind:value={differentiation} placeholder="เช่น ขนมใต้สูตรโบราณ" class="w-full px-3 py-2.5 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500" />
+        <input type="text" bind:value={differentiation} placeholder="เช่น ขนมใต้สูตรโบราณ" class="w-full px-3 py-2.5 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500" />
       </div>
 
       <div>
         <label class="block text-sm font-semibold mb-1.5">Product / Service *</label>
-        <textarea bind:value={product_description} rows="3" placeholder="เช่น ขนมบ้านโกไข่ ขนมใต้สูตรโบราณ 28 สาขา" class="w-full px-3 py-2.5 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"></textarea>
+        <textarea bind:value={product_description} rows="3" placeholder="เช่น ขนมบ้านโกไข่ ขนมใต้สูตรโบราณ 28 สาขา" class="w-full px-3 py-2.5 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"></textarea>
       </div>
 
       <div>
         <label class="block text-sm font-semibold mb-1.5">Features / จุดเด่น</label>
-        <textarea bind:value={product_features} rows="2" placeholder="เช่น 1) สูตรโบราณ 2) วัตถุดิบสด 3) ปั๊ม ปตท." class="w-full px-3 py-2.5 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"></textarea>
+        <textarea bind:value={product_features} rows="2" placeholder="เช่น 1) สูตรโบราณ 2) วัตถุดิบสด 3) ปั๊ม ปตท." class="w-full px-3 py-2.5 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"></textarea>
       </div>
 
       <!-- Sales Context -->
-      <div class="bg-gradient-to-r from-rose-50 to-pink-50 border-2 border-rose-300 rounded-xl p-4 space-y-3">
-        <div class="font-semibold text-rose-900">💬 Sales Context (3 ตัวเลือก)</div>
+      <div class="bg-gradient-to-r from-rose-50 dark:from-rose-950/40 to-pink-50 dark:to-dark-900 border-2 border-rose-300 dark:border-rose-700 rounded-xl p-4 space-y-3">
+        <div class="font-semibold text-rose-900 dark:text-rose-200">💬 Sales Context (3 ตัวเลือก)</div>
         <div>
-          <label class="block text-xs font-semibold text-rose-800 mb-1">💬 Sales Channel</label>
-          <select bind:value={sales_channel} class="w-full px-2.5 py-1.5 rounded border border-rose-200 text-sm">
+          <label class="block text-xs font-semibold text-rose-800 dark:text-rose-300 mb-1">💬 Sales Channel</label>
+          <select bind:value={sales_channel} class="w-full px-2.5 py-1.5 rounded border border-rose-200 dark:border-rose-800 text-sm">
             <option value="">— เลือก / ปล่อยว่าง —</option>
             {#each SALES_CHANNELS as c}
               <option value={c.id}>{c.label} — {c.desc}</option>
@@ -316,8 +316,8 @@ Guarantee: ${s.output?.guarantee?.name || '-'}`;
           </select>
         </div>
         <div>
-          <label class="block text-xs font-semibold text-rose-800 mb-1">💎 Price Position</label>
-          <select bind:value={price_position} class="w-full px-2.5 py-1.5 rounded border border-rose-200 text-sm">
+          <label class="block text-xs font-semibold text-rose-800 dark:text-rose-300 mb-1">💎 Price Position</label>
+          <select bind:value={price_position} class="w-full px-2.5 py-1.5 rounded border border-rose-200 dark:border-rose-800 text-sm">
             <option value="">— เลือก / ปล่อยว่าง —</option>
             {#each PRICE_POSITIONS as p}
               <option value={p.id}>{p.label}</option>
@@ -325,19 +325,19 @@ Guarantee: ${s.output?.guarantee?.name || '-'}`;
           </select>
         </div>
         <div>
-          <label class="block text-xs font-semibold text-rose-800 mb-1">⚠️ Top Objection ที่เจอบ่อย (ถ้ามี)</label>
-          <input type="text" bind:value={known_objection} placeholder="เช่น แพงไป / ขนมใต้ไม่เหมือนเดิม" class="w-full px-2.5 py-1.5 rounded border border-rose-200 text-sm" />
+          <label class="block text-xs font-semibold text-rose-800 dark:text-rose-300 mb-1">⚠️ Top Objection ที่เจอบ่อย (ถ้ามี)</label>
+          <input type="text" bind:value={known_objection} placeholder="เช่น แพงไป / ขนมใต้ไม่เหมือนเดิม" class="w-full px-2.5 py-1.5 rounded border border-rose-200 dark:border-rose-800 text-sm" />
         </div>
       </div>
 
       <!-- Optional pre-fill -->
       {#if offer_saves.length > 0 || competitor_saves.length > 0 || persona_saves.length > 0}
-        <div class="bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-300 rounded-xl p-3 space-y-2">
-          <div class="font-semibold text-amber-900 text-sm">🔗 เชื่อม strategic tools ที่เคยวิเคราะห์ไว้ (optional)</div>
+        <div class="bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-300 dark:border-amber-700 rounded-xl p-3 space-y-2">
+          <div class="font-semibold text-amber-900 dark:text-amber-200 text-sm">🔗 เชื่อม strategic tools ที่เคยวิเคราะห์ไว้ (optional)</div>
           {#if offer_saves.length > 0}
             <div>
-              <label class="block text-xs font-semibold text-amber-800 mb-1">💎 Offer</label>
-              <select bind:value={selectedOfferId} class="w-full px-2.5 py-1.5 rounded border border-amber-200 text-sm">
+              <label class="block text-xs font-semibold text-amber-800 dark:text-amber-300 mb-1">💎 Offer</label>
+              <select bind:value={selectedOfferId} class="w-full px-2.5 py-1.5 rounded border border-amber-200 dark:border-amber-800 text-sm">
                 <option value="">— ไม่ใช้ Offer —</option>
                 {#each offer_saves as o}<option value={o.id}>💎 {o.title}</option>{/each}
               </select>
@@ -345,8 +345,8 @@ Guarantee: ${s.output?.guarantee?.name || '-'}`;
           {/if}
           {#if competitor_saves.length > 0}
             <div>
-              <label class="block text-xs font-semibold text-amber-800 mb-1">🔍 Competitor</label>
-              <select bind:value={selectedCompetitorId} class="w-full px-2.5 py-1.5 rounded border border-amber-200 text-sm">
+              <label class="block text-xs font-semibold text-amber-800 dark:text-amber-300 mb-1">🔍 Competitor</label>
+              <select bind:value={selectedCompetitorId} class="w-full px-2.5 py-1.5 rounded border border-amber-200 dark:border-amber-800 text-sm">
                 <option value="">— ไม่ใช้ Competitor —</option>
                 {#each competitor_saves as c}<option value={c.id}>🔍 {c.title}</option>{/each}
               </select>
@@ -356,13 +356,13 @@ Guarantee: ${s.output?.guarantee?.name || '-'}`;
       {/if}
 
       <div>
-        <label class="block text-sm font-semibold mb-1.5">โน้ตเพิ่มเติม <span class="text-dark-900/50 font-normal">(optional)</span></label>
-        <textarea bind:value={user_notes} rows="2" placeholder="อะไรก็ได้ที่อยากให้ ระบบอัจฉริยะ รู้เพิ่ม..." class="w-full px-3 py-2.5 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500"></textarea>
+        <label class="block text-sm font-semibold mb-1.5">โน้ตเพิ่มเติม <span class="text-dark-900/50 dark:text-dark-100/50 font-normal">(optional)</span></label>
+        <textarea bind:value={user_notes} rows="2" placeholder="อะไรก็ได้ที่อยากให้ ระบบอัจฉริยะ รู้เพิ่ม..." class="w-full px-3 py-2.5 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500"></textarea>
       </div>
 
-      {#if error}<div class="p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">{error}</div>{/if}
+      {#if error}<div class="p-3 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-sm text-red-700 dark:text-red-400">{error}</div>{/if}
 
-      <div class="pt-4 flex items-center justify-end border-t border-dark-100">
+      <div class="pt-4 flex items-center justify-end border-t border-dark-100 dark:border-dark-700">
         <button onclick={handleGenerate} disabled={isGenerating} class="btn-primary disabled:opacity-50">
           {isGenerating ? '⏳ ระบบอัจฉริยะ กำลังวิเคราะห์ Objections...' : '🛡️ สร้าง Objection Handler'}
         </button>
@@ -371,53 +371,67 @@ Guarantee: ${s.output?.guarantee?.name || '-'}`;
   {:else}
     <div class="space-y-5">
       {#if output.summary}
-        <div class="bg-primary-50 border-l-4 border-primary-500 p-4 rounded-lg">
-          <div class="text-xs font-bold text-primary-700 uppercase tracking-wider mb-1">สรุป Objection Playbook</div>
-          <div class="text-dark-900">{output.summary}</div>
+        <div class="bg-primary-50 dark:bg-primary-900/40 border-l-4 border-primary-500 p-4 rounded-lg">
+          <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wider mb-1">สรุป Objection Playbook</div>
+          <div class="text-dark-900 dark:text-dark-50">{output.summary}</div>
         </div>
       {/if}
 
       <!-- Objections -->
       {#if output.objections?.length}
         <div class="space-y-3">
-          <h3 class="text-lg font-bold text-rose-900">🎯 Objections ({output.objections.length})</h3>
+          <h3 class="text-lg font-bold text-rose-900 dark:text-rose-200">🎯 Objections ({output.objections.length})</h3>
           {#each output.objections as o, i}
-            <div class="bg-white border-2 border-rose-200 rounded-xl p-4">
+            <div class="bg-white dark:bg-dark-800 border-2 border-rose-200 dark:border-rose-800 rounded-xl p-4">
               <div class="flex items-center gap-2 mb-2 flex-wrap">
-                <span class="text-xs font-bold text-rose-700">#{i + 1}</span>
+                <span class="text-xs font-bold text-rose-700 dark:text-rose-400">#{i + 1}</span>
                 <span class="px-2 py-0.5 rounded text-xs border {categoryColor(o.category)}">{o.category}</span>
-                <span class="px-2 py-0.5 rounded text-xs bg-rose-100 text-rose-800 border border-rose-300">{o.reframe_strategy}</span>
+                <span class="px-2 py-0.5 rounded text-xs bg-rose-100 dark:bg-rose-950/40 text-rose-800 dark:text-rose-300 border border-rose-300 dark:border-rose-700">{o.reframe_strategy}</span>
               </div>
-              <div class="text-sm font-bold text-rose-900 mb-2">{o.objection}</div>
+              <div class="text-sm font-bold text-rose-900 dark:text-rose-200 mb-2">{o.objection}</div>
 
-              <div class="bg-rose-50 rounded p-2 mb-2 text-xs">
-                <div class="text-[10px] text-rose-700 font-bold uppercase mb-0.5">💬 ลูกค้าพูดว่า:</div>
-                <div class="text-rose-900 italic">"{o.what_customer_says}"</div>
-              </div>
-
-              <div class="bg-amber-50 rounded p-2 mb-2 text-xs">
-                <div class="text-[10px] text-amber-700 font-bold uppercase mb-0.5">🔍 ทำไมลูกค้าพูดแบบนี้:</div>
-                <div class="text-amber-900">{o.why_they_say_it}</div>
+              <div class="bg-rose-50 dark:bg-rose-950/40 rounded p-2 mb-2 text-xs">
+                <div class="text-[10px] text-rose-700 dark:text-rose-400 font-bold uppercase mb-0.5">💬 ลูกค้าพูดว่า:</div>
+                <div class="text-rose-900 dark:text-rose-200 italic">"{o.what_customer_says}"</div>
               </div>
 
-              <div class="bg-emerald-50 border-l-4 border-emerald-500 rounded-r p-3 mb-2 text-xs">
-                <div class="text-[10px] text-emerald-700 font-bold uppercase mb-1">✅ บทตอบ (Response Script):</div>
-                <div class="text-emerald-900 leading-relaxed">{o.response_script}</div>
+              <div class="bg-amber-50 dark:bg-amber-950/40 rounded p-2 mb-2 text-xs">
+                <div class="text-[10px] text-amber-700 dark:text-amber-400 font-bold uppercase mb-0.5">🔍 ทำไมลูกค้าพูดแบบนี้:</div>
+                <div class="text-amber-900 dark:text-amber-200">{o.why_they_say_it}</div>
               </div>
+
+              {#if o.explore_question}
+                <div class="bg-cyan-50 dark:bg-cyan-950/40 rounded p-2 mb-2 text-xs">
+                  <div class="text-[10px] text-cyan-700 dark:text-cyan-400 font-bold uppercase mb-0.5">❓ ถามสำรวจก่อนตอบ (Explore):</div>
+                  <div class="text-cyan-900 dark:text-cyan-200 italic">"{o.explore_question}"</div>
+                </div>
+              {/if}
+
+              <div class="bg-emerald-50 dark:bg-emerald-950/40 border-l-4 border-emerald-500 dark:border-emerald-600 rounded-r p-3 mb-2 text-xs">
+                <div class="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold uppercase mb-1">✅ บทตอบ (Response Script):</div>
+                <div class="text-emerald-900 dark:text-emerald-200 leading-relaxed">{o.response_script}</div>
+              </div>
+
+              {#if o.second_response}
+                <div class="bg-dark-50 dark:bg-dark-900 rounded p-2 mb-2 text-xs">
+                  <div class="text-[10px] text-dark-900/60 dark:text-dark-100/60 font-bold uppercase mb-0.5">🔁 ถ้าโต้กลับอีกรอบ:</div>
+                  <div class="text-dark-900 dark:text-dark-50">{o.second_response}</div>
+                </div>
+              {/if}
 
               {#if o.evidence_to_provide?.length}
-                <div class="bg-blue-50 rounded p-2 mb-2 text-xs">
-                  <div class="text-[10px] text-blue-700 font-bold uppercase mb-1">📊 หลักฐานที่ใช้:</div>
-                  <ul class="text-blue-900 space-y-0.5">
+                <div class="bg-blue-50 dark:bg-blue-950/40 rounded p-2 mb-2 text-xs">
+                  <div class="text-[10px] text-blue-700 dark:text-blue-400 font-bold uppercase mb-1">📊 หลักฐานที่ใช้:</div>
+                  <ul class="text-blue-900 dark:text-blue-200 space-y-0.5">
                     {#each o.evidence_to_provide as e}<li>• {e}</li>{/each}
                   </ul>
                 </div>
               {/if}
 
               {#if o.bridge_to_close}
-                <div class="bg-purple-50 border-l-4 border-purple-500 rounded-r p-2 text-xs">
-                  <div class="text-[10px] text-purple-700 font-bold uppercase mb-0.5">🌉 Bridge to Close:</div>
-                  <div class="text-purple-900">{o.bridge_to_close}</div>
+                <div class="bg-purple-50 dark:bg-purple-950/40 border-l-4 border-purple-500 dark:border-purple-600 rounded-r p-2 text-xs">
+                  <div class="text-[10px] text-purple-700 dark:text-purple-400 font-bold uppercase mb-0.5">🌉 Bridge to Close:</div>
+                  <div class="text-purple-900 dark:text-purple-200">{o.bridge_to_close}</div>
                 </div>
               {/if}
             </div>
@@ -427,9 +441,9 @@ Guarantee: ${s.output?.guarantee?.name || '-'}`;
 
       <!-- Common Patterns -->
       {#if output.common_patterns?.length}
-        <div class="bg-amber-50 border border-amber-200 rounded-lg p-3">
-          <div class="font-semibold text-amber-900 mb-1.5 text-sm">🔁 Common Patterns</div>
-          <ul class="text-sm text-amber-900 space-y-1">
+        <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+          <div class="font-semibold text-amber-900 dark:text-amber-200 mb-1.5 text-sm">🔁 Common Patterns</div>
+          <ul class="text-sm text-amber-900 dark:text-amber-200 space-y-1">
             {#each output.common_patterns as p}<li>• {p}</li>{/each}
           </ul>
         </div>
@@ -438,15 +452,15 @@ Guarantee: ${s.output?.guarantee?.name || '-'}`;
       <!-- Do / Don't -->
       {#if output.do_dont}
         <div class="grid md:grid-cols-2 gap-3">
-          <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
-            <div class="font-semibold text-emerald-900 mb-1.5 text-sm">✅ Do</div>
-            <ul class="text-sm text-emerald-900 space-y-1">
+          <div class="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-lg p-3">
+            <div class="font-semibold text-emerald-900 dark:text-emerald-200 mb-1.5 text-sm">✅ Do</div>
+            <ul class="text-sm text-emerald-900 dark:text-emerald-200 space-y-1">
               {#each (output.do_dont.do || []) as d}<li>✓ {d}</li>{/each}
             </ul>
           </div>
-          <div class="bg-red-50 border border-red-200 rounded-lg p-3">
-            <div class="font-semibold text-red-900 mb-1.5 text-sm">❌ Don't</div>
-            <ul class="text-sm text-red-900 space-y-1">
+          <div class="bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-lg p-3">
+            <div class="font-semibold text-red-900 dark:text-red-200 mb-1.5 text-sm">❌ Don't</div>
+            <ul class="text-sm text-red-900 dark:text-red-200 space-y-1">
               {#each (output.do_dont.dont || []) as d}<li>✗ {d}</li>{/each}
             </ul>
           </div>
@@ -455,13 +469,13 @@ Guarantee: ${s.output?.guarantee?.name || '-'}`;
 
       <!-- FAQ Top 5 -->
       {#if output.faq_top_5?.length}
-        <div class="bg-white border-2 border-rose-200 rounded-xl p-4">
-          <h3 class="font-bold text-rose-900 mb-2 text-sm">❓ FAQ Top 5</h3>
+        <div class="bg-white dark:bg-dark-800 border-2 border-rose-200 dark:border-rose-800 rounded-xl p-4">
+          <h3 class="font-bold text-rose-900 dark:text-rose-200 mb-2 text-sm">❓ FAQ Top 5</h3>
           <div class="space-y-2">
             {#each output.faq_top_5 as f, i}
-              <div class="border-l-4 border-rose-400 bg-rose-50 rounded-r p-2 text-xs">
-                <div class="font-bold text-rose-900">Q{i + 1}: {f.q}</div>
-                <div class="text-rose-800 mt-0.5">→ {f.a}</div>
+              <div class="border-l-4 border-rose-400 dark:border-rose-600 bg-rose-50 dark:bg-rose-950/40 rounded-r p-2 text-xs">
+                <div class="font-bold text-rose-900 dark:text-rose-200">Q{i + 1}: {f.q}</div>
+                <div class="text-rose-800 dark:text-rose-300 mt-0.5">→ {f.a}</div>
               </div>
             {/each}
           </div>
@@ -470,28 +484,28 @@ Guarantee: ${s.output?.guarantee?.name || '-'}`;
 
       <!-- Next Steps -->
       {#if output.next_steps?.length}
-        <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3">
-          <div class="font-bold text-emerald-800 uppercase text-xs mb-1.5">➡️ Next Steps</div>
-          <ul class="text-sm text-emerald-900">
+        <div class="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl p-3">
+          <div class="font-bold text-emerald-800 dark:text-emerald-300 uppercase text-xs mb-1.5">➡️ Next Steps</div>
+          <ul class="text-sm text-emerald-900 dark:text-emerald-200">
             {#each output.next_steps as s}<li>→ {s}</li>{/each}
           </ul>
         </div>
       {/if}
 
       {#if output.reasoning}
-        <div class="bg-white border border-dark-100 rounded-xl p-4 text-sm italic text-dark-900/70">
+        <div class="bg-white dark:bg-dark-800 border border-dark-100 dark:border-dark-700 rounded-xl p-4 text-sm italic text-dark-900/70 dark:text-dark-100/70">
           💡 {output.reasoning}
         </div>
       {/if}
 
       <!-- Action bar -->
-      <div class="flex items-center justify-between pt-4 border-t border-dark-100 flex-wrap gap-2">
-        <button onclick={() => { output = null; error = ''; saveId = null; saveMsg = ''; }} class="text-sm text-dark-900/60 hover:text-primary-600">
+      <div class="flex items-center justify-between pt-4 border-t border-dark-100 dark:border-dark-700 flex-wrap gap-2">
+        <button onclick={() => { output = null; error = ''; saveId = null; saveMsg = ''; }} class="text-sm text-dark-900/60 dark:text-dark-100/60 hover:text-primary-600 dark:hover:text-primary-400">
           ← สร้างใหม่
         </button>
         <div class="flex items-center gap-2 flex-wrap">
-          {#if saveMsg}<span class="text-xs {saveMsg.startsWith('✓') ? 'text-green-700' : 'text-red-700'}">{saveMsg}</span>{/if}
-          <input type="text" bind:value={saveTitle} placeholder="ตั้งชื่อ" class="text-xs px-2 py-1.5 rounded border border-dark-200 w-40" />
+          {#if saveMsg}<span class="text-xs {saveMsg.startsWith('✓') ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}">{saveMsg}</span>{/if}
+          <input type="text" bind:value={saveTitle} placeholder="ตั้งชื่อ" class="text-xs px-2 py-1.5 rounded border border-dark-200 dark:border-dark-600 w-40" />
           <button onclick={handleSave} disabled={isSaving} class="text-sm btn-secondary disabled:opacity-50">
             {isSaving ? '...' : (saveId ? '✓ บันทึกแล้ว' : '💾 บันทึก')}
           </button>
@@ -503,7 +517,7 @@ Guarantee: ${s.output?.guarantee?.name || '-'}`;
           <button onclick={() => handleExport('json')} class="text-sm btn-secondary">📥 .json</button>
         </div>
       </div>
-      {#if promoteMsg}<div class="mt-2 text-xs {promoteMsg.startsWith('✓') ? 'text-green-700' : 'text-red-700'}">{promoteMsg}</div>{/if}
+      {#if promoteMsg}<div class="mt-2 text-xs {promoteMsg.startsWith('✓') ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}">{promoteMsg}</div>{/if}
     </div>
   {/if}
 </ToolLayout>

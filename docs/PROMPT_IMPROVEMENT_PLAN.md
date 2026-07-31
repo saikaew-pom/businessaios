@@ -51,18 +51,20 @@
 
 ## เฟส N — persona-builder, objection-handler, presentation-builder
 
-### N.1 Persona Builder (`personaBuilderPrompt`) — verdict: solid foundation แต่ output นามธรรมกว่าที่ควร (ช่องว่างเยอะสุดในกลุ่ม)
-1. **[สูงสุด] เพิ่ม narrative + voice-of-customer quotes** — ตอนนี้ persona เป็น list attribute ไม่ใช่ "คน" → เพิ่ม `day_in_life: string` (สถานการณ์สั้น ๆ) + `sample_quotes: string[]` (คำพูดจริงที่ persona น่าจะพูด) เพื่อให้คนเขียน copy "เขียนเหมือนคุยกับคนคนนี้" ได้
-2. **[สูง] เพิ่ม Buying Behavior block** — `research_style` (หาข้อมูลยังไง: Google/บอกต่อ/social proof), `decision_speed` (ซื้อเลย vs คิดนาน), `objections` (เหตุผลที่ลังเลจะซื้อ) — ใช้ปิดการขาย/เขียนโฆษณาได้ตรง
-3. **[กลาง] เพิ่ม messaging polarity** — มี `best_message` แล้วแต่ขาด "คำ/ประโยคที่ควรเลี่ยง" ต่อ persona
-4. **[กลาง] เพิ่ม Anti-Persona** — "ใครไม่ใช่ลูกค้าเรา" ลดงบโฆษณาเสียเปล่า → field `anti_persona`
-5. **[ต่ำ] จำกัดจำนวน persona** — skill แนะ 1-2 (สูงสุด 3) กันตัดสินใจไม่ถูก ตอนนี้ปล่อยตาม model → เพิ่ม instruction cap
+### N.1 Persona Builder (`personaBuilderPrompt`) — verdict: solid foundation แต่ output นามธรรมกว่าที่ควร (ช่องว่างเยอะสุดในกลุ่ม) — ✅ ทำแล้ว, deploy แล้ว
+1. ✅ **[สูงสุด] เพิ่ม narrative + voice-of-customer quotes** — ทำแล้ว. field `day_in_life`+`sample_quotes`. ทดสอบ generate จริงยืนยัน: narrative เฉพาะ persona จริง ไม่ generic
+2. ✅ **[สูง] เพิ่ม Buying Behavior block** — ทำแล้ว. field `buying_behavior: {research_style, decision_speed, objections}`. ทดสอบยืนยัน: research_style/decision_speed/objections เฉพาะเจาะจงจริง (เช่น "เช็ค Google Maps เรตติ้ง", "impulse")
+3. **[กลาง] เพิ่ม messaging polarity** — ยังไม่ทำ (ไม่ได้อยู่ใน scope [สูง]/[สูงสุด] รอบนี้)
+4. **[กลาง] เพิ่ม Anti-Persona** — ยังไม่ทำ
+5. ✅ **[ต่ำ] จำกัดจำนวน persona** — ทำแล้ว (instruction cap 1-3). ทดสอบ generate จริง 2 ครั้งยืนยัน: ได้ 2 persona ทั้งคู่ ไม่เกิน 3
 
-### N.2 Objection Handler (`objectionHandlerPrompt`) — verdict: solid, LAER map ถูก 1:1
-1. **[สูง] เพิ่มขั้น "Explore" (คำถามสำรวจก่อนตอบ)** — ตอนนี้ข้าม acknowledge → ตอบสคริปต์เลย ไม่มีคำถาม diagnostic → เพิ่ม `explore_question: string` ต่อ objection ("ที่ว่าแพง คือแพงรวม ๆ หรือไม่แน่ใจ ROI?") ทำให้เหมือนคุยจริงไม่ใช่ยิง pitch
-2. **[สูง] เพิ่ม response ชั้นที่ 2** — ถ้าลูกค้าโต้กลับอีกรอบ (แชท SME ไทยมักหลาย turn) → field `second_response` + ทางถอยอย่างมีศักดิ์ศรีถ้าปฏิเสธ 2 ครั้ง
-3. **[กลาง] guidance เรื่อง "hard no"** — บอก AI ให้แยก soft objection กับปฏิเสธจริง และเคารพเมื่อควรถอย ไม่ดันต่อทุกกรณี
-4. **[กลาง] กรณี objection ชี้จุดอ่อนสินค้าจริง** — เพิ่ม honesty fallback (ยอมรับจุดอ่อน + พลิกไปจุดแข็งจริง) กัน AI แต่งหลักฐานกดดัน
+### N.2 Objection Handler (`objectionHandlerPrompt`) — verdict: solid, LAER map ถูก 1:1 — ✅ ทำแล้ว, deploy แล้ว
+1. ✅ **[สูง] เพิ่มขั้น "Explore" (คำถามสำรวจก่อนตอบ)** — ทำแล้ว. field `explore_question`. ทดสอบยืนยัน: คำถามจริงเจาะจงต่อ objection (เช่น "ที่ว่าแพง คือเทียบกับร้านทั่วไป หรือไม่แน่ใจว่าคุ้มกับเงินที่จ่ายคะ?")
+2. ✅ **[สูง] เพิ่ม response ชั้นที่ 2** — ทำแล้ว. field `second_response` (มี "ถอยอย่างมีศักดิ์ศรี" ฝังในคำอธิบาย field แทนที่จะแยก field ต่างหาก — ประหยัด token). ทดสอบยืนยัน: de-escalation จริง พร้อม de-risk offer
+3. ✅ **[กลาง] guidance เรื่อง "hard no"** — ทำแล้ว (ฝังใน second_response's field description แทนแยก field ใหม่ — additive แบบประหยัด token)
+4. ✅ **[กลาง] กรณี objection ชี้จุดอ่อนสินค้าจริง** — ทำแล้ว (instruction เพิ่มท้าย prompt, ไม่เพิ่ม schema)
+
+**อัปเดตเพิ่ม (พบระหว่างทดสอบจริง)**: code-reviewer เจอว่า objection-handler's token reserve (`toolMaxTokens` ใน `toolRoutes.ts`) เดิม 16000 ถูกใช้ไป 88% (14104 tokens) จาก field ใหม่ — bump เป็น 20000 แล้ว กัน JSON ถูกตัดกลางตอน AI ตอบ 8 objections เต็มๆ
 
 ### N.3 Presentation Builder (`presentationPrompts.ts`) — verdict: ดีที่สุดในกลุ่ม จริง ๆ ลึกกว่า skill เยอะ (claim McKinsey/Roam/Waknell ตรงกับโค้ดจริง)
 เพิ่มแค่ guardrail เล็ก ๆ:

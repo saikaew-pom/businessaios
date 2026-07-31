@@ -690,9 +690,16 @@ ${input.uploaded_files.map((f: any) => `- ${f.name} (${f.mime || 'unknown'})`).j
       "needs": [
         "ความต้องการที่ persona นี้อยากได้"
       ],
+      "day_in_life": "เล่าสถานการณ์สั้นๆ 2-3 ประโยค ว่าวันหนึ่งของ persona นี้เป็นยังไง (ก่อนเจอปัญหา/ตอนเจอปัญหา/ตอนมองหาทางแก้)",
+      "sample_quotes": ["คำพูดจริง 2-3 ประโยคที่ persona นี้น่าจะพูด เช่น บ่นเรื่อง pain point หรือชมตอนได้สิ่งที่ต้องการ"],
       "preferred_channels": ["Facebook", "Instagram", "LINE", "TikTok", "YouTube"],
       "best_message": "ข้อความที่จะ resonate กับ persona นี้",
       "best_offer": "ข้อเสนอที่ตรงใจ",
+      "buying_behavior": {
+        "research_style": "วิธีหาข้อมูลก่อนซื้อ (เช่น หา Google รีวิว / ถามเพื่อน / ดูโซเชียล)",
+        "decision_speed": "impulse (ตัดสินใจเร็ว) | considered (คิดนาน เทียบหลายเจ้า)",
+        "objections": ["เหตุผลที่ persona นี้อาจลังเลไม่ซื้อ 2-3 ข้อ"]
+      },
       "size_estimate": "55% ของลูกค้า (สมมติฐาน)",
       "validation_methods": [
         "วิธีที่จะไป validate persona นี้ด้วยข้อมูลจริง (สัมภาษณ์/แบบสอบถาม/ดูรีวิวคู่แข่ง)"
@@ -702,7 +709,9 @@ ${input.uploaded_files.map((f: any) => `- ${f.name} (${f.mime || 'unknown'})`).j
   "how_to_validate": [
     "วิธี collect ข้อมูลจริงจากลูกค้าเพื่อ update persona นี้ (3-5 วิธี)"
   ]
-}`,
+}
+
+⚠️ สร้าง 1-2 persona เท่านั้น (สูงสุด 3) — ไม่ต้องสร้างเยอะ เพื่อไม่ให้ user ตัดสินใจไม่ถูกว่าจะโฟกัสใคร`,
   }),
   parseOutput: (raw) => raw,
 };
@@ -1855,10 +1864,12 @@ ${input.user_notes}
       "category": "price | trust | need | time | authority | comparison | risk",
       "what_customer_says": "ประโยคตรงที่ลูกค้าพูด",
       "why_they_say_it": "root cause analysis",
+      "explore_question": "คำถามสำรวจก่อนตอบ (Explore step ของ LAER) — ถามเจาะให้รู้ปัญหาจริงก่อนยิงคำตอบสำเร็จรูป เช่น 'ที่ว่าแพง คือแพงรวมๆ หรือไม่แน่ใจว่าคุ้มไหมคะ?'",
       "reframe_strategy": "เทคนิคที่ใช้ (Reframe to Value / Cost of Inaction / Comparison / Risk Reversal / Identity / Time)",
       "response_script": "บทพูดตอบ 2-3 ประโยค (≤ 150 ตัวอักษร)",
       "evidence_to_provide": ["ตัวเลข/รีวิว/case study 1", "ตัวเลข/รีวิว/case study 2"],
-      "bridge_to_close": "ประโยค transition ไปขั้นต่อไป"
+      "bridge_to_close": "ประโยค transition ไปขั้นต่อไป",
+      "second_response": "ถ้าลูกค้าโต้กลับอีกรอบหลัง response แรก จะตอบยังไง (บทพูดสั้นๆ) — ถ้าโต้กลับเป็นรอบที่ 2 แล้วยังไม่โอเค ให้ถอยอย่างมีศักดิ์ศรี ไม่ดันต่อ"
     }
   ],
   
@@ -1891,7 +1902,8 @@ ${input.user_notes}
 ⚠️ bridge_to_close ต้อง smooth (ลองทดลอง / ปรึกษาเพิ่ม / สั่งเล็ก ๆ)
 ⚠️ do 3-4 ข้อ, dont 3-4 ข้อ
 ⚠️ faq_top_5: 5 คำถาม
-⚠️ กระชับ field เพื่อไม่ให้ output ยาวเกิน — แต่ละ array ใช้แค่จำนวนที่จำเป็น`,
+⚠️ กระชับ field เพื่อไม่ให้ output ยาวเกิน — แต่ละ array ใช้แค่จำนวนที่จำเป็น
+⚠️ ถ้า objection ชี้จุดอ่อนสินค้าจริง (ไม่ใช่ความเข้าใจผิด) — ห้ามแต่งหลักฐานกดดัน ให้ยอมรับจุดอ่อนตรงๆ ใน response_script แล้วพลิกไปจุดแข็งจริงแทน`,
   }),
   parseOutput: (raw) => raw,
 };
