@@ -89,7 +89,7 @@ export function createPresentationRoutes(app: any) {
     const status = c.req.query('status') || 'draft';
     const rows = await c.env.DB.prepare(`
       SELECT p.id, p.title, p.objective, p.target_slides, p.time_minutes, p.color_theme,
-             p.status, p.current_step, p.framework_variant, p.created_at, p.updated_at,
+             p.status, p.current_step, p.created_at, p.updated_at,
              (SELECT COUNT(*) FROM presentation_steps s WHERE s.project_id = p.id AND s.status = 'done') as steps_completed
       FROM presentation_projects p
       WHERE p.user_id = ? AND p.status = ?
@@ -119,13 +119,13 @@ export function createPresentationRoutes(app: any) {
     const now = Date.now();
     await c.env.DB.prepare(`
       INSERT INTO presentation_projects
-      (id, user_id, title, objective, target_slides, time_minutes, language, color_theme, framework_variant, status, current_step, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft', 1, ?, ?)
+      (id, user_id, title, objective, target_slides, time_minutes, language, color_theme, status, current_step, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'draft', 1, ?, ?)
     `).bind(
       id, user.id, body.title.trim(), body.objective,
       body.target_slides || 10, body.time_minutes || 15,
       body.language || 'th', body.color_theme || 'business_blue',
-      frameworkVariant, now, now
+      now, now
     ).run();
 
     return c.json({ ok: true, project: { id, title: body.title, objective: body.objective, framework_variant: frameworkVariant, current_step: 1 } });

@@ -45,10 +45,10 @@
 <div class="space-y-6">
   <div>
     <h2 class="text-2xl font-bold mb-2">📖 Story Outline</h2>
-    <p class="text-sm text-dark-900/60">ระบบอัจฉริยะ จะสร้าง outline {project?.target_slides} slides ตาม <strong>{frameworkName()}</strong></p>
+    <p class="text-sm text-dark-900/60 dark:text-dark-100/60">ระบบอัจฉริยะ จะสร้าง outline {project?.target_slides} slides ตาม <strong>{frameworkName()}</strong></p>
   </div>
 
-  <div class="bg-purple-50 border border-purple-200 rounded-lg p-3 text-sm text-purple-800">
+  <div class="bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800 rounded-lg p-3 text-sm text-purple-800 dark:text-purple-300">
     🎯 Framework: <strong>{frameworkName()}</strong>
     <div class="text-xs mt-1">
       {#if project?.objective === 'informative'}
@@ -65,19 +65,19 @@
     <button
       type="button"
       onclick={() => (showCustomPrompt = !showCustomPrompt)}
-      class="text-sm text-dark-900/60 hover:text-primary-600"
+      class="text-sm text-dark-900/60 dark:text-dark-100/60 hover:text-primary-600"
     >
       {showCustomPrompt ? '▼' : '▶'} แก้ System Prompt (ขั้นสูง)
     </button>
 
     {#if showCustomPrompt}
       <div>
-        <label class="block text-xs font-medium text-dark-700 mb-1">Custom System Prompt (จะถูก merge กับ default)</label>
+        <label class="block text-xs font-medium text-dark-700 dark:text-dark-200 mb-1">Custom System Prompt (จะถูก merge กับ default)</label>
         <textarea
           bind:value={customSystemPrompt}
           rows="4"
           placeholder="เพิ่มคำสั่งพิเศษ เช่น: ใช้ภาษากันเอง, เน้น case study, ห้ามใช้ bullet points, ..."
-          class="w-full px-3 py-2 text-xs border border-dark-200 rounded-lg font-mono"
+          class="w-full px-3 py-2 text-xs border border-dark-200 dark:border-dark-600 rounded-lg font-mono"
         ></textarea>
       </div>
     {/if}
@@ -99,30 +99,30 @@
           type="button"
           onclick={handleSubmit}
           disabled={isGenerating}
-          class="text-sm text-primary-600 hover:text-primary-700 font-medium"
+          class="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 font-medium"
         >
           🔄 Regenerate
         </button>
       </div>
 
       {#each outline as slide}
-        <div class="border border-dark-200 rounded-xl p-4 hover:border-primary-300 transition">
+        <div class="border border-dark-200 dark:border-dark-600 rounded-xl p-4 hover:border-primary-300 transition">
           <div class="flex items-start justify-between mb-2">
             <div>
-              <div class="text-xs font-medium text-primary-600 uppercase">
+              <div class="text-xs font-medium text-primary-600 dark:text-primary-400 uppercase">
                 Slide {slide.slide_number} · {slide.section_label || slide.section || 'slide'}
               </div>
-              <div class="font-semibold text-dark-900 mt-1">{slide.title}</div>
+              <div class="font-semibold text-dark-900 dark:text-dark-50 mt-1">{slide.title}</div>
             </div>
-            <div class="text-xs text-dark-900/50">{slide.duration_seconds}s</div>
+            <div class="text-xs text-dark-900/50 dark:text-dark-100/50">{slide.duration_seconds}s</div>
           </div>
 
           {#if slide.subtitle}
-            <div class="text-sm text-dark-900/70 italic mb-2">{slide.subtitle}</div>
+            <div class="text-sm text-dark-900/70 dark:text-dark-100/70 italic mb-2">{slide.subtitle}</div>
           {/if}
 
           {#if slide.key_message}
-            <div class="bg-primary-50 border-l-4 border-primary-500 px-3 py-2 text-sm text-primary-900 mb-2 rounded">
+            <div class="bg-primary-50 dark:bg-primary-900/40 border-l-4 border-primary-500 px-3 py-2 text-sm text-primary-900 dark:text-primary-200 mb-2 rounded">
               🎯 {slide.key_message}
             </div>
           {/if}
@@ -136,17 +136,17 @@
           {/if}
 
           {#if slide.supporting_data}
-            <div class="text-xs text-dark-900/60 mt-1">📊 {slide.supporting_data}</div>
+            <div class="text-xs text-dark-900/60 dark:text-dark-100/60 mt-1">📊 {slide.supporting_data}</div>
           {/if}
 
           {#if slide.call_to_action}
-            <div class="bg-amber-50 border border-amber-200 px-3 py-2 rounded text-sm font-medium text-amber-900 mt-2">
+            <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 px-3 py-2 rounded text-sm font-medium text-amber-900 dark:text-amber-200 mt-2">
               📣 {slide.call_to_action}
             </div>
           {/if}
 
           {#if slide.emotional_trigger || slide.audience_emotion_target}
-            <div class="text-xs text-dark-900/50 mt-2">
+            <div class="text-xs text-dark-900/50 dark:text-dark-100/50 mt-2">
               {slide.emotional_trigger ? `💫 ${slide.emotional_trigger}` : ''}
               {slide.audience_emotion_target ? ` · 🎭 ${slide.audience_emotion_target}` : ''}
             </div>

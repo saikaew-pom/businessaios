@@ -38,46 +38,46 @@
 <div class="space-y-6">
   <div>
     <h2 class="text-2xl font-bold mb-2">👥 Audience Profile</h2>
-    <p class="text-sm text-dark-900/60">ระบุผู้ฟัง — ระบบอัจฉริยะ จะสร้าง persona card และ handling strategy</p>
+    <p class="text-sm text-dark-900/60 dark:text-dark-100/60">ระบุผู้ฟัง — ระบบอัจฉริยะ จะสร้าง persona card และ handling strategy</p>
   </div>
 
   <form onsubmit={handleSubmit} class="space-y-5">
     <div>
-      <label class="block text-sm font-medium text-dark-700 mb-1">ผู้ฟังคือใคร? *</label>
+      <label class="block text-sm font-medium text-dark-700 dark:text-dark-200 mb-1">ผู้ฟังคือใคร? *</label>
       <input
         type="text"
         bind:value={audience_role}
         required
         placeholder="เช่น CMO + Head of Sales, Board of Directors, ลูกค้า B2B"
-        class="w-full px-4 py-2.5 border border-dark-200 rounded-lg focus:ring-2 focus:ring-primary-500"
+        class="w-full px-4 py-2.5 border border-dark-200 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-primary-500"
       />
     </div>
 
     <div>
-      <label class="block text-sm font-medium text-dark-700 mb-1">บริบทธุรกิจ (optional)</label>
+      <label class="block text-sm font-medium text-dark-700 dark:text-dark-200 mb-1">บริบทธุรกิจ (optional)</label>
       <textarea
         bind:value={business_context}
         rows="2"
         placeholder="เช่น SaaS startup 10 คน, กำลังจะ launch ผลิตภัณฑ์ใหม่"
-        class="w-full px-4 py-2.5 border border-dark-200 rounded-lg"
+        class="w-full px-4 py-2.5 border border-dark-200 dark:border-dark-600 rounded-lg"
       ></textarea>
     </div>
 
     <div>
-      <label class="block text-sm font-medium text-dark-700 mb-2">Communication Style * (เลือกได้หลายข้อ)</label>
-      <p class="text-xs text-dark-900/60 mb-3">ผู้ฟังของคุณคิดและตัดสินใจแบบไหน?</p>
+      <label class="block text-sm font-medium text-dark-700 dark:text-dark-200 mb-2">Communication Style * (เลือกได้หลายข้อ)</label>
+      <p class="text-xs text-dark-900/60 dark:text-dark-100/60 mb-3">ผู้ฟังของคุณคิดและตัดสินใจแบบไหน?</p>
       <div class="grid grid-cols-2 gap-3">
         {#if presets}
           {#each presets.communication_styles as style}
             <button
               type="button"
               onclick={() => toggleStyle(style.id)}
-              class="text-left p-3 border-2 rounded-lg transition {communication_styles.includes(style.id) ? 'border-primary-500 bg-primary-50' : 'border-dark-200 hover:border-dark-300'}"
+              class="text-left p-3 border-2 rounded-lg transition {communication_styles.includes(style.id) ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/40' : 'border-dark-200 dark:border-dark-600 hover:border-dark-300'}"
             >
               <div class="font-semibold text-sm">{style.name}</div>
-              <div class="text-xs text-dark-900/60 mt-1">{style.description}</div>
+              <div class="text-xs text-dark-900/60 dark:text-dark-100/60 mt-1">{style.description}</div>
               {#if communication_styles.includes(style.id)}
-                <div class="text-xs text-primary-600 mt-1">✓ เลือกแล้ว</div>
+                <div class="text-xs text-primary-600 dark:text-primary-400 mt-1">✓ เลือกแล้ว</div>
               {/if}
             </button>
           {/each}
@@ -86,14 +86,14 @@
     </div>
 
     <div>
-      <label class="block text-sm font-medium text-dark-700 mb-2">Concerns ที่ผู้ฟังอาจกังวล (เลือกได้หลายข้อ)</label>
+      <label class="block text-sm font-medium text-dark-700 dark:text-dark-200 mb-2">Concerns ที่ผู้ฟังอาจกังวล (เลือกได้หลายข้อ)</label>
       <div class="flex flex-wrap gap-2">
         {#if presets}
           {#each presets.audience_concerns as concern}
             <button
               type="button"
               onclick={() => toggleConcern(concern.id)}
-              class="px-3 py-2 border rounded-full text-sm transition {audience_concerns.includes(concern.id) ? 'border-primary-500 bg-primary-500 text-white' : 'border-dark-200 hover:border-dark-300'}"
+              class="px-3 py-2 border rounded-full text-sm transition {audience_concerns.includes(concern.id) ? 'border-primary-500 bg-primary-500 text-white' : 'border-dark-200 dark:border-dark-600 hover:border-dark-300'}"
             >
               {concern.name}
             </button>
@@ -102,7 +102,7 @@
       </div>
     </div>
 
-    <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
+    <div class="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-lg p-3 text-sm text-blue-800 dark:text-blue-300">
       💡 ระบบอัจฉริยะ จะ:
       <ul class="mt-1 ml-4 list-disc text-xs">
         <li>สร้าง persona card (role, decision_style, motivations, fears)</li>

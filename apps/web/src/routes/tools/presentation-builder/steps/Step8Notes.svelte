@@ -33,7 +33,7 @@
 <div class="space-y-6">
   <div>
     <h2 class="text-2xl font-bold mb-2">🎤 Speaker Notes</h2>
-    <p class="text-sm text-dark-900/60">ระบบอัจฉริยะ จะเขียน script 30-90 วินาทีต่อ slide + handle audience concerns</p>
+    <p class="text-sm text-dark-900/60 dark:text-dark-100/60">ระบบอัจฉริยะ จะเขียน script 30-90 วินาทีต่อ slide + handle audience concerns</p>
   </div>
 
   <form onsubmit={handleSubmit} class="space-y-3">
@@ -47,18 +47,18 @@
   </form>
 
   {#if globalNotes?.opening_hook}
-    <div class="mt-6 bg-amber-50 border border-amber-200 rounded-xl p-4">
-      <div class="text-xs font-semibold text-amber-800 uppercase mb-2">🎬 Opening Hook</div>
-      <div class="text-sm text-amber-900 italic">"{globalNotes.opening_hook}"</div>
+    <div class="mt-6 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+      <div class="text-xs font-semibold text-amber-800 dark:text-amber-300 uppercase mb-2">🎬 Opening Hook</div>
+      <div class="text-sm text-amber-900 dark:text-amber-200 italic">"{globalNotes.opening_hook}"</div>
     </div>
   {/if}
 
   {#if globalNotes?.transition_phrases?.length}
-    <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
-      <div class="text-xs font-semibold text-blue-800 uppercase mb-2">🔗 Transition Phrases</div>
+    <div class="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
+      <div class="text-xs font-semibold text-blue-800 dark:text-blue-300 uppercase mb-2">🔗 Transition Phrases</div>
       <div class="flex flex-wrap gap-2">
         {#each globalNotes.transition_phrases as phrase}
-          <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">{phrase}</span>
+          <span class="text-xs bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400 px-2 py-1 rounded">{phrase}</span>
         {/each}
       </div>
     </div>
@@ -69,26 +69,26 @@
       <h3 class="font-semibold">🎤 Notes ({slideNotes.length} slides)</h3>
 
       {#each slideNotes as note}
-        <div class="border border-dark-200 rounded-xl p-4">
+        <div class="border border-dark-200 dark:border-dark-600 rounded-xl p-4">
           <div class="flex items-center justify-between mb-2">
-            <div class="text-xs font-semibold text-primary-600 uppercase">Slide {note.slide_number}</div>
+            <div class="text-xs font-semibold text-primary-600 dark:text-primary-400 uppercase">Slide {note.slide_number}</div>
             <div class="flex items-center gap-2 text-xs">
-              <span class="px-2 py-0.5 rounded bg-dark-100">{note.energy_level}</span>
-              <span class="px-2 py-0.5 rounded bg-dark-100">{note.pacing}</span>
+              <span class="px-2 py-0.5 rounded bg-dark-100 dark:bg-dark-700">{note.energy_level}</span>
+              <span class="px-2 py-0.5 rounded bg-dark-100 dark:bg-dark-700">{note.pacing}</span>
               {#if note.script}
-                <span class="px-2 py-0.5 rounded bg-green-100 text-green-700">~{Math.max(1, Math.round(note.script.length / 200))} นาที</span>
+                <span class="px-2 py-0.5 rounded bg-green-100 dark:bg-green-950/40 text-green-700 dark:text-green-400">~{Math.max(1, Math.round(note.script.length / 200))} นาที</span>
               {/if}
             </div>
           </div>
 
           {#if note.script}
-            <div class="bg-amber-50 border-l-4 border-amber-500 px-3 py-2 text-sm text-amber-900 rounded mb-2">
+            <div class="bg-amber-50 dark:bg-amber-950/40 border-l-4 border-amber-500 dark:border-amber-600 px-3 py-2 text-sm text-amber-900 dark:text-amber-200 rounded mb-2">
               {note.script}
             </div>
           {/if}
 
           {#if note.talking_points?.length}
-            <div class="text-xs text-dark-900/60 mb-1">📌 Key points:</div>
+            <div class="text-xs text-dark-900/60 dark:text-dark-100/60 mb-1">📌 Key points:</div>
             <ul class="text-sm space-y-0.5 mb-2">
               {#each note.talking_points as tp}
                 <li>• {tp}</li>
@@ -97,13 +97,13 @@
           {/if}
 
           {#if note.transition_to_next}
-            <div class="text-xs text-primary-700 mt-2">→ "{note.transition_to_next}"</div>
+            <div class="text-xs text-primary-700 dark:text-primary-300 mt-2">→ "{note.transition_to_next}"</div>
           {/if}
 
           {#if note.concerns_addressed?.length}
             <div class="flex flex-wrap gap-1 mt-2">
               {#each note.concerns_addressed as c}
-                <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">✓ {c}</span>
+                <span class="text-xs bg-green-100 dark:bg-green-950/40 text-green-700 dark:text-green-400 px-2 py-0.5 rounded">✓ {c}</span>
               {/each}
             </div>
           {/if}
@@ -113,9 +113,9 @@
   {/if}
 
   {#if globalNotes?.closing_line}
-    <div class="bg-green-50 border border-green-200 rounded-xl p-4">
-      <div class="text-xs font-semibold text-green-800 uppercase mb-2">🎬 Closing Line</div>
-      <div class="text-sm text-green-900 italic">"{globalNotes.closing_line}"</div>
+    <div class="bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-800 rounded-xl p-4">
+      <div class="text-xs font-semibold text-green-800 dark:text-green-300 uppercase mb-2">🎬 Closing Line</div>
+      <div class="text-sm text-green-900 dark:text-green-200 italic">"{globalNotes.closing_line}"</div>
     </div>
   {/if}
 </div>

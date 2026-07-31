@@ -46,28 +46,28 @@
 <div class="space-y-6">
   <div>
     <h2 class="text-2xl font-bold mb-2">🎨 Slide Blueprint</h2>
-    <p class="text-sm text-dark-900/60">ระบบอัจฉริยะ จะออกแบบ slide แต่ละหน้า — เลือก type, layout, chart, media</p>
+    <p class="text-sm text-dark-900/60 dark:text-dark-100/60">ระบบอัจฉริยะ จะออกแบบ slide แต่ละหน้า — เลือก type, layout, chart, media</p>
   </div>
 
   <form onsubmit={handleSubmit} class="space-y-4">
     <button
       type="button"
       onclick={() => (showCustomPrompt = !showCustomPrompt)}
-      class="text-sm text-dark-900/60 hover:text-primary-600"
+      class="text-sm text-dark-900/60 dark:text-dark-100/60 hover:text-primary-600"
     >
       {showCustomPrompt ? '▼' : '▶'} แก้ System Prompt (ขั้นสูง)
     </button>
 
     {#if showCustomPrompt}
       <div>
-        <label class="block text-xs font-medium text-dark-700 mb-1">Custom System Prompt</label>
+        <label class="block text-xs font-medium text-dark-700 dark:text-dark-200 mb-1">Custom System Prompt</label>
         <textarea
           bind:value={customSystemPrompt}
           rows="6"
           placeholder="เพิ่มคำสั่งพิเศษ เช่น: ใช้สีโทนอบอุ่น, ทุก slide ต้องมี icon, ห้ามใช้ Visual type, เน้น infographic, ..."
-          class="w-full px-3 py-2 text-xs border border-dark-200 rounded-lg font-mono"
+          class="w-full px-3 py-2 text-xs border border-dark-200 dark:border-dark-600 rounded-lg font-mono"
         ></textarea>
-        <div class="text-xs text-dark-900/50 mt-1">Default prompt: ทุก slide มี type (flat/story/visual/title) + layout (quadrant/3column/chart_text/full_bleed/comparison/title) + media_suggestion</div>
+        <div class="text-xs text-dark-900/50 dark:text-dark-100/50 mt-1">Default prompt: ทุก slide มี type (flat/story/visual/title) + layout (quadrant/3column/chart_text/full_bleed/comparison/title) + media_suggestion</div>
       </div>
     {/if}
 
@@ -88,14 +88,14 @@
           type="button"
           onclick={handleSubmit}
           disabled={isGenerating}
-          class="text-sm text-primary-600 hover:text-primary-700 font-medium"
+          class="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 font-medium"
         >
           🔄 Regenerate
         </button>
       </div>
 
       {#each slides as slide}
-        <div class="border border-dark-200 rounded-xl overflow-hidden hover:border-primary-300 transition">
+        <div class="border border-dark-200 dark:border-dark-600 rounded-xl overflow-hidden hover:border-primary-300 transition">
           <button
             type="button"
             onclick={() => (expandedSlide = expandedSlide === slide.slide_number ? null : slide.slide_number)}
@@ -104,19 +104,19 @@
             <div class="flex items-center gap-3 flex-1">
               <span class="text-2xl">{getTypeIcon(slide.type)}</span>
               <div>
-                <div class="text-xs text-primary-600 font-medium">
+                <div class="text-xs text-primary-600 dark:text-primary-400 font-medium">
                   Slide {slide.slide_number} · {getTypeName(slide.type)} · {slide.layout}
                 </div>
-                <div class="font-semibold text-dark-900 mt-0.5">{slide.title}</div>
+                <div class="font-semibold text-dark-900 dark:text-dark-50 mt-0.5">{slide.title}</div>
               </div>
             </div>
-            <div class="text-xs text-dark-900/50">{expandedSlide === slide.slide_number ? '▼' : '▶'}</div>
+            <div class="text-xs text-dark-900/50 dark:text-dark-100/50">{expandedSlide === slide.slide_number ? '▼' : '▶'}</div>
           </button>
 
           {#if expandedSlide === slide.slide_number}
-            <div class="border-t border-dark-200 p-4 space-y-3 bg-dark-50">
+            <div class="border-t border-dark-200 dark:border-dark-600 p-4 space-y-3 bg-dark-50 dark:bg-dark-900">
               {#if slide.subtitle}
-                <div class="text-sm text-dark-900/70 italic">"{slide.subtitle}"</div>
+                <div class="text-sm text-dark-900/70 dark:text-dark-100/70 italic">"{slide.subtitle}"</div>
               {/if}
 
               {#if slide.bullet_points?.length || slide.key_points?.length}
@@ -128,7 +128,7 @@
               {/if}
 
               {#if slide.data_table}
-                <div class="bg-white rounded-lg p-2 text-xs overflow-x-auto">
+                <div class="bg-white dark:bg-dark-800 rounded-lg p-2 text-xs overflow-x-auto">
                   <table class="w-full">
                     <thead><tr>{#each slide.data_table.headers as h}<th class="text-left p-1 font-semibold">{h}</th>{/each}</tr></thead>
                     <tbody>{#each slide.data_table.rows as row}<tr>{#each row as cell}<td class="p-1 border-t">{cell}</td>{/each}</tr>{/each}</tbody>
@@ -137,22 +137,22 @@
               {/if}
 
               {#if slide.chart}
-                <div class="bg-white rounded-lg p-3 text-sm">
-                  <div class="font-medium text-dark-900">📊 Chart: {slide.chart.type}</div>
+                <div class="bg-white dark:bg-dark-800 rounded-lg p-3 text-sm">
+                  <div class="font-medium text-dark-900 dark:text-dark-50">📊 Chart: {slide.chart.type}</div>
                   {#if slide.chart.highlight}
-                    <div class="text-xs text-dark-900/60 mt-1">Highlight: {slide.chart.highlight}</div>
+                    <div class="text-xs text-dark-900/60 dark:text-dark-100/60 mt-1">Highlight: {slide.chart.highlight}</div>
                   {/if}
                 </div>
               {/if}
 
               {#if slide.media_suggestion}
-                <div class="bg-white rounded-lg p-3 text-sm">
-                  <div class="font-medium text-dark-900">🎨 Media: {slide.media_suggestion.kind}</div>
+                <div class="bg-white dark:bg-dark-800 rounded-lg p-3 text-sm">
+                  <div class="font-medium text-dark-900 dark:text-dark-50">🎨 Media: {slide.media_suggestion.kind}</div>
                   {#if slide.media_suggestion.description}
-                    <div class="text-xs text-dark-900/60 mt-1">{slide.media_suggestion.description}</div>
+                    <div class="text-xs text-dark-900/60 dark:text-dark-100/60 mt-1">{slide.media_suggestion.description}</div>
                   {/if}
                   {#if slide.media_suggestion.image_prompt}
-                    <div class="text-xs font-mono bg-dark-100 p-2 rounded mt-1 text-dark-900/70">
+                    <div class="text-xs font-mono bg-dark-100 dark:bg-dark-700 p-2 rounded mt-1 text-dark-900/70 dark:text-dark-100/70">
                       "{slide.media_suggestion.image_prompt}"
                     </div>
                   {/if}

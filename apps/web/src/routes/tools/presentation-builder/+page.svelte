@@ -256,16 +256,16 @@
     <!-- Project list / create new -->
     <div class="space-y-6">
       <!-- Credits bar -->
-      <div class="flex items-center justify-between bg-primary-50 border border-primary-200 rounded-xl px-4 py-3">
+      <div class="flex items-center justify-between bg-primary-50 dark:bg-primary-900/40 border border-primary-200 dark:border-primary-800 rounded-xl px-4 py-3">
         <div class="text-sm">
-          <span class="text-dark-900/60">เครดิตคงเหลือ:</span>
-          <span class="font-bold text-primary-700 ml-1">{creditsRemaining.toLocaleString()}</span>
+          <span class="text-dark-900/60 dark:text-dark-100/60">เครดิตคงเหลือ:</span>
+          <span class="font-bold text-primary-700 dark:text-primary-300 ml-1">{creditsRemaining.toLocaleString()}</span>
         </div>
-        <a href="/pricing" class="text-xs text-primary-600 hover:text-primary-700">เติมเครดิต →</a>
+        <a href="/pricing" class="text-xs text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-400">เติมเครดิต →</a>
       </div>
 
       <!-- New project form -->
-      <div class="bg-gradient-to-br from-purple-50 to-blue-50 border border-purple-200 rounded-2xl p-6">
+      <div class="bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-950/40 dark:to-blue-950/40 border border-purple-200 dark:border-purple-800 rounded-2xl p-6">
         <h2 class="font-bold text-lg mb-4">🚀 สร้าง Presentation ใหม่</h2>
         <form
           onsubmit={(e) => {
@@ -285,27 +285,27 @@
           class="space-y-3"
         >
           <div>
-            <label class="block text-sm font-medium text-dark-700 mb-1">หัวข้อ Presentation *</label>
+            <label class="block text-sm font-medium text-dark-700 dark:text-dark-200 mb-1">หัวข้อ Presentation *</label>
             <input
               name="title"
               type="text"
               required
               placeholder="เช่น Q3 Marketing Plan, Series A Pitch, Brand Story"
-              class="w-full px-4 py-2.5 border border-dark-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              class="w-full px-4 py-2.5 border border-dark-200 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             />
           </div>
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="block text-sm font-medium text-dark-700 mb-1">Objective *</label>
-              <select name="objective" required class="w-full px-4 py-2.5 border border-dark-200 rounded-lg">
+              <label class="block text-sm font-medium text-dark-700 dark:text-dark-200 mb-1">Objective *</label>
+              <select name="objective" required class="w-full px-4 py-2.5 border border-dark-200 dark:border-dark-600 rounded-lg">
                 <option value="informative">📊 Informative (รายงาน/อธิบาย)</option>
                 <option value="persuasive">🎯 Persuasive (Pitch/โน้มน้าว)</option>
                 <option value="story">🎤 Story (Keynote/TED Talk)</option>
               </select>
             </div>
             <div>
-              <label class="block text-sm font-medium text-dark-700 mb-1">Theme</label>
-              <select name="color_theme" class="w-full px-4 py-2.5 border border-dark-200 rounded-lg">
+              <label class="block text-sm font-medium text-dark-700 dark:text-dark-200 mb-1">Theme</label>
+              <select name="color_theme" class="w-full px-4 py-2.5 border border-dark-200 dark:border-dark-600 rounded-lg">
                 {#if presets}
                   {#each presets.color_themes as theme}
                     <option value={theme.id}>{theme.icon || ''} {theme.name}</option>
@@ -316,16 +316,16 @@
           </div>
           <div class="grid grid-cols-3 gap-3">
             <div>
-              <label class="block text-sm font-medium text-dark-700 mb-1">จำนวน Slides</label>
-              <input name="target_slides" type="number" value="10" min="5" max="25" class="w-full px-4 py-2.5 border border-dark-200 rounded-lg" />
+              <label class="block text-sm font-medium text-dark-700 dark:text-dark-200 mb-1">จำนวน Slides</label>
+              <input name="target_slides" type="number" value="10" min="5" max="25" class="w-full px-4 py-2.5 border border-dark-200 dark:border-dark-600 rounded-lg" />
             </div>
             <div>
-              <label class="block text-sm font-medium text-dark-700 mb-1">เวลา (นาที)</label>
-              <input name="time_minutes" type="number" value="15" min="3" max="60" class="w-full px-4 py-2.5 border border-dark-200 rounded-lg" />
+              <label class="block text-sm font-medium text-dark-700 dark:text-dark-200 mb-1">เวลา (นาที)</label>
+              <input name="time_minutes" type="number" value="15" min="3" max="60" class="w-full px-4 py-2.5 border border-dark-200 dark:border-dark-600 rounded-lg" />
             </div>
             <div>
-              <label class="block text-sm font-medium text-dark-700 mb-1">ภาษา</label>
-              <select name="language" class="w-full px-4 py-2.5 border border-dark-200 rounded-lg">
+              <label class="block text-sm font-medium text-dark-700 dark:text-dark-200 mb-1">ภาษา</label>
+              <select name="language" class="w-full px-4 py-2.5 border border-dark-200 dark:border-dark-600 rounded-lg">
                 <option value="th">ไทย</option>
                 <option value="en">English</option>
               </select>
@@ -347,11 +347,11 @@
           <h3 class="font-semibold mb-3">📁 Presentation ของคุณ ({projects.length})</h3>
           <div class="space-y-2">
             {#each projects as p}
-              <div class="bg-white border border-dark-200 rounded-xl p-4 hover:shadow-md transition">
+              <div class="bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 rounded-xl p-4 hover:shadow-md transition">
                 <div class="flex items-center justify-between">
                   <div class="flex-1">
-                    <div class="font-semibold text-dark-900">{p.title}</div>
-                    <div class="text-sm text-dark-900/60 mt-1">
+                    <div class="font-semibold text-dark-900 dark:text-dark-50">{p.title}</div>
+                    <div class="text-sm text-dark-900/60 dark:text-dark-100/60 mt-1">
                       {p.objective === 'informative' ? '📊 Informative' : p.objective === 'persuasive' ? '🎯 Persuasive' : '🎤 Story'}
                       · {p.target_slides} slides
                       · {p.time_minutes} นาที
@@ -368,7 +368,7 @@
                     </button>
                     <button
                       onclick={() => handleDelete(p.id)}
-                      class="px-3 py-2 text-dark-900/50 hover:text-red-600 text-sm"
+                      class="px-3 py-2 text-dark-900/50 dark:text-dark-100/50 hover:text-red-600 dark:hover:text-red-400 text-sm"
                     >
                       ลบ
                     </button>
@@ -381,7 +381,7 @@
       {/if}
 
       {#if error}
-        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">{error}</div>
+        <div class="bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg">{error}</div>
       {/if}
     </div>
   {:else}
@@ -391,19 +391,19 @@
       <div class="mb-6">
         <div class="flex items-center justify-between mb-3">
           <div>
-            <div class="text-xs text-dark-900/50">Project: <span class="font-medium text-dark-900">{project.title}</span></div>
-            <div class="text-xs text-dark-900/50 mt-0.5">
-              Framework: <span class="font-medium text-primary-700">{project.framework_variant || (project.objective === 'informative' ? 'SCQA + Minto' : project.objective === 'story' ? 'Pop-Up Pitch' : '5M Mission')}</span>
+            <div class="text-xs text-dark-900/50 dark:text-dark-100/50">Project: <span class="font-medium text-dark-900 dark:text-dark-50">{project.title}</span></div>
+            <div class="text-xs text-dark-900/50 dark:text-dark-100/50 mt-0.5">
+              Framework: <span class="font-medium text-primary-700 dark:text-primary-300">{project.framework_variant || (project.objective === 'informative' ? 'SCQA + Minto' : project.objective === 'story' ? 'Pop-Up Pitch' : '5M Mission')}</span>
             </div>
           </div>
           <div class="flex items-center gap-2">
             <button
               onclick={() => { showProjectList = true; project = null; loadProjects(); }}
-              class="text-sm text-dark-900/60 hover:text-dark-900"
+              class="text-sm text-dark-900/60 dark:text-dark-100/60 hover:text-dark-900"
             >
               ← กลับ
             </button>
-            <div class="text-sm font-medium text-primary-600 bg-primary-50 px-3 py-1.5 rounded-lg">
+            <div class="text-sm font-medium text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/40 px-3 py-1.5 rounded-lg">
               เครดิต: {creditsRemaining.toLocaleString()}
             </div>
           </div>
@@ -412,18 +412,18 @@
           {#each [1,2,3,4,5,6,7,8,9] as s}
             <button
               onclick={() => goToStep(s)}
-              class="flex-1 text-xs py-2 rounded-md transition {s === currentStep ? 'bg-primary-600 text-white font-bold' : getStepData(s) ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-dark-100 text-dark-900/50 hover:bg-dark-200'}"
+              class="flex-1 text-xs py-2 rounded-md transition {s === currentStep ? 'bg-primary-600 text-white font-bold' : getStepData(s) ? 'bg-green-100 dark:bg-green-950/40 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50' : 'bg-dark-100 dark:bg-dark-700 text-dark-900/50 dark:text-dark-100/50 hover:bg-dark-200 dark:hover:bg-dark-600'}"
               title={presets?.step_names?.[s] || `Step ${s}`}
             >
               {getStepData(s) ? '✓' : s}
             </button>
           {/each}
         </div>
-        <div class="text-xs text-dark-900/50 mt-2">Step {currentStep}: {presets?.step_names?.[currentStep] || '...'}</div>
+        <div class="text-xs text-dark-900/50 dark:text-dark-100/50 mt-2">Step {currentStep}: {presets?.step_names?.[currentStep] || '...'}</div>
       </div>
 
       {#if error}
-        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">{error}</div>
+        <div class="bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg mb-4">{error}</div>
       {/if}
 
       <!-- Step content -->

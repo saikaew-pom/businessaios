@@ -104,11 +104,11 @@
 <div class="space-y-6">
   <div>
     <h2 class="text-2xl font-bold mb-2">📚 Source Content</h2>
-    <p class="text-sm text-dark-900/60">ใส่เนื้อหาต้นทาง — ระบบอัจฉริยะ จะใช้ข้อมูลนี้ตอน Triage (Step 5)</p>
+    <p class="text-sm text-dark-900/60 dark:text-dark-100/60">ใส่เนื้อหาต้นทาง — ระบบอัจฉริยะ จะใช้ข้อมูลนี้ตอน Triage (Step 5)</p>
   </div>
 
   <form onsubmit={(e) => { e.preventDefault(); handleSubmit(e); }} class="space-y-4">
-    <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
+    <div class="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-lg p-3 text-sm text-blue-800 dark:text-blue-300">
       💡 ถ้าไม่มีเนื้อหาต้นทาง — ระบบอัจฉริยะ จะใช้ <strong>Content Gap จาก ATR (Step 3)</strong> เป็นฐาน
     </div>
 
@@ -118,7 +118,7 @@
     </label>
 
     <div>
-      <label class="block text-sm font-medium text-dark-700 mb-1">📝 Paste เนื้อหา</label>
+      <label class="block text-sm font-medium text-dark-700 dark:text-dark-200 mb-1">📝 Paste เนื้อหา</label>
       <textarea
         bind:value={sourceText}
         rows="10"
@@ -131,26 +131,26 @@
 - Notes จากการประชุม
 
 (แต่ละ paragraph คั่นด้วย blank line)`}
-        class="w-full px-4 py-2.5 border border-dark-200 rounded-lg font-mono text-sm"
+        class="w-full px-4 py-2.5 border border-dark-200 dark:border-dark-600 rounded-lg font-mono text-sm"
       ></textarea>
-      <div class="text-xs text-dark-900/50 mt-1">{sourceText.length.toLocaleString()} ตัวอักษร</div>
+      <div class="text-xs text-dark-900/50 dark:text-dark-100/50 mt-1">{sourceText.length.toLocaleString()} ตัวอักษร</div>
     </div>
 
     <div>
-      <label class="block text-sm font-medium text-dark-700 mb-1">📎 หรืออัปโหลดไฟล์ (text/md/csv/json)</label>
+      <label class="block text-sm font-medium text-dark-700 dark:text-dark-200 mb-1">📎 หรืออัปโหลดไฟล์ (text/md/csv/json)</label>
       <input
         type="file"
         multiple
         accept=".txt,.md,.csv,.json,text/*"
         onchange={handleFileUpload}
-        class="w-full text-sm text-dark-900/60 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
+        class="w-full text-sm text-dark-900/60 dark:text-dark-100/60 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
       />
       {#if uploadedFiles.length > 0}
         <div class="mt-2 space-y-1">
           {#each uploadedFiles as f, i}
-            <div class="flex items-center justify-between bg-dark-50 px-3 py-2 rounded text-sm">
+            <div class="flex items-center justify-between bg-dark-50 dark:bg-dark-900 px-3 py-2 rounded text-sm">
               <span>📄 {f.name} ({Math.round(f.size / 1024)}KB)</span>
-              <button type="button" onclick={() => removeFile(i)} class="text-red-600 hover:text-red-700">✕</button>
+              <button type="button" onclick={() => removeFile(i)} class="text-red-600 dark:text-red-400 hover:text-red-700">✕</button>
             </div>
           {/each}
         </div>
