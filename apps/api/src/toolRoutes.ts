@@ -481,7 +481,7 @@ app.post('/api/tools/jtbd-generator', requireAuth, rateLimit, async (c) => {
   // Reserve credits before calling the AI (atomic; refunded/trued-up below
   // once real usage is known) — same pattern as /api/projects/:id/generate/:step.
   const toolRunId = generateId();
-  const toolMaxTokens = 10000;
+  const toolMaxTokens = 13000;
   const estPromptTokens = Math.ceil((system.length + userMsg.length) / 3);
   const reserveCredits = calculateCredits({ prompt_tokens: estPromptTokens, completion_tokens: toolMaxTokens });
   const reservation = await deductCredits(env, user.id, reserveCredits, 'generation_reserve', toolRunId);

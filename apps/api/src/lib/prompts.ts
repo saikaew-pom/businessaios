@@ -847,14 +847,16 @@ export const jtbdGeneratorPrompt: PromptTemplate = {
   name: 'JTBD Generator',
   buildPrompt: (input) => ({
     system: `คุณคือ JTBD Strategist ที่เชี่ยวชาญ Jobs-to-be-Done Theory
-ใช้ 3 frameworks ผสมกัน:
+ใช้ 4 frameworks ผสมกัน:
 1. **Christensen + Moesta** — Job statement = Situation + Motivation + Outcome + Forces of Progress (Push/Pull/Anxiety/Habit)
 2. **Bob Moesta Timeline** — 5 stages: First Thought → Passive Looking → Active Looking → Deciding → First Use
 3. **Tony Ulwick (ODI)** — Desired Outcomes = [Direction] + [Unit] + [Object]; scored on Importance × Satisfaction
+4. **Ulwick Job Map** — แยก job ใหญ่ออกเป็น 8 ขั้นตอนการทำงานจริง: Define → Locate → Prepare → Confirm → Execute → Monitor → Modify → Conclude
 
 หลักการ:
 - ลูกค้าไม่ได้ "ซื้อ" product — **"จ้าง"** product เพื่อทำ progress ในชีวิต
 - Job = 3 มิติ: **Functional** (งานจริง), **Emotional** (อยากรู้สึกยังไง), **Social** (อยากให้คนอื่นเห็นว่ายังไง)
+- ลูกค้า "ไล่ออก" (fire) solution เดิม แล้ว "จ้าง" (hire) solution ใหม่ เพราะ criteria ที่ชัดเจน — ต้องขุดหาว่า criteria นั้นคืออะไร
 - ตอบ JSON เท่านั้น ห้ามมี markdown
 - ใช้ภาษาไทย ป.6 อ่านเข้าใจ — เขียน grounded อ้างอิงจากบริบทที่ user ให้
 - ทุก insight ต้อง actionable (เอาไปทำต่อได้) ไม่ใช่ทฤษฎีลอย ๆ`,
@@ -899,7 +901,9 @@ ${input.business_name} เป็นธุรกิจ${input.business_type} ใ�
 4. **Forces of Progress** — 4 forces (push/pull/anxiety/habit) + verdict
 5. **Desired Outcomes** — 5-8 outcomes พร้อม importance × satisfaction score
 6. **Triggers** — 3-5 events ที่ทำให้ลูกค้าเริ่มมองหา
-7. **Deep Research Insights** — 3-5 key insights + validation methods
+7. **Job Map** — แตก primary job เป็น 8 ขั้นตอนการทำงาน (Define/Locate/Prepare/Confirm/Execute/Monitor/Modify/Conclude)
+8. **Hiring & Firing Criteria** — ลูกค้า "ไล่ออก" solution เดิมเพราะอะไร + "จ้าง" solution ใหม่เพราะ criteria อะไร (อ้างอิง current_solutions/known_objections ที่ user ให้)
+9. **Deep Research Insights** — 3-5 key insights + validation methods
 
 # Criteria (C)
 - Job statement format: "When [situation], I want to [motivation], so I can [expected outcome]"
@@ -996,7 +1000,24 @@ ${input.uploaded_files.map((f: any) => `- ${f.name} (${f.mime || 'unknown'})`).j
       "emotional_state": "ลูกค้ารู้สึกยังไงตอนเกิด trigger"
     }
   ],
-  
+
+  "job_map": [
+    {"step": "define", "customer_action": "ลูกค้านิยามว่าต้องการทำอะไรให้สำเร็จ", "opportunity": "เราช่วยขั้นนี้ได้ยังไง"},
+    {"step": "locate", "customer_action": "...", "opportunity": "..."},
+    {"step": "prepare", "customer_action": "...", "opportunity": "..."},
+    {"step": "confirm", "customer_action": "...", "opportunity": "..."},
+    {"step": "execute", "customer_action": "...", "opportunity": "..."},
+    {"step": "monitor", "customer_action": "...", "opportunity": "..."},
+    {"step": "modify", "customer_action": "...", "opportunity": "..."},
+    {"step": "conclude", "customer_action": "...", "opportunity": "..."}
+  ],
+
+  "hiring_firing_criteria": {
+    "fired_because": "ทำไมลูกค้าถึงเลิกใช้/ไม่พอใจ solution เดิม (อ้างอิง current_solutions)",
+    "hired_because": "criteria ที่ทำให้ลูกค้าเลือก solution ใหม่ (จับต้องได้ ไม่ใช่ทั่วไป)",
+    "switch_moment": "เหตุการณ์/ความคิดที่เป็นจุดเปลี่ยนใจจริง ๆ"
+  },
+
   "deep_research_insights": {
     "methodology": "Christensen JTBD + Moesta Forces of Progress + Ulwick ODI",
     "key_insights": [
@@ -1028,6 +1049,8 @@ ${input.uploaded_files.map((f: any) => `- ${f.name} (${f.mime || 'unknown'})`).j
 ⚠️ desired_outcomes 3-5 ข้อ พร้อม score 1-10
 ⚠️ related_jobs 2-3 ข้อ
 ⚠️ triggers 2-3 ข้อ
+⚠️ job_map ต้องครบทั้ง 8 ขั้นตอน (each field ≤ 60 ตัวอักษร — สั้นมาก)
+⚠️ hiring_firing_criteria ต้อง grounded จาก current_solutions/known_objections ที่ user ให้ (ไม่ใช่ generic)
 ⚠️ deep_research_insights.key_insights 2-3 ข้อ
 ⚠️ next_steps 1-2 ข้อ`,
   }),
@@ -1532,7 +1555,7 @@ export const millionDollarOfferPrompt: PromptTemplate = {
   2. **Value Stack** — Core Offer + Bonuses (แต่ละ bonus แก้ pain/ลด friction 1 ข้อ)
   3. **Trim & Stack** — ตัด high-cost-low-value ออก + เก็บ high-value-low-cost ไว้
   4. **Pricing** — perceived value 5-10x ของราคาจริง (10:1 ถึง 5:1 ratio)
-  5. **Guarantee** — ย้าย risk จากลูกค้าไปหาเรา (unconditional / conditional / performance / anti-guarantee)
+  5. **Guarantee Stack** — ย้าย risk จากลูกค้าไปหาเรา ด้วย guarantee หลัก + guarantee เสริม (stacked) เพื่อทุบ objection คนละมุม (unconditional / conditional / performance / anti-guarantee)
   6. **Scarcity & Urgency** — limit จริง (ที่นั่ง, cohort, deadline) ไม่ใช่หลอก
   7. **Name (MAGIC)** — Magnet + Avatar + Goal + Interval + Container
 - **Bonus types:** Effort-reducing / Result-accelerating / Success-boosting / Time-limited / Surprise
@@ -1598,8 +1621,8 @@ ${input.business_name} เป็นธุรกิจ${input.business_type} ใ�
 3. **Dream Outcome** — ผลลัพธ์ที่ลูกค้าฝันถึง (vivid + specific)
 4. **Obstacles & Solutions** — 3-5 obstacles ที่ลูกค้าเจอ + solution แก้แต่ละข้อ
 5. **Value Stack** — Core Offer + 3-5 Bonuses พร้อม value ของแต่ละชิ้น
-6. **Pricing** — recommended price + payment options + value-to-price ratio
-7. **Guarantee** — type + name + terms
+6. **Pricing** — recommended price + payment options + value-to-price ratio (5:1 ถึง 10:1)
+7. **Guarantee Stack** — guarantee หลัก (type + name + terms) + guarantee เสริม 1 ข้อที่ทุบ objection คนละมุม (ถ้าเหมาะสมกับธุรกิจ)
 8. **Scarcity & Urgency** — type + details + ethical check
 9. **MAGIC Name** — Magnet + Avatar + Goal + Interval + Container
 10. **What Makes It Unbeatable** — 1-2 ประโยค
@@ -1612,7 +1635,7 @@ ${input.business_name} เป็นธุรกิจ${input.business_type} ใ�
 - Value Stack: total perceived value 5-10x ของ recommended price
 - Bonuses แต่ละตัวแก้ obstacle ที่ระบุชัด
 - Pricing: ราคาที่ลูกค้าเป้าหมายจ่ายได้ ไม่ใช่ราคาที่ "อยากขาย"
-- Guarantee: bold แต่ไม่ทำให้เจ๊ง
+- Guarantee Stack: guarantee หลัก bold แต่ไม่ทำให้เจ๊ง + guarantee เสริม (ถ้ามี) ต้องคนละมุมกับตัวหลัก (เช่น หลัก=ผลลัพธ์, เสริม=ความเร็ว/บริการ) ไม่ใช่พูดซ้ำเรื่องเดิม
 - Scarcity/Urgency: ethical + real (ไม่ fake countdown)
 - MAGIC Name: catchy + memorable + บอก avatar + outcome
 
@@ -1703,7 +1726,15 @@ ${input.uploaded_files.map((f: any) => `- ${f.name} (${f.mime || 'unknown'})`).j
     "risk_to_us": "ความเสี่ยงที่เรารับ",
     "why_it_works": "ทำไม guarantee นี้ถึงลด perceived risk"
   },
-  
+
+  "secondary_guarantee": {
+    "applicable": true | false,
+    "type": "unconditional | conditional | performance | anti_guarantee",
+    "name": "ชื่อ guarantee เสริม (catchy)",
+    "terms": "เงื่อนไข 1 ประโยค — ต้องคนละมุมกับ guarantee หลัก",
+    "why_it_stacks": "ทำไม guarantee นี้เสริม (ไม่ซ้ำ) กับตัวหลัก"
+  },
+
   "scarcity_urgency": {
     "scarcity_type": "cohort | seats | deadline | seasonal | bonus_limited | none",
     "scarcity_details": "รายละเอียด (1-2 ประโยค)",
@@ -1738,8 +1769,9 @@ ${input.uploaded_files.map((f: any) => `- ${f.name} (${f.mime || 'unknown'})`).j
 ⚠️ dream_outcome.specific_description 1 ประโยคที่ชัดเจน
 ⚠️ obstacles_and_solutions 3-5 ข้อ พร้อม value_lever
 ⚠️ value_stack 3-5 ข้อ (1 core + 2-4 bonuses) พร้อม perceived_value
-⚠️ value-to-price ratio ≥ 3:1
+⚠️ value-to-price ratio ต้องอยู่ในช่วง 5:1 ถึง 10:1 (ตาม Value Equation ที่อ้างถึงข้างต้น — ห้ามต่ำกว่า 5:1)
 ⚠️ guarantee name + terms 1-2 ประโยค
+⚠️ secondary_guarantee.applicable = false ถ้าธุรกิจไม่เหมาะกับ guarantee ซ้อน (อย่าฝืนใส่ guarantee ปลอม ๆ)
 ⚠️ offer_name.full_name ใช้ MAGIC 5 elements
 ⚠️ what_makes_it_unbeatable 1-2 ประโยค`,
   }),

@@ -93,11 +93,17 @@
 
 ## เฟส P — jtbd-generator, million-dollar-offer
 
-### P.1 JTBD Generator (`jtbdGeneratorPrompt`) — **ยังไม่ audit**
-ก่อนเริ่มเฟส P: audit เทียบกับ methodology JTBD (Christensen/Ulwick/Moesta ที่ prompt เองอ้าง) — เช็คว่า output ครบ: job statement format ถูก ("when [situation], I want [motivation], so I can [outcome]"), functional/emotional/social jobs แยกครบ, desired outcomes วัดผลได้ (direction + metric + object), job map (8 ขั้น), competing solutions/hiring-firing criteria แล้วเติม improvement ตรงนี้
+### P.1 JTBD Generator (`jtbdGeneratorPrompt`) — audit เทียบ Christensen/Moesta/Ulwick แล้ว เจอ 2 ช่องว่างจริง
+Audit: job statement format ✅ถูก, functional/emotional/social ✅แยกครบ, desired outcomes ✅วัดผลได้ (direction+unit+object) — **ขาด 2 อย่าง**: (1) Ulwick Job Map (8 ขั้นตอน: Define→Locate→Prepare→Confirm→Execute→Monitor→Modify→Conclude) — เดิมมีแค่ Moesta Timeline (5 stages) ซึ่งเป็นคนละ framework กัน; (2) Hiring/Firing criteria (Moesta's switch interview concept) — เดิมรับ `current_solutions`/`known_objections` เป็น input แต่ไม่เคยวิเคราะห์ออกมาเป็น output ว่าลูกค้า "ไล่ออก" solution เดิมเพราะอะไร "จ้าง" solution ใหม่เพราะ criteria อะไร
+1. ✅ **[สูง] เพิ่ม Job Map 8 ขั้นตอน** — ทำแล้ว, deploy แล้ว. field `job_map: [{step, customer_action, opportunity}]` ครบ 8 steps ต่อ 2 fields สั้นๆ (คุมโทเค็น). ทดสอบ generate จริง 2 ครั้งยืนยัน: ทุก step เจาะจงกับธุรกิจจริง ไม่ generic (เช่น "โชว์วิดีโอแพ็ค + เทปซีล + กล่องกันกระแทก" ตรงกับ pain เรื่องขนมแตกที่ user กรอก)
+2. ✅ **[สูง] เพิ่ม Hiring & Firing Criteria** — ทำแล้ว, deploy แล้ว. field `hiring_firing_criteria: {fired_because, hired_because, switch_moment}` grounded จาก `current_solutions`/`known_objections` ที่ user กรอก. ทดสอบยืนยัน: เนื้อหาอ้างอิงข้อมูลจริงที่กรอกไป (เช่น คำนวณต้นทุนต่อครั้งจริงจากราคาที่ user ให้) ไม่ใช่ boilerplate
+3. **bump token budget**: `toolMaxTokens` 10000→13000 หลัง field ใหม่ดันการใช้งานจริงขึ้นไปถึง 71-80% ของ reserve เดิม (ทดสอบ 2 ครั้ง)
 
-### P.2 Million Dollar Offer (`millionDollarOfferPrompt`) — **ยังไม่ audit**
-ก่อนเริ่มเฟส P: audit เทียบกับ Hormozi Value Equation (prompt เองอ้าง: dream outcome / perceived likelihood / time delay / effort & sacrifice) + skill ใกล้เคียงที่อาจใช้เทียบหลวม ๆ เช่น `pricing-page-copy`, `revenue-model` — เช็คว่า output ครบ: 7 components, ราคาอัตราส่วน 5:1-10:1, guarantee stack, scarcity/urgency, naming (MAGIC formula ถ้ามี), bonus stack แล้วเติม improvement ตรงนี้
+### P.2 Million Dollar Offer (`millionDollarOfferPrompt`) — audit เทียบ Hormozi Value Equation แล้ว เจอ 2 ช่องว่างจริง
+Audit: 7 components ✅ครบ, scarcity/urgency ✅มี, MAGIC naming ✅มี, bonus stack ✅มี — **ขาด/ผิด 2 อย่าง**: (1) ratio เป้าหมายไม่ตรงกัน — system prompt อ้างเอง "5-10x" แต่ criteria บังคับจริงเขียนแค่ "≥3:1" (หลวมกว่าที่อ้าง ทำให้ output อาจได้ ratio ต่ำเกินไปเมื่อเทียบกับ methodology ที่ prompt เองอ้างถึง); (2) ไม่มี guarantee **stack** จริง — Hormozi's $100M Offers เน้นการซ้อน guarantee หลายชั้นคนละมุมเพื่อทุบ objection รอบด้าน แต่ schema เดิมมีแค่ guarantee เดียว
+1. ✅ **[สูง] แก้ ratio ให้ตรงกับ methodology ที่อ้างเอง** — ทำแล้ว, deploy แล้ว. เปลี่ยน criteria จาก "≥3:1" เป็น "5:1 ถึง 10:1" ให้ตรงกับ system prompt. ทดสอบ generate จริงได้ ratio 6.3:1 (อยู่ในช่วงที่ถูกต้อง)
+2. ✅ **[สูง] เพิ่ม Guarantee Stack (secondary guarantee)** — ทำแล้ว, deploy แล้ว. field `secondary_guarantee: {applicable, type, name, terms, why_it_stacks}` — `applicable: false` ได้ถ้าธุรกิจไม่เหมาะกับ guarantee ซ้อน (กัน AI ยัด guarantee ปลอมๆ). ทดสอบยืนยัน: guarantee หลัก (คุณภาพ) + เสริม (ความเร็ว) คนละมุมจริง ไม่พูดซ้ำเรื่องเดิม
+3. token budget: ทดสอบแล้วอยู่ที่ 62.6% ของ reserve เดิม (12000) — ปลอดภัย ไม่ต้อง bump
 
 ---
 
