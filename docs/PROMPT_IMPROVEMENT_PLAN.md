@@ -109,8 +109,11 @@ Audit: 7 components ✅ครบ, scarcity/urgency ✅มี, MAGIC naming ✅�
 
 ## เฟส Q — business-model-canvas
 
-### Q.1 Business Model Canvas (`bmcGeneratorPrompt`) — **ยังไม่ audit**
-ก่อนเริ่มเฟส Q: audit เทียบกับ Osterwalder BMC 9 blocks (prompt เองอ้าง) + skill `swot-analysis`/`revenue-model` เทียบหลวม ๆ — เช็คว่า output ครบ: 9 building blocks, ความเชื่อมโยงระหว่าง block (ไม่ใช่แค่ list แยก), key assumptions ที่ต้อง validate, SWOT, revenue/cost structure ที่เป็นตัวเลขจริงไม่ใช่ลอย ๆ แล้วเติม improvement ตรงนี้
+### Q.1 Business Model Canvas (`bmcGeneratorPrompt`) — audit เทียบ Osterwalder BMC แล้ว เจอช่องว่างจริง 1 อย่างใหญ่
+Audit: 9 building blocks ✅ครบ, key assumptions ✅มี how_to_test, SWOT ✅มี, revenue/cost structure ใช้ % และช่วงราคาที่พอรับได้สำหรับ SME ที่ไม่มีตัวเลขจริง — **ขาด 1 อย่าง**: ความเชื่อมโยงระหว่าง block (ตามที่ audit instruction เองระบุไว้) — เดิม revenue_streams/key_resources/key_activities/key_partnerships เป็น list แยกกัน ไม่รู้ว่า revenue มาจาก segment ไหน ไม่รู้ว่า resource/activity/partnership ไหนสนับสนุน value proposition ไหน (มีแค่ value_propositions.for_segment และ customer_relationships.segment ที่เชื่อมอยู่แล้ว)
+1. ✅ **[สูง] เพิ่ม cross-block linkage** — ทำแล้ว, deploy แล้ว. เพิ่ม field `for_segment` ใน `revenue_streams` (เชื่อมกับ customer_segments) + `supports_vp` ใน `key_resources`/`key_activities`/`key_partnerships` (เชื่อมกับ value_propositions) + instruction บังคับว่าต้องอ้างชื่อจริงที่มีอยู่แล้ว ไม่ใช่คำใหม่ที่ไม่มีในรายการ. ทดสอบ generate จริง 3 ครั้งยืนยัน: ทุก field อ้างอิงชื่อจริงที่ตรงกับ segment/VP อื่นในผลลัพธ์เดียวกัน ไม่ใช่ hallucinate
+2. ✅ **[สูง] เพิ่ม `model_coherence`** — ทำแล้ว, deploy แล้ว. field เล่า 1-2 ประโยคว่า segment หลัก → VP → revenue → resource ที่ต้องมี เชื่อมกันเป็นเหตุเป็นผลยังไง (โชว์ logic chain ทั้งระบบ ไม่ใช่แค่สรุปแยกส่วน)
+3. **bump token budget**: `toolMaxTokens` 12000→15000 หลังทดสอบจริงเจอ completion_tokens ใช้ 65-71% ของ reserve เดิม
 
 ---
 

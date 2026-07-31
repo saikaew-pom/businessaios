@@ -282,26 +282,26 @@ White space: ${s.output?.white_space || '-'}`;
   }
 
   const importanceColor = (i: string) => {
-    if (i === 'critical') return 'bg-red-100 text-red-800 border-red-300';
-    if (i === 'important') return 'bg-amber-100 text-amber-800 border-amber-300';
-    return 'bg-blue-100 text-blue-800 border-blue-300';
+    if (i === 'critical') return 'bg-red-100 dark:bg-red-950/40 text-red-800 dark:text-red-300 border-red-300 dark:border-red-700';
+    if (i === 'important') return 'bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-700';
+    return 'bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-700';
   };
   const importanceLabel = (i: string) => {
     return ({ critical: '🔥 critical', important: '🟡 important', supporting: '🟢 supporting' } as any)[i] || i;
   };
   const priorityColor = (p: string) => {
-    if (p === 'primary') return 'bg-red-100 text-red-800 border-red-300';
-    if (p === 'secondary') return 'bg-amber-100 text-amber-800 border-amber-300';
-    return 'bg-blue-100 text-blue-800 border-blue-300';
+    if (p === 'primary') return 'bg-red-100 dark:bg-red-950/40 text-red-800 dark:text-red-300 border-red-300 dark:border-red-700';
+    if (p === 'secondary') return 'bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-700';
+    return 'bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-700';
   };
   const priorityLabel = (p: string) => {
     return ({ primary: '⭐ primary', secondary: '🟡 secondary', tertiary: '🟢 tertiary' } as any)[p] || p;
   };
   const marginColor = (m: string) => {
-    if (!m) return 'bg-dark-100';
-    if (m.startsWith('high')) return 'bg-emerald-100 text-emerald-800 border-emerald-300';
-    if (m.startsWith('medium')) return 'bg-amber-100 text-amber-800 border-amber-300';
-    return 'bg-red-100 text-red-800 border-red-300';
+    if (!m) return 'bg-dark-100 dark:bg-dark-700';
+    if (m.startsWith('high')) return 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700';
+    if (m.startsWith('medium')) return 'bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-700';
+    return 'bg-red-100 dark:bg-red-950/40 text-red-800 dark:text-red-300 border-red-300 dark:border-red-700';
   };
 </script>
 
@@ -313,9 +313,9 @@ White space: ${s.output?.white_space || '-'}`;
 >
   {#if !output}
     <div class="space-y-5">
-      <div class="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl p-4">
-        <div class="font-semibold text-indigo-900 mb-1">📊 Business Model Canvas (Osterwalder 2010)</div>
-        <div class="text-sm text-indigo-800 space-y-1">
+      <div class="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/40 dark:to-purple-950/40 border border-indigo-200 dark:border-indigo-800 rounded-xl p-4">
+        <div class="font-semibold text-indigo-900 dark:text-indigo-200 mb-1">📊 Business Model Canvas (Osterwalder 2010)</div>
+        <div class="text-sm text-indigo-800 dark:text-indigo-300 space-y-1">
           <div><b>9 Building Blocks</b> ใน 3 areas:</div>
           <div>• <b>Desirability</b> (ลูกค้าอยากได้): Customer Segments + Value Propositions</div>
           <div>• <b>Feasibility</b> (ทำได้จริง): Channels + Customer Relationships + Key Activities + Key Resources + Key Partnerships</div>
@@ -326,7 +326,7 @@ White space: ${s.output?.white_space || '-'}`;
 
       <div>
         <label class="block text-sm font-semibold mb-1.5">ชื่อธุรกิจ *</label>
-        <input type="text" bind:value={business_name} placeholder="เช่น ขนมบ้านโกไข่" class="w-full px-3 py-2.5 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500" />
+        <input type="text" bind:value={business_name} placeholder="เช่น ขนมบ้านโกไข่" class="w-full px-3 py-2.5 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500" />
       </div>
 
       <BusinessContextFields
@@ -342,35 +342,35 @@ White space: ${s.output?.white_space || '-'}`;
       <div class="grid sm:grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-semibold mb-1.5">ที่ตั้ง</label>
-          <input type="text" bind:value={location} placeholder="เช่น หาดใหญ่" class="w-full px-3 py-2.5 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500" />
+          <input type="text" bind:value={location} placeholder="เช่น หาดใหญ่" class="w-full px-3 py-2.5 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500" />
         </div>
         <div>
           <label class="block text-sm font-semibold mb-1.5">ช่วงราคา</label>
-          <input type="text" bind:value={price_range} placeholder="เช่น 50-200 บาท" class="w-full px-3 py-2.5 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500" />
+          <input type="text" bind:value={price_range} placeholder="เช่น 50-200 บาท" class="w-full px-3 py-2.5 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500" />
         </div>
       </div>
 
       <div>
         <label class="block text-sm font-semibold mb-1.5">จุดต่าง (ถ้ามี)</label>
-        <input type="text" bind:value={differentiation} placeholder="เช่น ใช้วัตถุดิบออร์แกนิค" class="w-full px-3 py-2.5 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500" />
+        <input type="text" bind:value={differentiation} placeholder="เช่น ใช้วัตถุดิบออร์แกนิค" class="w-full px-3 py-2.5 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500" />
       </div>
 
       <div>
         <label class="block text-sm font-semibold mb-1.5">Product / Service *</label>
-        <textarea bind:value={product_description} rows="3" placeholder="เช่น ขนมบ้านโกไข่ เป็นร้านขนมใต้สูตรโบราณ 28 สาขา มี 48 รายการ เน้นขนมคุณภาพสูง ขายหน้าร้าน + ออนไลน์" class="w-full px-3 py-2.5 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"></textarea>
+        <textarea bind:value={product_description} rows="3" placeholder="เช่น ขนมบ้านโกไข่ เป็นร้านขนมใต้สูตรโบราณ 28 สาขา มี 48 รายการ เน้นขนมคุณภาพสูง ขายหน้าร้าน + ออนไลน์" class="w-full px-3 py-2.5 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"></textarea>
       </div>
 
       <div>
         <label class="block text-sm font-semibold mb-1.5">Features / จุดเด่น</label>
-        <textarea bind:value={product_features} rows="2" placeholder="เช่น 1) สูตรโบราณ 2) วัตถุดิบสดใหม่ 3) หน้าร้าน 28 สาขา 4) ส่งฟรี 5) บรรจุภัณฑ์ premium" class="w-full px-3 py-2.5 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"></textarea>
+        <textarea bind:value={product_features} rows="2" placeholder="เช่น 1) สูตรโบราณ 2) วัตถุดิบสดใหม่ 3) หน้าร้าน 28 สาขา 4) ส่งฟรี 5) บรรจุภัณฑ์ premium" class="w-full px-3 py-2.5 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"></textarea>
       </div>
 
       <!-- BMC Deep Context (4 fields) -->
-      <div class="bg-gradient-to-r from-indigo-50 to-purple-50 border-2 border-indigo-300 rounded-xl p-4 space-y-3">
-        <div class="font-semibold text-indigo-900">📊 Business Model Context (4 ตัวเลือก)</div>
+      <div class="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/40 dark:to-purple-950/40 border-2 border-indigo-300 dark:border-indigo-700 rounded-xl p-4 space-y-3">
+        <div class="font-semibold text-indigo-900 dark:text-indigo-200">📊 Business Model Context (4 ตัวเลือก)</div>
         <div>
-          <label class="block text-xs font-semibold text-indigo-800 mb-1">💵 Revenue Model</label>
-          <select bind:value={revenue_model} class="w-full px-2.5 py-1.5 rounded border border-indigo-200 text-sm">
+          <label class="block text-xs font-semibold text-indigo-800 dark:text-indigo-300 mb-1">💵 Revenue Model</label>
+          <select bind:value={revenue_model} class="w-full px-2.5 py-1.5 rounded border border-indigo-200 dark:border-indigo-800 text-sm">
             <option value="">— เลือก / ปล่อยว่างให้ ระบบอัจฉริยะ วิเคราะห์ —</option>
             {#each REVENUE_MODELS as r}
               <option value={r.id}>{r.label} — {r.desc}</option>
@@ -378,8 +378,8 @@ White space: ${s.output?.white_space || '-'}`;
           </select>
         </div>
         <div>
-          <label class="block text-xs font-semibold text-indigo-800 mb-1">🗺️ Geographic Scope</label>
-          <select bind:value={geographic_scope} class="w-full px-2.5 py-1.5 rounded border border-indigo-200 text-sm">
+          <label class="block text-xs font-semibold text-indigo-800 dark:text-indigo-300 mb-1">🗺️ Geographic Scope</label>
+          <select bind:value={geographic_scope} class="w-full px-2.5 py-1.5 rounded border border-indigo-200 dark:border-indigo-800 text-sm">
             <option value="">— เลือก / ปล่อยว่าง —</option>
             {#each GEOGRAPHIC_SCOPES as g}
               <option value={g.id}>{g.label} — {g.desc}</option>
@@ -387,8 +387,8 @@ White space: ${s.output?.white_space || '-'}`;
           </select>
         </div>
         <div>
-          <label class="block text-xs font-semibold text-indigo-800 mb-1">📡 Distribution Model</label>
-          <select bind:value={distribution_model} class="w-full px-2.5 py-1.5 rounded border border-indigo-200 text-sm">
+          <label class="block text-xs font-semibold text-indigo-800 dark:text-indigo-300 mb-1">📡 Distribution Model</label>
+          <select bind:value={distribution_model} class="w-full px-2.5 py-1.5 rounded border border-indigo-200 dark:border-indigo-800 text-sm">
             <option value="">— เลือก / ปล่อยว่าง —</option>
             {#each DISTRIBUTION_MODELS as d}
               <option value={d.id}>{d.label} — {d.desc}</option>
@@ -396,8 +396,8 @@ White space: ${s.output?.white_space || '-'}`;
           </select>
         </div>
         <div>
-          <label class="block text-xs font-semibold text-indigo-800 mb-1">🌱 Current Stage</label>
-          <select bind:value={current_stage} class="w-full px-2.5 py-1.5 rounded border border-indigo-200 text-sm">
+          <label class="block text-xs font-semibold text-indigo-800 dark:text-indigo-300 mb-1">🌱 Current Stage</label>
+          <select bind:value={current_stage} class="w-full px-2.5 py-1.5 rounded border border-indigo-200 dark:border-indigo-800 text-sm">
             <option value="">— เลือก / ปล่อยว่าง —</option>
             {#each CURRENT_STAGES as s}
               <option value={s.id}>{s.label} — {s.desc}</option>
@@ -407,30 +407,30 @@ White space: ${s.output?.white_space || '-'}`;
       </div>
 
       <!-- Financial Focus (optional) -->
-      <div class="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-4 space-y-3">
-        <div class="font-semibold text-amber-900">💰 Financial Focus (optional — แนะนำ)</div>
+      <div class="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/40 border border-amber-200 dark:border-amber-800 rounded-xl p-4 space-y-3">
+        <div class="font-semibold text-amber-900 dark:text-amber-200">💰 Financial Focus (optional — แนะนำ)</div>
         <div>
-          <label class="block text-xs font-semibold text-amber-800 mb-1">🎯 ลงทุนหนักที่สุดเรื่องอะไร</label>
-          <input type="text" bind:value={cost_focus} placeholder="เช่น โรงงานผลิต, ค่าเช่าหน้าร้าน, ทีม, การตลาด" class="w-full px-2.5 py-1.5 rounded border border-amber-200 text-sm" />
+          <label class="block text-xs font-semibold text-amber-800 dark:text-amber-300 mb-1">🎯 ลงทุนหนักที่สุดเรื่องอะไร</label>
+          <input type="text" bind:value={cost_focus} placeholder="เช่น โรงงานผลิต, ค่าเช่าหน้าร้าน, ทีม, การตลาด" class="w-full px-2.5 py-1.5 rounded border border-amber-200 dark:border-amber-800 text-sm" />
         </div>
         <div>
-          <label class="block text-xs font-semibold text-amber-800 mb-1">📈 เป้ารายได้</label>
-          <input type="text" bind:value={revenue_target} placeholder="เช่น 30 ล้าน/ปี ภายใน 12 เดือน" class="w-full px-2.5 py-1.5 rounded border border-amber-200 text-sm" />
+          <label class="block text-xs font-semibold text-amber-800 dark:text-amber-300 mb-1">📈 เป้ารายได้</label>
+          <input type="text" bind:value={revenue_target} placeholder="เช่น 30 ล้าน/ปี ภายใน 12 เดือน" class="w-full px-2.5 py-1.5 rounded border border-amber-200 dark:border-amber-800 text-sm" />
         </div>
         <div>
-          <label class="block text-xs font-semibold text-amber-800 mb-1">👥 ทีมงาน</label>
-          <input type="text" bind:value={team_size} placeholder="เช่น 5 คน (1 co-founder, 2 chef, 2 sale)" class="w-full px-2.5 py-1.5 rounded border border-amber-200 text-sm" />
+          <label class="block text-xs font-semibold text-amber-800 dark:text-amber-300 mb-1">👥 ทีมงาน</label>
+          <input type="text" bind:value={team_size} placeholder="เช่น 5 คน (1 co-founder, 2 chef, 2 sale)" class="w-full px-2.5 py-1.5 rounded border border-amber-200 dark:border-amber-800 text-sm" />
         </div>
       </div>
 
       <!-- Optional: pre-fill from VPC / JTBD / Competitor -->
       {#if vpc_saves.length > 0 || jtbd_saves.length > 0 || competitor_saves.length > 0}
-        <div class="bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-300 rounded-xl p-3 space-y-2">
-          <div class="font-semibold text-amber-900 text-sm">🔗 เชื่อม strategic tools ที่เคยวิเคราะห์ไว้ (optional — แนะนำ)</div>
+        <div class="bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/40 dark:to-yellow-950/40 border border-amber-300 dark:border-amber-700 rounded-xl p-3 space-y-2">
+          <div class="font-semibold text-amber-900 dark:text-amber-200 text-sm">🔗 เชื่อม strategic tools ที่เคยวิเคราะห์ไว้ (optional — แนะนำ)</div>
           {#if vpc_saves.length > 0}
             <div>
-              <label class="block text-xs font-semibold text-amber-800 mb-1">💎 VPC (Value Proposition)</label>
-              <select bind:value={selectedVpcId} class="w-full px-2.5 py-1.5 rounded border border-amber-200 text-sm">
+              <label class="block text-xs font-semibold text-amber-800 dark:text-amber-300 mb-1">💎 VPC (Value Proposition)</label>
+              <select bind:value={selectedVpcId} class="w-full px-2.5 py-1.5 rounded border border-amber-200 dark:border-amber-800 text-sm">
                 <option value="">— ไม่ใช้ VPC —</option>
                 {#each vpc_saves as v}
                   <option value={v.id}>💎 {v.title} ({new Date(v.created_at).toLocaleDateString('th-TH')})</option>
@@ -440,8 +440,8 @@ White space: ${s.output?.white_space || '-'}`;
           {/if}
           {#if jtbd_saves.length > 0}
             <div>
-              <label class="block text-xs font-semibold text-amber-800 mb-1">🎯 JTBD (Job-to-be-Done)</label>
-              <select bind:value={selectedJtbdId} class="w-full px-2.5 py-1.5 rounded border border-amber-200 text-sm">
+              <label class="block text-xs font-semibold text-amber-800 dark:text-amber-300 mb-1">🎯 JTBD (Job-to-be-Done)</label>
+              <select bind:value={selectedJtbdId} class="w-full px-2.5 py-1.5 rounded border border-amber-200 dark:border-amber-800 text-sm">
                 <option value="">— ไม่ใช้ JTBD —</option>
                 {#each jtbd_saves as j}
                   <option value={j.id}>🎯 {j.title} ({new Date(j.created_at).toLocaleDateString('th-TH')})</option>
@@ -451,8 +451,8 @@ White space: ${s.output?.white_space || '-'}`;
           {/if}
           {#if competitor_saves.length > 0}
             <div>
-              <label class="block text-xs font-semibold text-amber-800 mb-1">🔍 Competitor Analysis</label>
-              <select bind:value={selectedCompetitorId} class="w-full px-2.5 py-1.5 rounded border border-amber-200 text-sm">
+              <label class="block text-xs font-semibold text-amber-800 dark:text-amber-300 mb-1">🔍 Competitor Analysis</label>
+              <select bind:value={selectedCompetitorId} class="w-full px-2.5 py-1.5 rounded border border-amber-200 dark:border-amber-800 text-sm">
                 <option value="">— ไม่ใช้ Competitor —</option>
                 {#each competitor_saves as c}
                   <option value={c.id}>🔍 {c.title} ({new Date(c.created_at).toLocaleDateString('th-TH')})</option>
@@ -460,20 +460,20 @@ White space: ${s.output?.white_space || '-'}`;
               </select>
             </div>
           {/if}
-          <div class="text-xs text-amber-700 mt-1">ถ้าเลือก ระบบจะ pre-fill Customer Segments + Value Propositions จาก tools เหล่านี้</div>
+          <div class="text-xs text-amber-700 dark:text-amber-400 mt-1">ถ้าเลือก ระบบจะ pre-fill Customer Segments + Value Propositions จาก tools เหล่านี้</div>
         </div>
       {/if}
 
       <div>
-        <label class="block text-sm font-semibold mb-1.5">โน้ตเพิ่มเติม <span class="text-dark-900/50 font-normal">(optional)</span></label>
-        <textarea bind:value={user_notes} rows="2" placeholder="อะไรก็ได้ที่อยากให้ ระบบอัจฉริยะ รู้เพิ่ม..." class="w-full px-3 py-2.5 rounded-lg border border-dark-200 focus:outline-none focus:ring-2 focus:ring-primary-500"></textarea>
+        <label class="block text-sm font-semibold mb-1.5">โน้ตเพิ่มเติม <span class="text-dark-900/50 dark:text-dark-100/50 font-normal">(optional)</span></label>
+        <textarea bind:value={user_notes} rows="2" placeholder="อะไรก็ได้ที่อยากให้ ระบบอัจฉริยะ รู้เพิ่ม..." class="w-full px-3 py-2.5 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500"></textarea>
       </div>
 
       {#if error}
-        <div class="p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">{error}</div>
+        <div class="p-3 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-sm text-red-700 dark:text-red-400">{error}</div>
       {/if}
 
-      <div class="pt-4 flex items-center justify-end border-t border-dark-100">
+      <div class="pt-4 flex items-center justify-end border-t border-dark-100 dark:border-dark-700">
         <button onclick={handleGenerate} disabled={isGenerating} class="btn-primary disabled:opacity-50">
           {isGenerating ? '⏳ ระบบอัจฉริยะ กำลังออกแบบ BMC...' : '📊 ออกแบบ Business Model'}
         </button>
@@ -483,17 +483,25 @@ White space: ${s.output?.white_space || '-'}`;
     <div class="space-y-5">
       <!-- Summary -->
       {#if output.summary}
-        <div class="bg-primary-50 border-l-4 border-primary-500 p-4 rounded-lg">
-          <div class="text-xs font-bold text-primary-700 uppercase tracking-wider mb-1">สรุป Business Model</div>
-          <div class="text-dark-900">{output.summary}</div>
+        <div class="bg-primary-50 dark:bg-primary-900/40 border-l-4 border-primary-500 dark:border-primary-600 p-4 rounded-lg">
+          <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wider mb-1">สรุป Business Model</div>
+          <div class="text-dark-900 dark:text-dark-50">{output.summary}</div>
         </div>
       {/if}
 
       <!-- Executive insight -->
       {#if output.executive_insight}
-        <div class="bg-gradient-to-r from-indigo-50 to-purple-50 border-l-4 border-indigo-500 p-3 rounded">
-          <div class="text-xs font-bold text-indigo-700 uppercase mb-1">💡 Executive Insight</div>
-          <div class="text-sm italic text-indigo-900">"{output.executive_insight}"</div>
+        <div class="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/40 dark:to-purple-950/40 border-l-4 border-indigo-500 dark:border-indigo-600 p-3 rounded">
+          <div class="text-xs font-bold text-indigo-700 dark:text-indigo-400 uppercase mb-1">💡 Executive Insight</div>
+          <div class="text-sm italic text-indigo-900 dark:text-indigo-200">"{output.executive_insight}"</div>
+        </div>
+      {/if}
+
+      <!-- Model coherence -->
+      {#if output.model_coherence}
+        <div class="bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 rounded-lg p-3 text-sm text-dark-900 dark:text-dark-50">
+          <div class="text-xs font-bold text-dark-900/60 dark:text-dark-100/60 uppercase mb-1">🔗 Model Coherence — segment → VP → revenue → resources เชื่อมกันยังไง</div>
+          {output.model_coherence}
         </div>
       {/if}
 
@@ -507,22 +515,22 @@ White space: ${s.output?.white_space || '-'}`;
       <!-- 9 BLOCKS in 3 areas -->
       <!-- DESIRABILITY: CS + VP -->
       <div>
-        <div class="text-xs font-bold text-blue-700 uppercase mb-2 tracking-wider">🟦 Desirability (ลูกค้าอยากได้ไหม)</div>
+        <div class="text-xs font-bold text-blue-700 dark:text-blue-400 uppercase mb-2 tracking-wider">🟦 Desirability (ลูกค้าอยากได้ไหม)</div>
         <div class="grid lg:grid-cols-2 gap-3">
           <!-- Customer Segments -->
-          <div class="bg-white border-2 border-blue-200 rounded-xl p-3">
-            <div class="text-sm font-bold text-blue-700 mb-2">👥 Customer Segments ({output.customer_segments?.length || 0})</div>
+          <div class="bg-white dark:bg-dark-800 border-2 border-blue-200 dark:border-blue-800 rounded-xl p-3">
+            <div class="text-sm font-bold text-blue-700 dark:text-blue-400 mb-2">👥 Customer Segments ({output.customer_segments?.length || 0})</div>
             <div class="space-y-1.5">
               {#each output.customer_segments || [] as s}
-                <div class="bg-blue-50 rounded p-2 text-xs">
+                <div class="bg-blue-50 dark:bg-blue-950/40 rounded p-2 text-xs">
                   <div class="flex items-center gap-1.5 mb-0.5 flex-wrap">
                     <span class="px-1.5 py-0.5 rounded text-[10px] border {priorityColor(s.priority)}">{priorityLabel(s.priority)}</span>
-                    <span class="text-[10px] text-dark-900/60">[{s.size_estimate}]</span>
+                    <span class="text-[10px] text-dark-900/60 dark:text-dark-100/60">[{s.size_estimate}]</span>
                   </div>
-                  <div class="font-semibold text-blue-900">{s.name}</div>
-                  <div class="text-blue-800 mt-0.5">{s.description}</div>
+                  <div class="font-semibold text-blue-900 dark:text-blue-200">{s.name}</div>
+                  <div class="text-blue-800 dark:text-blue-300 mt-0.5">{s.description}</div>
                   {#if s.key_characteristic}
-                    <div class="text-[10px] text-blue-700/70 mt-0.5 italic">→ {s.key_characteristic}</div>
+                    <div class="text-[10px] text-blue-700/70 dark:text-blue-400/70 mt-0.5 italic">→ {s.key_characteristic}</div>
                   {/if}
                 </div>
               {/each}
@@ -530,18 +538,18 @@ White space: ${s.output?.white_space || '-'}`;
           </div>
 
           <!-- Value Propositions -->
-          <div class="bg-white border-2 border-purple-200 rounded-xl p-3">
-            <div class="text-sm font-bold text-purple-700 mb-2">💎 Value Propositions ({output.value_propositions?.length || 0})</div>
+          <div class="bg-white dark:bg-dark-800 border-2 border-purple-200 dark:border-purple-800 rounded-xl p-3">
+            <div class="text-sm font-bold text-purple-700 dark:text-purple-400 mb-2">💎 Value Propositions ({output.value_propositions?.length || 0})</div>
             <div class="space-y-1.5">
               {#each output.value_propositions || [] as v}
-                <div class="bg-purple-50 rounded p-2 text-xs">
+                <div class="bg-purple-50 dark:bg-purple-950/40 rounded p-2 text-xs">
                   <div class="flex items-center gap-1.5 mb-0.5 flex-wrap">
-                    <span class="text-[10px] text-dark-900/60">→ {v.for_segment}</span>
+                    <span class="text-[10px] text-dark-900/60 dark:text-dark-100/60">→ {v.for_segment}</span>
                   </div>
-                  <div class="font-semibold text-purple-900">{v.vp_title}</div>
-                  <div class="text-purple-800 italic mt-0.5">"{v.vp_statement}"</div>
+                  <div class="font-semibold text-purple-900 dark:text-purple-200">{v.vp_title}</div>
+                  <div class="text-purple-800 dark:text-purple-300 italic mt-0.5">"{v.vp_statement}"</div>
                   {#if v.differentiator}
-                    <div class="text-[10px] text-purple-700/70 mt-0.5">⭐ Differentiator: {v.differentiator}</div>
+                    <div class="text-[10px] text-purple-700/70 dark:text-purple-400/70 mt-0.5">⭐ Differentiator: {v.differentiator}</div>
                   {/if}
                 </div>
               {/each}
@@ -552,41 +560,41 @@ White space: ${s.output?.white_space || '-'}`;
 
       <!-- FEASIBILITY: Channels + CR + KR + KA + KP -->
       <div>
-        <div class="text-xs font-bold text-teal-700 uppercase mb-2 tracking-wider">🟩 Feasibility (ทำได้จริงไหม)</div>
+        <div class="text-xs font-bold text-teal-700 dark:text-teal-400 uppercase mb-2 tracking-wider">🟩 Feasibility (ทำได้จริงไหม)</div>
 
         <!-- Channels + CR row -->
         <div class="grid lg:grid-cols-2 gap-3 mb-3">
           <!-- Channels -->
-          <div class="bg-white border-2 border-teal-200 rounded-xl p-3">
-            <div class="text-sm font-bold text-teal-700 mb-2">📡 Channels ({output.channels?.length || 0})</div>
+          <div class="bg-white dark:bg-dark-800 border-2 border-teal-200 dark:border-teal-800 rounded-xl p-3">
+            <div class="text-sm font-bold text-teal-700 dark:text-teal-400 mb-2">📡 Channels ({output.channels?.length || 0})</div>
             <div class="space-y-1.5">
               {#each output.channels || [] as ch}
-                <div class="bg-teal-50 rounded p-2 text-xs">
+                <div class="bg-teal-50 dark:bg-teal-950/40 rounded p-2 text-xs">
                   <div class="flex items-center gap-1.5 mb-0.5 flex-wrap">
-                    <span class="px-1.5 py-0.5 rounded text-[10px] border {ch.effectiveness === 'high' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : ch.effectiveness === 'medium' ? 'bg-amber-100 text-amber-800 border-amber-300' : 'bg-red-100 text-red-800 border-red-300'}">{ch.effectiveness}</span>
-                    <span class="text-[10px] text-dark-900/60">[{ch.phase}]</span>
-                    <span class="text-[10px] text-dark-900/60">[{ch.type}]</span>
+                    <span class="px-1.5 py-0.5 rounded text-[10px] border {ch.effectiveness === 'high' ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700' : ch.effectiveness === 'medium' ? 'bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-700' : 'bg-red-100 dark:bg-red-950/40 text-red-800 dark:text-red-300 border-red-300 dark:border-red-700'}">{ch.effectiveness}</span>
+                    <span class="text-[10px] text-dark-900/60 dark:text-dark-100/60">[{ch.phase}]</span>
+                    <span class="text-[10px] text-dark-900/60 dark:text-dark-100/60">[{ch.type}]</span>
                   </div>
-                  <div class="font-semibold text-teal-900">{ch.channel_name}</div>
-                  {#if ch.notes}<div class="text-teal-800 text-[10px] mt-0.5">{ch.notes}</div>{/if}
+                  <div class="font-semibold text-teal-900 dark:text-teal-200">{ch.channel_name}</div>
+                  {#if ch.notes}<div class="text-teal-800 dark:text-teal-300 text-[10px] mt-0.5">{ch.notes}</div>{/if}
                 </div>
               {/each}
             </div>
           </div>
 
           <!-- Customer Relationships -->
-          <div class="bg-white border-2 border-cyan-200 rounded-xl p-3">
-            <div class="text-sm font-bold text-cyan-700 mb-2">🤝 Customer Relationships ({output.customer_relationships?.length || 0})</div>
+          <div class="bg-white dark:bg-dark-800 border-2 border-cyan-200 dark:border-cyan-800 rounded-xl p-3">
+            <div class="text-sm font-bold text-cyan-700 dark:text-cyan-400 mb-2">🤝 Customer Relationships ({output.customer_relationships?.length || 0})</div>
             <div class="space-y-1.5">
               {#each output.customer_relationships || [] as r}
-                <div class="bg-cyan-50 rounded p-2 text-xs">
+                <div class="bg-cyan-50 dark:bg-cyan-950/40 rounded p-2 text-xs">
                   <div class="flex items-center gap-1.5 mb-0.5 flex-wrap">
-                    <span class="px-1.5 py-0.5 rounded text-[10px] border {r.intensity === 'high' ? 'bg-red-100 text-red-800 border-red-300' : r.intensity === 'medium' ? 'bg-amber-100 text-amber-800 border-amber-300' : 'bg-blue-100 text-blue-800 border-blue-300'}">{r.intensity}</span>
-                    <span class="text-[10px] text-dark-900/60">[{r.type}]</span>
-                    <span class="text-[10px] text-dark-900/60">[{r.motivation}]</span>
+                    <span class="px-1.5 py-0.5 rounded text-[10px] border {r.intensity === 'high' ? 'bg-red-100 dark:bg-red-950/40 text-red-800 dark:text-red-300 border-red-300 dark:border-red-700' : r.intensity === 'medium' ? 'bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-700' : 'bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-700'}">{r.intensity}</span>
+                    <span class="text-[10px] text-dark-900/60 dark:text-dark-100/60">[{r.type}]</span>
+                    <span class="text-[10px] text-dark-900/60 dark:text-dark-100/60">[{r.motivation}]</span>
                   </div>
-                  <div class="font-semibold text-cyan-900">→ {r.segment}</div>
-                  {#if r.example}<div class="text-cyan-800 text-[10px] mt-0.5 italic">"{r.example}"</div>{/if}
+                  <div class="font-semibold text-cyan-900 dark:text-cyan-200">→ {r.segment}</div>
+                  {#if r.example}<div class="text-cyan-800 dark:text-cyan-300 text-[10px] mt-0.5 italic">"{r.example}"</div>{/if}
                 </div>
               {/each}
             </div>
@@ -596,49 +604,52 @@ White space: ${s.output?.white_space || '-'}`;
         <!-- KR + KA + KP row -->
         <div class="grid lg:grid-cols-3 gap-3">
           <!-- Key Resources -->
-          <div class="bg-white border-2 border-amber-200 rounded-xl p-3">
-            <div class="text-sm font-bold text-amber-700 mb-2">🔧 Key Resources ({output.key_resources?.length || 0})</div>
+          <div class="bg-white dark:bg-dark-800 border-2 border-amber-200 dark:border-amber-800 rounded-xl p-3">
+            <div class="text-sm font-bold text-amber-700 dark:text-amber-400 mb-2">🔧 Key Resources ({output.key_resources?.length || 0})</div>
             <div class="space-y-1.5">
               {#each output.key_resources || [] as r}
-                <div class="bg-amber-50 rounded p-2 text-xs">
+                <div class="bg-amber-50 dark:bg-amber-950/40 rounded p-2 text-xs">
                   <div class="flex items-center gap-1.5 mb-0.5 flex-wrap">
                     <span class="px-1.5 py-0.5 rounded text-[10px] border {importanceColor(r.importance)}">{importanceLabel(r.importance)}</span>
-                    <span class="text-[10px] text-dark-900/60">[{r.type}]</span>
+                    <span class="text-[10px] text-dark-900/60 dark:text-dark-100/60">[{r.type}]</span>
                   </div>
-                  <div class="text-amber-900">{r.description}</div>
+                  <div class="text-amber-900 dark:text-amber-200">{r.description}</div>
+                  {#if r.supports_vp}<div class="text-[10px] text-amber-700/70 dark:text-amber-400/70 mt-0.5">💎 {r.supports_vp}</div>{/if}
                 </div>
               {/each}
             </div>
           </div>
 
           <!-- Key Activities -->
-          <div class="bg-white border-2 border-orange-200 rounded-xl p-3">
-            <div class="text-sm font-bold text-orange-700 mb-2">⚙️ Key Activities ({output.key_activities?.length || 0})</div>
+          <div class="bg-white dark:bg-dark-800 border-2 border-orange-200 dark:border-orange-800 rounded-xl p-3">
+            <div class="text-sm font-bold text-orange-700 dark:text-orange-400 mb-2">⚙️ Key Activities ({output.key_activities?.length || 0})</div>
             <div class="space-y-1.5">
               {#each output.key_activities || [] as a}
-                <div class="bg-orange-50 rounded p-2 text-xs">
+                <div class="bg-orange-50 dark:bg-orange-950/40 rounded p-2 text-xs">
                   <div class="flex items-center gap-1.5 mb-0.5 flex-wrap">
                     <span class="px-1.5 py-0.5 rounded text-[10px] border {importanceColor(a.importance)}">{importanceLabel(a.importance)}</span>
-                    <span class="text-[10px] text-dark-900/60">[{a.type}]</span>
+                    <span class="text-[10px] text-dark-900/60 dark:text-dark-100/60">[{a.type}]</span>
                   </div>
-                  <div class="text-orange-900">{a.description}</div>
+                  <div class="text-orange-900 dark:text-orange-200">{a.description}</div>
+                  {#if a.supports_vp}<div class="text-[10px] text-orange-700/70 dark:text-orange-400/70 mt-0.5">💎 {a.supports_vp}</div>{/if}
                 </div>
               {/each}
             </div>
           </div>
 
           <!-- Key Partnerships -->
-          <div class="bg-white border-2 border-pink-200 rounded-xl p-3">
-            <div class="text-sm font-bold text-pink-700 mb-2">🤝 Key Partnerships ({output.key_partnerships?.length || 0})</div>
+          <div class="bg-white dark:bg-dark-800 border-2 border-pink-200 dark:border-pink-800 rounded-xl p-3">
+            <div class="text-sm font-bold text-pink-700 dark:text-pink-400 mb-2">🤝 Key Partnerships ({output.key_partnerships?.length || 0})</div>
             <div class="space-y-1.5">
               {#each output.key_partnerships || [] as p}
-                <div class="bg-pink-50 rounded p-2 text-xs">
+                <div class="bg-pink-50 dark:bg-pink-950/40 rounded p-2 text-xs">
                   <div class="flex items-center gap-1.5 mb-0.5 flex-wrap">
-                    <span class="text-[10px] text-dark-900/60">[{p.type}]</span>
-                    <span class="text-[10px] text-dark-900/60">[{p.motivation}]</span>
+                    <span class="text-[10px] text-dark-900/60 dark:text-dark-100/60">[{p.type}]</span>
+                    <span class="text-[10px] text-dark-900/60 dark:text-dark-100/60">[{p.motivation}]</span>
                   </div>
-                  <div class="font-semibold text-pink-900">{p.partner_type}</div>
-                  <div class="text-pink-800 text-[10px] mt-0.5">⇄ {p.value_exchange}</div>
+                  <div class="font-semibold text-pink-900 dark:text-pink-200">{p.partner_type}</div>
+                  <div class="text-pink-800 dark:text-pink-300 text-[10px] mt-0.5">⇄ {p.value_exchange}</div>
+                  {#if p.supports_vp}<div class="text-[10px] text-pink-700/70 dark:text-pink-400/70 mt-0.5">💎 {p.supports_vp}</div>{/if}
                 </div>
               {/each}
             </div>
@@ -648,21 +659,22 @@ White space: ${s.output?.white_space || '-'}`;
 
       <!-- VIABILITY: Revenue + Cost -->
       <div>
-        <div class="text-xs font-bold text-emerald-700 uppercase mb-2 tracking-wider">🟨 Viability (ทำเงินได้ไหม)</div>
+        <div class="text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase mb-2 tracking-wider">🟨 Viability (ทำเงินได้ไหม)</div>
         <div class="grid lg:grid-cols-2 gap-3">
           <!-- Revenue Streams -->
-          <div class="bg-white border-2 border-emerald-200 rounded-xl p-3">
-            <div class="text-sm font-bold text-emerald-700 mb-2">💰 Revenue Streams ({output.revenue_streams?.length || 0})</div>
+          <div class="bg-white dark:bg-dark-800 border-2 border-emerald-200 dark:border-emerald-800 rounded-xl p-3">
+            <div class="text-sm font-bold text-emerald-700 dark:text-emerald-400 mb-2">💰 Revenue Streams ({output.revenue_streams?.length || 0})</div>
             <div class="space-y-1.5">
               {#each output.revenue_streams || [] as r}
-                <div class="bg-emerald-50 rounded p-2 text-xs">
+                <div class="bg-emerald-50 dark:bg-emerald-950/40 rounded p-2 text-xs">
                   <div class="flex items-center gap-1.5 mb-0.5 flex-wrap">
-                    <span class="text-[10px] text-dark-900/60">[{r.type}]</span>
-                    <span class="text-[10px] text-dark-900/60">[{r.pricing_model}]</span>
-                    <span class="text-[10px] text-emerald-700 font-semibold">{r.estimated_share}</span>
+                    <span class="text-[10px] text-dark-900/60 dark:text-dark-100/60">[{r.type}]</span>
+                    <span class="text-[10px] text-dark-900/60 dark:text-dark-100/60">[{r.pricing_model}]</span>
+                    <span class="text-[10px] text-emerald-700 dark:text-emerald-400 font-semibold">{r.estimated_share}</span>
                   </div>
-                  <div class="text-emerald-900">{r.description}</div>
-                  <div class="text-emerald-700 text-[10px] mt-0.5">💵 {r.price_range}</div>
+                  <div class="text-emerald-900 dark:text-emerald-200">{r.description}</div>
+                  <div class="text-emerald-700 dark:text-emerald-400 text-[10px] mt-0.5">💵 {r.price_range}</div>
+                  {#if r.for_segment}<div class="text-[10px] text-emerald-700/70 dark:text-emerald-400/70 mt-0.5">👥 {r.for_segment}</div>{/if}
                 </div>
               {/each}
             </div>
@@ -671,31 +683,31 @@ White space: ${s.output?.white_space || '-'}`;
           <!-- Cost Structure -->
           {#if output.cost_structure}
             {@const cs = output.cost_structure}
-            <div class="bg-white border-2 border-red-200 rounded-xl p-3">
-              <div class="text-sm font-bold text-red-700 mb-2">📊 Cost Structure</div>
+            <div class="bg-white dark:bg-dark-800 border-2 border-red-200 dark:border-red-800 rounded-xl p-3">
+              <div class="text-sm font-bold text-red-700 dark:text-red-400 mb-2">📊 Cost Structure</div>
               <div class="space-y-2">
                 <div class="flex items-center gap-1.5 flex-wrap text-xs">
-                  <span class="px-1.5 py-0.5 rounded text-[10px] border {cs.model === 'value-driven' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : cs.model === 'cost-driven' ? 'bg-red-100 text-red-800 border-red-300' : 'bg-amber-100 text-amber-800 border-amber-300'}">{cs.model}</span>
+                  <span class="px-1.5 py-0.5 rounded text-[10px] border {cs.model === 'value-driven' ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700' : cs.model === 'cost-driven' ? 'bg-red-100 dark:bg-red-950/40 text-red-800 dark:text-red-300 border-red-300 dark:border-red-700' : 'bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-700'}">{cs.model}</span>
                   <span class="px-1.5 py-0.5 rounded text-[10px] border {marginColor(cs.estimated_margin_profile)}">Margin: {cs.estimated_margin_profile}</span>
-                  {#if cs.economies_of_scale}<span class="px-1.5 py-0.5 rounded text-[10px] bg-blue-100 text-blue-800 border-blue-300">Scale ✓</span>{/if}
-                  {#if cs.economies_of_scope}<span class="px-1.5 py-0.5 rounded text-[10px] bg-blue-100 text-blue-800 border-blue-300">Scope ✓</span>{/if}
+                  {#if cs.economies_of_scale}<span class="px-1.5 py-0.5 rounded text-[10px] bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-700">Scale ✓</span>{/if}
+                  {#if cs.economies_of_scope}<span class="px-1.5 py-0.5 rounded text-[10px] bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-700">Scope ✓</span>{/if}
                 </div>
                 {#if cs.major_fixed_costs?.length}
                   <div>
-                    <div class="text-[10px] font-bold text-red-800 uppercase mb-1">Fixed Costs</div>
+                    <div class="text-[10px] font-bold text-red-800 dark:text-red-300 uppercase mb-1">Fixed Costs</div>
                     {#each cs.major_fixed_costs as c}
-                      <div class="bg-red-50 rounded p-1.5 text-xs text-red-900 mb-0.5">
-                        {c.description} <span class="text-[10px] text-red-700/70">({c.estimated_share})</span>
+                      <div class="bg-red-50 dark:bg-red-950/40 rounded p-1.5 text-xs text-red-900 dark:text-red-200 mb-0.5">
+                        {c.description} <span class="text-[10px] text-red-700/70 dark:text-red-400/70">({c.estimated_share})</span>
                       </div>
                     {/each}
                   </div>
                 {/if}
                 {#if cs.major_variable_costs?.length}
                   <div>
-                    <div class="text-[10px] font-bold text-red-800 uppercase mb-1">Variable Costs</div>
+                    <div class="text-[10px] font-bold text-red-800 dark:text-red-300 uppercase mb-1">Variable Costs</div>
                     {#each cs.major_variable_costs as c}
-                      <div class="bg-red-50 rounded p-1.5 text-xs text-red-900 mb-0.5">
-                        {c.description} <span class="text-[10px] text-red-700/70">({c.estimated_share})</span>
+                      <div class="bg-red-50 dark:bg-red-950/40 rounded p-1.5 text-xs text-red-900 dark:text-red-200 mb-0.5">
+                        {c.description} <span class="text-[10px] text-red-700/70 dark:text-red-400/70">({c.estimated_share})</span>
                       </div>
                     {/each}
                   </div>
@@ -709,30 +721,30 @@ White space: ${s.output?.white_space || '-'}`;
       <!-- SWOT -->
       {#if output.swot_summary}
         {@const sw = output.swot_summary}
-        <div class="bg-gradient-to-br from-slate-50 to-dark-50 border-2 border-slate-300 rounded-2xl p-4">
-          <div class="font-semibold text-slate-900 mb-3 flex items-center gap-2">🎯 SWOT Summary</div>
+        <div class="bg-gradient-to-br from-slate-50 to-dark-50 dark:from-slate-900/40 dark:to-dark-900/40 border-2 border-slate-300 dark:border-slate-700 rounded-2xl p-4">
+          <div class="font-semibold text-slate-900 dark:text-slate-100 mb-3 flex items-center gap-2">🎯 SWOT Summary</div>
           <div class="grid grid-cols-2 gap-2">
-            <div class="bg-emerald-50 border-l-4 border-emerald-500 rounded p-2">
-              <div class="text-xs font-bold text-emerald-800 uppercase mb-1">💪 Strengths</div>
-              <ul class="text-xs text-emerald-900 space-y-0.5">
+            <div class="bg-emerald-50 dark:bg-emerald-950/40 border-l-4 border-emerald-500 dark:border-emerald-600 rounded p-2">
+              <div class="text-xs font-bold text-emerald-800 dark:text-emerald-300 uppercase mb-1">💪 Strengths</div>
+              <ul class="text-xs text-emerald-900 dark:text-emerald-200 space-y-0.5">
                 {#each sw.strengths || [] as s}<li>• {s}</li>{/each}
               </ul>
             </div>
-            <div class="bg-amber-50 border-l-4 border-amber-500 rounded p-2">
-              <div class="text-xs font-bold text-amber-800 uppercase mb-1">⚠️ Weaknesses</div>
-              <ul class="text-xs text-amber-900 space-y-0.5">
+            <div class="bg-amber-50 dark:bg-amber-950/40 border-l-4 border-amber-500 dark:border-amber-600 rounded p-2">
+              <div class="text-xs font-bold text-amber-800 dark:text-amber-300 uppercase mb-1">⚠️ Weaknesses</div>
+              <ul class="text-xs text-amber-900 dark:text-amber-200 space-y-0.5">
                 {#each sw.weaknesses || [] as w}<li>• {w}</li>{/each}
               </ul>
             </div>
-            <div class="bg-blue-50 border-l-4 border-blue-500 rounded p-2">
-              <div class="text-xs font-bold text-blue-800 uppercase mb-1">🚀 Opportunities</div>
-              <ul class="text-xs text-blue-900 space-y-0.5">
+            <div class="bg-blue-50 dark:bg-blue-950/40 border-l-4 border-blue-500 dark:border-blue-600 rounded p-2">
+              <div class="text-xs font-bold text-blue-800 dark:text-blue-300 uppercase mb-1">🚀 Opportunities</div>
+              <ul class="text-xs text-blue-900 dark:text-blue-200 space-y-0.5">
                 {#each sw.opportunities || [] as o}<li>• {o}</li>{/each}
               </ul>
             </div>
-            <div class="bg-red-50 border-l-4 border-red-500 rounded p-2">
-              <div class="text-xs font-bold text-red-800 uppercase mb-1">⚡ Threats</div>
-              <ul class="text-xs text-red-900 space-y-0.5">
+            <div class="bg-red-50 dark:bg-red-950/40 border-l-4 border-red-500 dark:border-red-600 rounded p-2">
+              <div class="text-xs font-bold text-red-800 dark:text-red-300 uppercase mb-1">⚡ Threats</div>
+              <ul class="text-xs text-red-900 dark:text-red-200 space-y-0.5">
                 {#each sw.threats || [] as t}<li>• {t}</li>{/each}
               </ul>
             </div>
@@ -742,16 +754,16 @@ White space: ${s.output?.white_space || '-'}`;
 
       <!-- Key Assumptions -->
       {#if output.key_assumptions?.length}
-        <div class="bg-gradient-to-br from-rose-50 to-pink-50 border-2 border-rose-300 rounded-2xl p-4">
-          <div class="font-semibold text-rose-900 mb-2 flex items-center gap-2">🧪 Key Assumptions (ต้อง validate)</div>
+        <div class="bg-gradient-to-br from-rose-50 to-pink-50 dark:from-rose-950/40 dark:to-pink-950/40 border-2 border-rose-300 dark:border-rose-700 rounded-2xl p-4">
+          <div class="font-semibold text-rose-900 dark:text-rose-200 mb-2 flex items-center gap-2">🧪 Key Assumptions (ต้อง validate)</div>
           <div class="space-y-1.5">
             {#each output.key_assumptions as a}
-              <div class="bg-white border-l-4 {a.risk_level === 'high' ? 'border-red-500' : a.risk_level === 'medium' ? 'border-amber-500' : 'border-blue-500'} rounded p-2 text-xs">
+              <div class="bg-white dark:bg-dark-800 border-l-4 {a.risk_level === 'high' ? 'border-red-500 dark:border-red-600' : a.risk_level === 'medium' ? 'border-amber-500 dark:border-amber-600' : 'border-blue-500 dark:border-blue-600'} rounded p-2 text-xs">
                 <div class="flex items-center gap-1.5 mb-0.5">
-                  <span class="px-1.5 py-0.5 rounded text-[10px] border {a.risk_level === 'high' ? 'bg-red-100 text-red-800 border-red-300' : a.risk_level === 'medium' ? 'bg-amber-100 text-amber-800 border-amber-300' : 'bg-blue-100 text-blue-800 border-blue-300'}">Risk: {a.risk_level}</span>
+                  <span class="px-1.5 py-0.5 rounded text-[10px] border {a.risk_level === 'high' ? 'bg-red-100 dark:bg-red-950/40 text-red-800 dark:text-red-300 border-red-300 dark:border-red-700' : a.risk_level === 'medium' ? 'bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-700' : 'bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-700'}">Risk: {a.risk_level}</span>
                 </div>
-                <div class="font-semibold text-rose-900">{a.assumption}</div>
-                <div class="text-rose-800 text-[10px] mt-0.5 italic">→ ทดสอบ: {a.how_to_test}</div>
+                <div class="font-semibold text-rose-900 dark:text-rose-200">{a.assumption}</div>
+                <div class="text-rose-800 dark:text-rose-300 text-[10px] mt-0.5 italic">→ ทดสอบ: {a.how_to_test}</div>
               </div>
             {/each}
           </div>
@@ -760,9 +772,9 @@ White space: ${s.output?.white_space || '-'}`;
 
       <!-- Validation Questions -->
       {#if output.validation_questions?.length}
-        <div class="bg-white border border-dark-200 rounded-lg p-3">
-          <div class="text-xs font-bold text-dark-900/60 uppercase mb-1.5">❓ Validation Questions (ก่อน scale)</div>
-          <ul class="space-y-0.5 text-sm text-dark-900/80">
+        <div class="bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 rounded-lg p-3">
+          <div class="text-xs font-bold text-dark-900/60 dark:text-dark-100/60 uppercase mb-1.5">❓ Validation Questions (ก่อน scale)</div>
+          <ul class="space-y-0.5 text-sm text-dark-900/80 dark:text-dark-100/80">
             {#each output.validation_questions as v}<li>• {v}</li>{/each}
           </ul>
         </div>
@@ -770,29 +782,29 @@ White space: ${s.output?.white_space || '-'}`;
 
       <!-- Next Steps -->
       {#if output.next_steps?.length}
-        <div class="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl p-3">
-          <div class="text-xs font-bold text-emerald-800 uppercase mb-1.5">➡️ Next Steps</div>
-          <ul class="space-y-0.5 text-sm text-emerald-900">
+        <div class="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-teal-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl p-3">
+          <div class="text-xs font-bold text-emerald-800 dark:text-emerald-300 uppercase mb-1.5">➡️ Next Steps</div>
+          <ul class="space-y-0.5 text-sm text-emerald-900 dark:text-emerald-200">
             {#each output.next_steps as s}<li class="flex gap-1.5"><span>→</span>{s}</li>{/each}
           </ul>
         </div>
       {/if}
 
       {#if output.reasoning}
-        <div class="bg-white border border-dark-100 rounded-xl p-4 text-sm italic text-dark-900/70">
+        <div class="bg-white dark:bg-dark-800 border border-dark-100 dark:border-dark-700 rounded-xl p-4 text-sm italic text-dark-900/70 dark:text-dark-100/70">
           💡 {output.reasoning}
         </div>
       {/if}
 
       <!-- Action bar -->
       <ToolChainHint current="business_model_canvas" />
-      <div class="flex items-center justify-between pt-4 border-t border-dark-100 flex-wrap gap-2">
-        <button onclick={() => { output = null; error = ''; saveId = null; saveMsg = ''; }} class="text-sm text-dark-900/60 hover:text-primary-600">
+      <div class="flex items-center justify-between pt-4 border-t border-dark-100 dark:border-dark-700 flex-wrap gap-2">
+        <button onclick={() => { output = null; error = ''; saveId = null; saveMsg = ''; }} class="text-sm text-dark-900/60 dark:text-dark-100/60 hover:text-primary-600 dark:hover:text-primary-400">
           ← ออกแบบใหม่
         </button>
         <div class="flex items-center gap-2 flex-wrap">
-          {#if saveMsg}<span class="text-xs {saveMsg.startsWith('✓') ? 'text-green-700' : 'text-red-700'}">{saveMsg}</span>{/if}
-          <input type="text" bind:value={saveTitle} placeholder="ตั้งชื่อ (ไม่บังคับ)" class="text-xs px-2 py-1.5 rounded border border-dark-200 w-40" />
+          {#if saveMsg}<span class="text-xs {saveMsg.startsWith('✓') ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}">{saveMsg}</span>{/if}
+          <input type="text" bind:value={saveTitle} placeholder="ตั้งชื่อ (ไม่บังคับ)" class="text-xs px-2 py-1.5 rounded border border-dark-200 dark:border-dark-600 w-40" />
           <button onclick={handleSave} disabled={isSaving} class="text-sm btn-secondary disabled:opacity-50">
             {isSaving ? '...' : (saveId ? '✓ บันทึกแล้ว' : '💾 บันทึก')}
           </button>
@@ -805,7 +817,7 @@ White space: ${s.output?.white_space || '-'}`;
           <button onclick={handleCanvasPDF} class="text-sm btn-primary" title="เปิด One-page Canvas PDF (A3 landscape)">🎨 Canvas PDF</button>
         </div>
       </div>
-      {#if promoteMsg}<div class="mt-2 text-xs {promoteMsg.startsWith('✓') ? 'text-green-700' : 'text-red-700'}">{promoteMsg}</div>{/if}
+      {#if promoteMsg}<div class="mt-2 text-xs {promoteMsg.startsWith('✓') ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}">{promoteMsg}</div>{/if}
     </div>
   {/if}
 </ToolLayout>

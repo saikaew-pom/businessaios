@@ -1297,6 +1297,7 @@ export const bmcGeneratorPrompt: PromptTemplate = {
   • **Viability** (ทำเงินได้ไหม): Revenue Streams + Cost Structure
 - **แนะนำลำดับการออกแบบ:** CS → VP → Channels → CR → Revenue → KR → KA → KP → Cost
 - **VPC = "plug-in zoom" ของ CS + VP blocks** — ถ้ามี VPC context ให้ใช้เป็นแกน
+- **9 blocks ต้องเชื่อมกันเป็นระบบเดียว ไม่ใช่ 9 list แยกกัน** — Revenue Streams ต้องระบุว่ามาจาก segment ไหน, Key Resources/Activities/Partnerships ต้องสนับสนุน Value Proposition ไหน (ไม่ใช่ list ลอย ๆ ที่ไม่รู้ว่าเกี่ยวกับอะไร)
 - **Business Model Patterns:** Long Tail, Multi-sided Platform, Free, Open, Freemium, Subscription, Razor & Blade, etc.
 - **Key Assumption Test:** ทุก business model มี 2-3 สมมติฐานสำคัญที่ต้อง validate
 - **3 Types of Fit:** Problem-Solution (VPC) → Product-Market → Business Model (BMC นี้)
@@ -1394,7 +1395,8 @@ ${input.uploaded_files.map((f: any) => `- ${f.name} (${f.mime || 'unknown'})`).j
 {
   "summary": "ภาพรวม Business Model 2-3 ประโยค",
   "executive_insight": "Insight เชิงกลยุทธ์ 1 ประโยค (เช่น โมเดลนี้ make sense เพราะ...)",
-  
+  "model_coherence": "1-2 ประโยคที่เล่าว่า segment หลัก → VP → revenue stream → resource/activity ที่ต้องมี เชื่อมกันเป็นเหตุเป็นผลยังไง (ไม่ใช่แค่สรุป แต่โชว์ logic chain)",
+
   "customer_segments": [
     {
       "name": "ชื่อ segment (เช่น คนใต้ในกรุงเทพ)",
@@ -1440,33 +1442,37 @@ ${input.uploaded_files.map((f: any) => `- ${f.name} (${f.mime || 'unknown'})`).j
     {
       "type": "asset_usage | usage_fee | subscription | lending | licensing | brokerage | advertising | fixed | dynamic",
       "description": "รายได้ประเภทนี้คืออะไร",
+      "for_segment": "มาจาก customer segment ไหน",
       "pricing_model": "fixed | dynamic | negotiable",
       "price_range": "ช่วงราคา",
       "estimated_share": "ประมาณ % ของรายได้รวม"
     }
   ],
-  
+
   "key_resources": [
     {
       "type": "physical | intellectual | human | financial",
       "description": "ทรัพยากรนี้คืออะไร",
+      "supports_vp": "สนับสนุน value proposition ไหน (ชื่อ vp_title)",
       "importance": "critical | important | supporting"
     }
   ],
-  
+
   "key_activities": [
     {
       "type": "production | problem_solving | platform | network",
       "description": "กิจกรรมนี้คืออะไร",
+      "supports_vp": "สนับสนุน value proposition ไหน (ชื่อ vp_title)",
       "importance": "critical | important | supporting"
     }
   ],
-  
+
   "key_partnerships": [
     {
       "type": "strategic_alliance | joint_venture | buyer_supplier | franchise | competitor_coop",
       "partner_type": "ประเภท partner (เช่น supplier, platform, distributor)",
       "motivation": "optimization | risk_reduction | resource_acquisition",
+      "supports_vp": "สนับสนุน value proposition ไหน (ชื่อ vp_title)",
       "value_exchange": "เราได้อะไร เขาได้อะไร"
     }
   ],
@@ -1519,7 +1525,9 @@ ${input.uploaded_files.map((f: any) => `- ${f.name} (${f.mime || 'unknown'})`).j
 ⚠️ importance + priority + intensity ต้องใส่ทุกตัว
 ⚠️ key_assumptions ต้อง testable — มี how_to_test
 ⚠️ swot 2-3 ข้อต่อ quadrant
-⚠️ business_model_pattern 1 คำที่ identify ได้`,
+⚠️ business_model_pattern 1 คำที่ identify ได้
+⚠️ revenue_streams.for_segment ต้องตรงกับชื่อ segment ใน customer_segments จริง เลือกมาแค่ 1 ชื่อเท่านั้น (ห้ามใส่หลายชื่อคั่นด้วยจุลภาค — ถ้ารายได้มาจากหลาย segment ให้เลือก segment หลักที่สุด และไม่ใช่คำใหม่ที่ไม่มีในรายการ)
+⚠️ key_resources/key_activities/key_partnerships.supports_vp ต้องตรงกับ vp_title ใน value_propositions จริง`,
   }),
   parseOutput: (raw) => raw,
 };
