@@ -36,7 +36,7 @@
 </svelte:head>
 
 <!-- =========================== NAV =========================== -->
-<nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-dark-100">
+<nav class="sticky top-0 z-50 bg-white/80 dark:bg-dark-800/80 backdrop-blur-md border-b border-dark-100 dark:border-dark-700">
   <div class="container-narrow flex items-center justify-between h-16">
     <a href="/" class="flex items-center gap-2">
       <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
@@ -46,27 +46,27 @@
     </a>
 
     <div class="hidden md:flex items-center gap-8">
-      <a href="#features" class="text-sm text-dark-900/70 hover:text-dark-900 transition">{t(currentLocale, 'nav.features')}</a>
-      <a href="#how" class="text-sm text-dark-900/70 hover:text-dark-900 transition">{t(currentLocale, 'nav.how')}</a>
-      <a href="#pricing" class="text-sm text-dark-900/70 hover:text-dark-900 transition">{t(currentLocale, 'nav.pricing')}</a>
-      <a href="#faq" class="text-sm text-dark-900/70 hover:text-dark-900 transition">{t(currentLocale, 'nav.faq')}</a>
+      <a href="#features" class="text-sm text-dark-900/70 dark:text-dark-100/70 hover:text-dark-900 dark:hover:text-dark-50 transition">{t(currentLocale, 'nav.features')}</a>
+      <a href="#how" class="text-sm text-dark-900/70 dark:text-dark-100/70 hover:text-dark-900 dark:hover:text-dark-50 transition">{t(currentLocale, 'nav.how')}</a>
+      <a href="#pricing" class="text-sm text-dark-900/70 dark:text-dark-100/70 hover:text-dark-900 dark:hover:text-dark-50 transition">{t(currentLocale, 'nav.pricing')}</a>
+      <a href="#faq" class="text-sm text-dark-900/70 dark:text-dark-100/70 hover:text-dark-900 dark:hover:text-dark-50 transition">{t(currentLocale, 'nav.faq')}</a>
     </div>
 
     <div class="flex items-center gap-3">
       <button
         onclick={toggleLocale}
-        class="text-xs font-semibold px-2.5 py-1 rounded border border-dark-200 hover:bg-dark-50 transition"
+        class="text-xs font-semibold px-2.5 py-1 rounded border border-dark-200 dark:border-dark-600 hover:bg-dark-50 dark:hover:bg-dark-900/50 transition"
         aria-label="Toggle language"
       >
         {currentLocale === 'th' ? 'EN' : 'TH'}
       </button>
-      <a href="/login" class="text-sm text-dark-900/70 hover:text-dark-900 transition hidden sm:block">
+      <a href="/login" class="text-sm text-dark-900/70 dark:text-dark-100/70 hover:text-dark-900 dark:hover:text-dark-50 transition hidden sm:block">
         {t(currentLocale, 'nav.signin')}
       </a>
       <a href="/register" class="btn-primary text-sm py-2 px-4">
         {t(currentLocale, 'nav.cta')}
       </a>
-      <a href="/tools" class="text-sm text-dark-900/70 hover:text-dark-900 transition hidden sm:block" title="เครื่องมือระบบอัจฉริยะแยกต่างหาก">
+      <a href="/tools" class="text-sm text-dark-900/70 dark:text-dark-100/70 hover:text-dark-900 dark:hover:text-dark-50 transition hidden sm:block" title="เครื่องมือระบบอัจฉริยะแยกต่างหาก">
         ⚡ Tools
       </a>
     </div>
@@ -83,9 +83,9 @@
 
   <div class="container-narrow text-center">
     <!-- Badge -->
-    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-50 border border-primary-100 mb-8 animate-fade-in">
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-50 dark:bg-primary-900/40 border border-primary-100 dark:border-primary-800 mb-8 animate-fade-in">
       <span class="w-2 h-2 rounded-full bg-primary-500 animate-pulse"></span>
-      <span class="text-xs font-medium text-primary-700">{t(currentLocale, 'hero.badge')}</span>
+      <span class="text-xs font-medium text-primary-700 dark:text-primary-300">{t(currentLocale, 'hero.badge')}</span>
     </div>
 
     <!-- Title -->
@@ -98,7 +98,7 @@
     </h1>
 
     <!-- Subtitle -->
-    <p class="text-lg sm:text-xl text-dark-900/70 max-w-2xl mx-auto mb-10 leading-relaxed">
+    <p class="text-lg sm:text-xl text-dark-900/70 dark:text-dark-100/70 max-w-2xl mx-auto mb-10 leading-relaxed">
       {t(currentLocale, 'hero.subtitle')}
     </p>
 
@@ -114,7 +114,7 @@
     </div>
 
     <!-- Social proof -->
-    <div class="flex items-center justify-center gap-2 text-sm text-dark-900/60">
+    <div class="flex items-center justify-center gap-2 text-sm text-dark-900/60 dark:text-dark-100/60">
       <svg class="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
       <span>{t(currentLocale, 'hero.proof')}</span>
     </div>
@@ -122,21 +122,21 @@
 </section>
 
 <!-- =========================== FEATURES =========================== -->
-<section id="features" class="section bg-dark-50">
+<section id="features" class="section bg-dark-50 dark:bg-dark-950">
   <div class="container-narrow">
     <div class="text-center max-w-2xl mx-auto mb-16">
       <h2 class="heading-2 mb-4">{t(currentLocale, 'features.title')}</h2>
-      <p class="text-lg text-dark-900/70">{t(currentLocale, 'features.subtitle')}</p>
+      <p class="text-lg text-dark-900/70 dark:text-dark-100/70">{t(currentLocale, 'features.subtitle')}</p>
     </div>
 
     <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
       {#each [1, 2, 3, 4, 5, 6] as i}
-        <div class="bg-white rounded-2xl p-8 border border-dark-100 hover:border-primary-200 hover:shadow-xl hover:shadow-primary-500/5 transition-all duration-300">
-          <div class="w-12 h-12 rounded-xl bg-primary-50 flex items-center justify-center mb-5">
+        <div class="bg-white dark:bg-dark-800 rounded-2xl p-8 border border-dark-100 dark:border-dark-700 hover:border-primary-200 dark:hover:border-primary-700 hover:shadow-xl hover:shadow-primary-500/5 transition-all duration-300">
+          <div class="w-12 h-12 rounded-xl bg-primary-50 dark:bg-primary-900/40 flex items-center justify-center mb-5">
             <span class="text-2xl">⚡</span>
           </div>
           <h3 class="heading-3 mb-2">{t(currentLocale, `features.${i}.title` as StringKey)}</h3>
-          <p class="text-dark-900/70 leading-relaxed">{t(currentLocale, `features.${i}.desc` as StringKey)}</p>
+          <p class="text-dark-900/70 dark:text-dark-100/70 leading-relaxed">{t(currentLocale, `features.${i}.desc` as StringKey)}</p>
         </div>
       {/each}
     </div>
@@ -148,15 +148,15 @@
   <div class="container-narrow">
     <div class="text-center max-w-2xl mx-auto mb-16">
       <h2 class="heading-2 mb-4">{t(currentLocale, 'how.title')}</h2>
-      <p class="text-lg text-dark-900/70">{t(currentLocale, 'how.subtitle')}</p>
+      <p class="text-lg text-dark-900/70 dark:text-dark-100/70">{t(currentLocale, 'how.subtitle')}</p>
     </div>
 
     <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
       {#each [1, 2, 3, 4] as i}
         <div class="relative">
-          <div class="text-6xl font-bold text-primary-100 mb-4">0{i}</div>
+          <div class="text-6xl font-bold text-primary-100 dark:text-primary-900/60 mb-4">0{i}</div>
           <h3 class="heading-3 mb-2">{t(currentLocale, `how.${i}.title` as StringKey)}</h3>
-          <p class="text-dark-900/70 leading-relaxed">{t(currentLocale, `how.${i}.desc` as StringKey)}</p>
+          <p class="text-dark-900/70 dark:text-dark-100/70 leading-relaxed">{t(currentLocale, `how.${i}.desc` as StringKey)}</p>
         </div>
       {/each}
     </div>
@@ -164,21 +164,21 @@
 </section>
 
 <!-- =========================== PRICING =========================== -->
-<section id="pricing" class="section bg-dark-50">
+<section id="pricing" class="section bg-dark-50 dark:bg-dark-950">
   <div class="container-narrow">
     <div class="text-center max-w-2xl mx-auto mb-16">
       <h2 class="heading-2 mb-4">{t(currentLocale, 'pricing.title')}</h2>
-      <p class="text-lg text-dark-900/70">{t(currentLocale, 'pricing.subtitle')}</p>
+      <p class="text-lg text-dark-900/70 dark:text-dark-100/70">{t(currentLocale, 'pricing.subtitle')}</p>
     </div>
 
     <div class="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
       <!-- Free -->
-      <div class="bg-white rounded-2xl p-8 border border-dark-100">
+      <div class="bg-white dark:bg-dark-800 rounded-2xl p-8 border border-dark-100 dark:border-dark-700">
         <h3 class="text-lg font-semibold mb-2">{t(currentLocale, 'pricing.free.name')}</h3>
-        <p class="text-sm text-dark-900/60 mb-6">{t(currentLocale, 'pricing.free.desc')}</p>
+        <p class="text-sm text-dark-900/60 dark:text-dark-100/60 mb-6">{t(currentLocale, 'pricing.free.desc')}</p>
         <div class="mb-6">
           <span class="text-5xl font-bold">{t(currentLocale, 'pricing.free.price')}</span>
-          <span class="text-dark-900/60">{t(currentLocale, 'pricing.oneTime')}</span>
+          <span class="text-dark-900/60 dark:text-dark-100/60">{t(currentLocale, 'pricing.oneTime')}</span>
         </div>
         <ul class="space-y-3 mb-8 text-sm">
           <li class="flex items-start gap-2">
@@ -228,12 +228,12 @@
       </div>
 
       <!-- Team -->
-      <div class="bg-white rounded-2xl p-8 border border-dark-100">
+      <div class="bg-white dark:bg-dark-800 rounded-2xl p-8 border border-dark-100 dark:border-dark-700">
         <h3 class="text-lg font-semibold mb-2">{t(currentLocale, 'pricing.team.name')}</h3>
-        <p class="text-sm text-dark-900/60 mb-6">{t(currentLocale, 'pricing.team.desc')}</p>
+        <p class="text-sm text-dark-900/60 dark:text-dark-100/60 mb-6">{t(currentLocale, 'pricing.team.desc')}</p>
         <div class="mb-6">
           <span class="text-5xl font-bold">{t(currentLocale, 'pricing.team.price')}</span>
-          <span class="text-dark-900/60">{t(currentLocale, 'pricing.oneTime')}</span>
+          <span class="text-dark-900/60 dark:text-dark-100/60">{t(currentLocale, 'pricing.oneTime')}</span>
         </div>
         <ul class="space-y-3 mb-8 text-sm">
           {#each [1, 2, 3, 4, 5] as i}
@@ -279,20 +279,20 @@
 </section>
 
 <!-- =========================== FAQ =========================== -->
-<section id="faq" class="section bg-dark-50">
+<section id="faq" class="section bg-dark-50 dark:bg-dark-950">
   <div class="container-narrow max-w-3xl">
     <h2 class="heading-2 text-center mb-12">{t(currentLocale, 'faq.title')}</h2>
 
     <div class="space-y-3">
       {#each faqs as faq, i}
-        <div class="bg-white rounded-xl border border-dark-100 overflow-hidden">
+        <div class="bg-white dark:bg-dark-800 rounded-xl border border-dark-100 dark:border-dark-700 overflow-hidden">
           <button
             onclick={() => openFaq = openFaq === i ? null : i}
-            class="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-dark-50 transition"
+            class="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-dark-50 dark:hover:bg-dark-900/50 transition"
           >
             <span class="font-semibold">{faq.q}</span>
             <svg
-              class="w-5 h-5 text-dark-900/40 transition-transform"
+              class="w-5 h-5 text-dark-900/40 dark:text-dark-100/40 transition-transform"
               class:rotate-180={openFaq === i}
               fill="none" stroke="currentColor" viewBox="0 0 24 24"
             >
@@ -300,7 +300,7 @@
             </svg>
           </button>
           {#if openFaq === i}
-            <div class="px-6 pb-4 text-dark-900/70 leading-relaxed">
+            <div class="px-6 pb-4 text-dark-900/70 dark:text-dark-100/70 leading-relaxed">
               {faq.a}
             </div>
           {/if}
@@ -314,7 +314,7 @@
 <section class="section">
   <div class="container-narrow text-center max-w-2xl">
     <h2 class="heading-2 mb-4">{t(currentLocale, 'cta.title')}</h2>
-    <p class="text-lg text-dark-900/70 mb-8">{t(currentLocale, 'cta.subtitle')}</p>
+    <p class="text-lg text-dark-900/70 dark:text-dark-100/70 mb-8">{t(currentLocale, 'cta.subtitle')}</p>
     <a href="/register" class="btn-primary text-base px-8 py-4 inline-block">
       {t(currentLocale, 'cta.button')}
     </a>
@@ -322,7 +322,7 @@
 </section>
 
 <!-- =========================== FOOTER =========================== -->
-<footer class="border-t border-dark-100 py-12">
+<footer class="border-t border-dark-100 dark:border-dark-700 py-12">
   <div class="container-narrow">
     <div class="grid md:grid-cols-4 gap-8 mb-8">
       <div>
@@ -332,37 +332,37 @@
           </div>
           <span class="font-bold">Business Smart OS</span>
         </div>
-        <p class="text-sm text-dark-900/60">{t(currentLocale, 'footer.tagline')}</p>
+        <p class="text-sm text-dark-900/60 dark:text-dark-100/60">{t(currentLocale, 'footer.tagline')}</p>
       </div>
 
       <div>
         <h4 class="font-semibold text-sm mb-3">{t(currentLocale, 'footer.product')}</h4>
-        <ul class="space-y-2 text-sm text-dark-900/60">
-          <li><a href="#features" class="hover:text-dark-900 transition">{t(currentLocale, 'footer.features')}</a></li>
-          <li><a href="#pricing" class="hover:text-dark-900 transition">{t(currentLocale, 'footer.pricing')}</a></li>
-          <li><a href="/changelog" class="hover:text-dark-900 transition">{t(currentLocale, 'footer.changelog')}</a></li>
+        <ul class="space-y-2 text-sm text-dark-900/60 dark:text-dark-100/60">
+          <li><a href="#features" class="hover:text-dark-900 dark:hover:text-dark-50 transition">{t(currentLocale, 'footer.features')}</a></li>
+          <li><a href="#pricing" class="hover:text-dark-900 dark:hover:text-dark-50 transition">{t(currentLocale, 'footer.pricing')}</a></li>
+          <li><a href="/changelog" class="hover:text-dark-900 dark:hover:text-dark-50 transition">{t(currentLocale, 'footer.changelog')}</a></li>
         </ul>
       </div>
 
       <div>
         <h4 class="font-semibold text-sm mb-3">{t(currentLocale, 'footer.company')}</h4>
-        <ul class="space-y-2 text-sm text-dark-900/60">
-          <li><a href="/about" class="hover:text-dark-900 transition">{t(currentLocale, 'footer.about')}</a></li>
-          <li><a href="/blog" class="hover:text-dark-900 transition">{t(currentLocale, 'footer.blog')}</a></li>
-          <li><a href="mailto:hello@businesssmartos.com" class="hover:text-dark-900 transition">{t(currentLocale, 'footer.contact')}</a></li>
+        <ul class="space-y-2 text-sm text-dark-900/60 dark:text-dark-100/60">
+          <li><a href="/about" class="hover:text-dark-900 dark:hover:text-dark-50 transition">{t(currentLocale, 'footer.about')}</a></li>
+          <li><a href="/blog" class="hover:text-dark-900 dark:hover:text-dark-50 transition">{t(currentLocale, 'footer.blog')}</a></li>
+          <li><a href="mailto:hello@businesssmartos.com" class="hover:text-dark-900 dark:hover:text-dark-50 transition">{t(currentLocale, 'footer.contact')}</a></li>
         </ul>
       </div>
 
       <div>
         <h4 class="font-semibold text-sm mb-3">{t(currentLocale, 'footer.legal')}</h4>
-        <ul class="space-y-2 text-sm text-dark-900/60">
-          <li><a href="/privacy" class="hover:text-dark-900 transition">{t(currentLocale, 'footer.privacy')}</a></li>
-          <li><a href="/terms" class="hover:text-dark-900 transition">{t(currentLocale, 'footer.terms')}</a></li>
+        <ul class="space-y-2 text-sm text-dark-900/60 dark:text-dark-100/60">
+          <li><a href="/privacy" class="hover:text-dark-900 dark:hover:text-dark-50 transition">{t(currentLocale, 'footer.privacy')}</a></li>
+          <li><a href="/terms" class="hover:text-dark-900 dark:hover:text-dark-50 transition">{t(currentLocale, 'footer.terms')}</a></li>
         </ul>
       </div>
     </div>
 
-    <div class="pt-8 border-t border-dark-100 text-sm text-dark-900/60 text-center">
+    <div class="pt-8 border-t border-dark-100 dark:border-dark-700 text-sm text-dark-900/60 dark:text-dark-100/60 text-center">
       {t(currentLocale, 'footer.copyright')}
     </div>
   </div>
