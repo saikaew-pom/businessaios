@@ -221,8 +221,8 @@
   <title>Admin — Business Smart OS</title>
 </svelte:head>
 
-<div class="min-h-screen bg-dark-50">
-  <header class="bg-white border-b border-dark-100 sticky top-0 z-10">
+<div class="min-h-screen bg-dark-50 dark:bg-dark-950">
+  <header class="bg-white dark:bg-dark-800 border-b border-dark-100 dark:border-dark-700 sticky top-0 z-10">
     <div class="container-wide flex items-center justify-between h-16">
       <a href="/dashboard" class="flex items-center gap-2">
         <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center">
@@ -230,44 +230,44 @@
         </div>
         <span class="font-bold text-lg">Operations Console</span>
       </a>
-      <a href="/dashboard" class="text-sm text-primary-600 hover:underline">← กลับ Dashboard</a>
+      <a href="/dashboard" class="text-sm text-primary-600 dark:text-primary-400 hover:underline">← กลับ Dashboard</a>
     </div>
   </header>
 
   <main class="container-wide py-8">
     <!-- Tabs -->
-    <div class="flex gap-2 mb-6 border-b border-dark-100">
-      <button onclick={() => tab = 'overview'} class="px-4 py-2 font-semibold {tab === 'overview' ? 'border-b-2 border-primary-600 text-primary-600' : 'text-dark-900/60'}">📊 ภาพรวม</button>
-      <button onclick={() => tab = 'users'} class="px-4 py-2 font-semibold {tab === 'users' ? 'border-b-2 border-primary-600 text-primary-600' : 'text-dark-900/60'}">👥 Users ({usersTotal})</button>
-      <button onclick={() => tab = 'emails'} class="px-4 py-2 font-semibold {tab === 'emails' ? 'border-b-2 border-primary-600 text-primary-600' : 'text-dark-900/60'}">📧 Email Outbox ({emails.length})</button>
+    <div class="flex gap-2 mb-6 border-b border-dark-100 dark:border-dark-700">
+      <button onclick={() => tab = 'overview'} class="px-4 py-2 font-semibold {tab === 'overview' ? 'border-b-2 border-primary-600 dark:border-primary-400 text-primary-600 dark:text-primary-400' : 'text-dark-900/60 dark:text-dark-100/60'}">📊 ภาพรวม</button>
+      <button onclick={() => tab = 'users'} class="px-4 py-2 font-semibold {tab === 'users' ? 'border-b-2 border-primary-600 dark:border-primary-400 text-primary-600 dark:text-primary-400' : 'text-dark-900/60 dark:text-dark-100/60'}">👥 Users ({usersTotal})</button>
+      <button onclick={() => tab = 'emails'} class="px-4 py-2 font-semibold {tab === 'emails' ? 'border-b-2 border-primary-600 dark:border-primary-400 text-primary-600 dark:text-primary-400' : 'text-dark-900/60 dark:text-dark-100/60'}">📧 Email Outbox ({emails.length})</button>
     </div>
 
     {#if tab === 'overview'}
       {#if stats}
         <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <div class="bg-white rounded-2xl border border-dark-100 p-5">
-            <div class="text-xs text-dark-900/60 uppercase">Users</div>
+          <div class="bg-white dark:bg-dark-800 rounded-2xl border border-dark-100 dark:border-dark-700 p-5">
+            <div class="text-xs text-dark-900/60 dark:text-dark-100/60 uppercase">Users</div>
             <div class="text-3xl font-bold mt-1">{stats.total_users}</div>
-            <div class="text-xs text-green-600 mt-1">+{stats.new_users_7d} ใน 7 วัน</div>
+            <div class="text-xs text-green-600 dark:text-green-400 mt-1">+{stats.new_users_7d} ใน 7 วัน</div>
           </div>
-          <div class="bg-white rounded-2xl border border-dark-100 p-5">
-            <div class="text-xs text-dark-900/60 uppercase">แผน + Generations</div>
+          <div class="bg-white dark:bg-dark-800 rounded-2xl border border-dark-100 dark:border-dark-700 p-5">
+            <div class="text-xs text-dark-900/60 dark:text-dark-100/60 uppercase">แผน + Generations</div>
             <div class="text-3xl font-bold mt-1">{stats.total_projects}</div>
-            <div class="text-xs text-dark-900/60 mt-1">{stats.total_generations} generations · {stats.total_tool_runs} tool runs</div>
+            <div class="text-xs text-dark-900/60 dark:text-dark-100/60 mt-1">{stats.total_generations} generations · {stats.total_tool_runs} tool runs</div>
           </div>
-          <div class="bg-white rounded-2xl border border-dark-100 p-5">
-            <div class="text-xs text-dark-900/60 uppercase">ต้นทุนระบบอัจฉริยะ (USD)</div>
+          <div class="bg-white dark:bg-dark-800 rounded-2xl border border-dark-100 dark:border-dark-700 p-5">
+            <div class="text-xs text-dark-900/60 dark:text-dark-100/60 uppercase">ต้นทุนระบบอัจฉริยะ (USD)</div>
             <div class="text-3xl font-bold mt-1">${stats.total_api_cost_usd.toFixed(3)}</div>
-            <div class="text-xs text-dark-900/60 mt-1">รายได้ ฿{(stats.revenue_satang / 100).toLocaleString()}</div>
+            <div class="text-xs text-dark-900/60 dark:text-dark-100/60 mt-1">รายได้ ฿{(stats.revenue_satang / 100).toLocaleString()}</div>
           </div>
-          <div class="bg-white rounded-2xl border border-dark-100 p-5">
-            <div class="text-xs text-dark-900/60 uppercase">เครดิตคงเหลือรวม</div>
+          <div class="bg-white dark:bg-dark-800 rounded-2xl border border-dark-100 dark:border-dark-700 p-5">
+            <div class="text-xs text-dark-900/60 dark:text-dark-100/60 uppercase">เครดิตคงเหลือรวม</div>
             <div class="text-3xl font-bold mt-1">{stats.total_credits.toLocaleString()}</div>
           </div>
         </div>
 
         <!-- Funnel -->
-        <div class="bg-white rounded-2xl border border-dark-100 p-5 mb-6">
+        <div class="bg-white dark:bg-dark-800 rounded-2xl border border-dark-100 dark:border-dark-700 p-5 mb-6">
           <div class="text-sm font-semibold mb-4">Funnel: สมัคร → ยืนยันอีเมล → สร้างแผน → จ่ายเงิน</div>
           <div class="grid grid-cols-4 gap-3">
             {#each [
@@ -278,8 +278,8 @@
             ] as step, i}
               <div class="text-center">
                 <div class="text-2xl font-bold">{step.value}</div>
-                <div class="text-xs text-dark-900/60 mt-1">{step.label}</div>
-                <div class="text-xs text-dark-900/40 mt-0.5">
+                <div class="text-xs text-dark-900/60 dark:text-dark-100/60 mt-1">{step.label}</div>
+                <div class="text-xs text-dark-900/40 dark:text-dark-100/40 mt-0.5">
                   {stats.funnel.signed_up > 0 ? Math.round((step.value / stats.funnel.signed_up) * 100) : 0}%
                 </div>
               </div>
@@ -289,15 +289,15 @@
 
         <!-- Signups sparkline -->
         {#if stats.signups_by_day?.length}
-          <div class="bg-white rounded-2xl border border-dark-100 p-5">
+          <div class="bg-white dark:bg-dark-800 rounded-2xl border border-dark-100 dark:border-dark-700 p-5">
             <div class="text-sm font-semibold mb-4">ผู้สมัครใหม่ต่อวัน (14 วันล่าสุด)</div>
             <div class="flex items-end gap-1.5 h-24">
               {#each stats.signups_by_day as d}
                 {@const max = Math.max(...stats.signups_by_day.map((x: any) => x.c), 1)}
                 <div class="flex-1 flex flex-col items-center justify-end gap-1 group relative">
-                  <div class="text-[10px] text-dark-900/50 opacity-0 group-hover:opacity-100 absolute -top-4">{d.c}</div>
+                  <div class="text-[10px] text-dark-900/50 dark:text-dark-100/50 opacity-0 group-hover:opacity-100 absolute -top-4">{d.c}</div>
                   <div class="w-full bg-primary-500 rounded-t" style="height: {Math.max(4, (d.c / max) * 100)}%"></div>
-                  <div class="text-[9px] text-dark-900/40">{d.day.slice(5)}</div>
+                  <div class="text-[9px] text-dark-900/40 dark:text-dark-100/40">{d.day.slice(5)}</div>
                 </div>
               {/each}
             </div>
@@ -312,23 +312,23 @@
           placeholder="ค้นหา email หรือชื่อ..."
           bind:value={searchQuery}
           oninput={onSearchInput}
-          class="flex-1 min-w-[200px] px-3 py-2 rounded-lg border border-dark-200 text-sm"
+          class="flex-1 min-w-[200px] px-3 py-2 rounded-lg border border-dark-200 dark:border-dark-600 text-sm"
         />
-        <select bind:value={roleFilter} onchange={onFilterChange} class="px-3 py-2 rounded-lg border border-dark-200 text-sm">
+        <select bind:value={roleFilter} onchange={onFilterChange} class="px-3 py-2 rounded-lg border border-dark-200 dark:border-dark-600 text-sm">
           <option value="">ทุก role</option>
           <option value="user">user</option>
           <option value="admin">admin</option>
         </select>
-        <select bind:value={verifiedFilter} onchange={onFilterChange} class="px-3 py-2 rounded-lg border border-dark-200 text-sm">
+        <select bind:value={verifiedFilter} onchange={onFilterChange} class="px-3 py-2 rounded-lg border border-dark-200 dark:border-dark-600 text-sm">
           <option value="">ยืนยันอีเมล: ทั้งหมด</option>
           <option value="1">ยืนยันแล้ว</option>
           <option value="0">ยังไม่ยืนยัน</option>
         </select>
       </div>
 
-      <div class="bg-white rounded-2xl border border-dark-100 overflow-hidden">
+      <div class="bg-white dark:bg-dark-800 rounded-2xl border border-dark-100 dark:border-dark-700 overflow-hidden">
         <table class="w-full text-sm">
-          <thead class="bg-dark-50 text-xs uppercase tracking-wider text-dark-900/60">
+          <thead class="bg-dark-50 dark:bg-dark-950 text-xs uppercase tracking-wider text-dark-900/60 dark:text-dark-100/60">
             <tr>
               <th class="text-left p-3">Email</th>
               <th class="text-left p-3">ชื่อ</th>
@@ -340,20 +340,20 @@
           </thead>
           <tbody>
             {#if isLoading}
-              <tr><td colspan="6" class="p-6 text-center text-dark-900/50">กำลังโหลด...</td></tr>
+              <tr><td colspan="6" class="p-6 text-center text-dark-900/50 dark:text-dark-100/50">กำลังโหลด...</td></tr>
             {:else if users.length === 0}
-              <tr><td colspan="6" class="p-6 text-center text-dark-900/50">ไม่พบผู้ใช้ที่ตรงเงื่อนไข</td></tr>
+              <tr><td colspan="6" class="p-6 text-center text-dark-900/50 dark:text-dark-100/50">ไม่พบผู้ใช้ที่ตรงเงื่อนไข</td></tr>
             {:else}
               {#each users as u}
-                <tr class="border-t border-dark-100 hover:bg-dark-50 cursor-pointer" onclick={() => openDetail(u)}>
+                <tr class="border-t border-dark-100 dark:border-dark-700 hover:bg-dark-50 dark:hover:bg-dark-900/50 cursor-pointer" onclick={() => openDetail(u)}>
                   <td class="p-3 font-mono text-xs">{u.email}</td>
                   <td class="p-3">{u.first_name || ''} {u.last_name || u.name || ''}</td>
                   <td class="p-3">
-                    <span class="text-xs px-2 py-0.5 rounded-full {u.role === 'admin' ? 'bg-amber-50 text-amber-700' : 'bg-dark-50 text-dark-900/60'}">{u.role || 'user'}</span>
+                    <span class="text-xs px-2 py-0.5 rounded-full {u.role === 'admin' ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400' : 'bg-dark-50 dark:bg-dark-950 text-dark-900/60 dark:text-dark-100/60'}">{u.role || 'user'}</span>
                   </td>
                   <td class="p-3 text-right font-semibold">{u.credits}</td>
                   <td class="p-3 text-center">{u.email_verified ? '✅' : '⏳'}</td>
-                  <td class="p-3 text-xs text-dark-900/60">{formatDate(u.created_at)}</td>
+                  <td class="p-3 text-xs text-dark-900/60 dark:text-dark-100/60">{formatDate(u.created_at)}</td>
                 </tr>
               {/each}
             {/if}
@@ -363,17 +363,17 @@
 
       <!-- Pagination -->
       <div class="flex items-center justify-between mt-4 text-sm">
-        <div class="text-dark-900/60">ทั้งหมด {usersTotal.toLocaleString()} คน</div>
+        <div class="text-dark-900/60 dark:text-dark-100/60">ทั้งหมด {usersTotal.toLocaleString()} คน</div>
         <div class="flex items-center gap-3">
           <button onclick={() => goToPage(-1)} disabled={usersPage <= 1} class="btn-secondary px-3 py-1.5 disabled:opacity-40">← ก่อนหน้า</button>
-          <span class="text-dark-900/60">หน้า {usersPage} / {totalPages}</span>
+          <span class="text-dark-900/60 dark:text-dark-100/60">หน้า {usersPage} / {totalPages}</span>
           <button onclick={() => goToPage(1)} disabled={usersPage >= totalPages} class="btn-secondary px-3 py-1.5 disabled:opacity-40">ถัดไป →</button>
         </div>
       </div>
     {:else if tab === 'emails'}
-      <div class="bg-white rounded-2xl border border-dark-100 overflow-hidden">
+      <div class="bg-white dark:bg-dark-800 rounded-2xl border border-dark-100 dark:border-dark-700 overflow-hidden">
         <table class="w-full text-sm">
-          <thead class="bg-dark-50 text-xs uppercase tracking-wider text-dark-900/60">
+          <thead class="bg-dark-50 dark:bg-dark-950 text-xs uppercase tracking-wider text-dark-900/60 dark:text-dark-100/60">
             <tr>
               <th class="text-left p-3">To</th>
               <th class="text-left p-3">Subject</th>
@@ -385,21 +385,21 @@
           </thead>
           <tbody>
             {#each emails as e}
-              <tr class="border-t border-dark-100">
+              <tr class="border-t border-dark-100 dark:border-dark-700">
                 <td class="p-3 font-mono text-xs">{e.to_email}</td>
                 <td class="p-3">{e.subject}</td>
                 <td class="p-3 text-xs">{e.template}</td>
                 <td class="p-3">
-                  <span class="text-xs px-2 py-0.5 rounded-full {e.status === 'sent' ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}">{e.status}</span>
+                  <span class="text-xs px-2 py-0.5 rounded-full {e.status === 'sent' ? 'bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-400' : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400'}">{e.status}</span>
                 </td>
-                <td class="p-3 text-xs text-dark-900/60">{formatDate(e.created_at)}</td>
+                <td class="p-3 text-xs text-dark-900/60 dark:text-dark-100/60">{formatDate(e.created_at)}</td>
                 <td class="p-3">
-                  <a href={`/api/admin/emails/${e.id}?format=html`} target="_blank" class="text-xs text-primary-600 hover:underline">ดู</a>
+                  <a href={`/api/admin/emails/${e.id}?format=html`} target="_blank" class="text-xs text-primary-600 dark:text-primary-400 hover:underline">ดู</a>
                 </td>
               </tr>
             {/each}
             {#if emails.length === 0}
-              <tr><td colspan="6" class="p-6 text-center text-dark-900/50 text-sm">ยังไม่มีอีเมลใน outbox</td></tr>
+              <tr><td colspan="6" class="p-6 text-center text-dark-900/50 dark:text-dark-100/50 text-sm">ยังไม่มีอีเมลใน outbox</td></tr>
             {/if}
           </tbody>
         </table>
@@ -411,45 +411,45 @@
 <!-- User Detail panel -->
 {#if detailLoading || detail}
   <div class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick={closeDetail}>
-    <div class="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto" onclick={(e) => e.stopPropagation()}>
+    <div class="bg-white dark:bg-dark-800 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto" onclick={(e) => e.stopPropagation()}>
       {#if detailLoading}
-        <div class="p-12 text-center text-dark-900/60">กำลังโหลดข้อมูลผู้ใช้...</div>
+        <div class="p-12 text-center text-dark-900/60 dark:text-dark-100/60">กำลังโหลดข้อมูลผู้ใช้...</div>
       {:else if detail}
-        <div class="p-6 border-b border-dark-100 flex items-center justify-between sticky top-0 bg-white">
+        <div class="p-6 border-b border-dark-100 dark:border-dark-700 flex items-center justify-between sticky top-0 bg-white dark:bg-dark-800">
           <div>
             <h3 class="font-bold text-lg">{detail.user.first_name || ''} {detail.user.last_name || detail.user.name || ''}</h3>
-            <p class="text-sm text-dark-900/60 font-mono">{detail.user.email}</p>
+            <p class="text-sm text-dark-900/60 dark:text-dark-100/60 font-mono">{detail.user.email}</p>
           </div>
-          <button onclick={closeDetail} class="text-dark-900/40 hover:text-dark-900 text-xl leading-none">✕</button>
+          <button onclick={closeDetail} class="text-dark-900/40 dark:text-dark-100/40 hover:text-dark-900 text-xl leading-none">✕</button>
         </div>
 
         <div class="p-6 space-y-6">
           <!-- Profile summary -->
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
             <div>
-              <div class="text-xs text-dark-900/50 uppercase">Role</div>
-              <select value={detail.user.role || 'user'} onchange={(e) => handleRoleChange((e.target as HTMLSelectElement).value)} class="mt-1 text-sm border border-dark-200 rounded px-2 py-1 w-full">
+              <div class="text-xs text-dark-900/50 dark:text-dark-100/50 uppercase">Role</div>
+              <select value={detail.user.role || 'user'} onchange={(e) => handleRoleChange((e.target as HTMLSelectElement).value)} class="mt-1 text-sm border border-dark-200 dark:border-dark-600 rounded px-2 py-1 w-full">
                 <option value="user">user</option>
                 <option value="admin">admin</option>
               </select>
             </div>
             <div>
-              <div class="text-xs text-dark-900/50 uppercase">Credits</div>
+              <div class="text-xs text-dark-900/50 dark:text-dark-100/50 uppercase">Credits</div>
               <div class="font-semibold mt-1">{detail.user.credits}</div>
             </div>
             <div>
-              <div class="text-xs text-dark-900/50 uppercase">ยืนยันอีเมล</div>
+              <div class="text-xs text-dark-900/50 dark:text-dark-100/50 uppercase">ยืนยันอีเมล</div>
               <div class="mt-1">{detail.user.email_verified ? '✅ ยืนยันแล้ว' : '⏳ ยังไม่ยืนยัน'}</div>
             </div>
             <div>
-              <div class="text-xs text-dark-900/50 uppercase">สมัครเมื่อ</div>
+              <div class="text-xs text-dark-900/50 dark:text-dark-100/50 uppercase">สมัครเมื่อ</div>
               <div class="mt-1 text-xs">{formatDate(detail.user.created_at)}</div>
             </div>
           </div>
 
           <!-- Help-user actions -->
           <div>
-            <div class="text-xs font-semibold text-dark-900/60 uppercase mb-2">ช่วย user</div>
+            <div class="text-xs font-semibold text-dark-900/60 dark:text-dark-100/60 uppercase mb-2">ช่วย user</div>
             <div class="flex flex-wrap gap-2">
               <button onclick={handleResendVerification} disabled={actionBusy || !!detail.user.email_verified} class="btn-secondary text-xs px-3 py-1.5 disabled:opacity-40">
                 📧 ส่งอีเมลยืนยันอีกครั้ง
@@ -461,32 +461,32 @@
           </div>
 
           <!-- Credit adjust -->
-          <div class="bg-dark-50 rounded-xl p-4">
-            <div class="text-xs font-semibold text-dark-900/60 uppercase mb-3">เติม/หักเครดิต</div>
+          <div class="bg-dark-50 dark:bg-dark-950 rounded-xl p-4">
+            <div class="text-xs font-semibold text-dark-900/60 dark:text-dark-100/60 uppercase mb-3">เติม/หักเครดิต</div>
             <div class="grid sm:grid-cols-3 gap-3">
-              <input type="number" bind:value={creditDelta} placeholder="+ เติม, - หัก" class="px-3 py-2 rounded-lg border border-dark-200 text-sm" />
-              <select bind:value={creditReason} class="px-3 py-2 rounded-lg border border-dark-200 text-sm">
+              <input type="number" bind:value={creditDelta} placeholder="+ เติม, - หัก" class="px-3 py-2 rounded-lg border border-dark-200 dark:border-dark-600 text-sm" />
+              <select bind:value={creditReason} class="px-3 py-2 rounded-lg border border-dark-200 dark:border-dark-600 text-sm">
                 <option value="admin_grant">admin_grant</option>
                 <option value="admin_deduct">admin_deduct</option>
                 <option value="refund">refund</option>
                 <option value="promo">promo</option>
               </select>
-              <input type="text" bind:value={creditNote} placeholder="โน้ต (optional)" class="px-3 py-2 rounded-lg border border-dark-200 text-sm" />
+              <input type="text" bind:value={creditNote} placeholder="โน้ต (optional)" class="px-3 py-2 rounded-lg border border-dark-200 dark:border-dark-600 text-sm" />
             </div>
             <button onclick={handleCreditChange} disabled={actionBusy || creditDelta === 0} class="btn-primary text-sm mt-3 disabled:opacity-40">ยืนยัน</button>
           </div>
 
           <!-- Projects -->
           <div>
-            <div class="text-xs font-semibold text-dark-900/60 uppercase mb-2">แผนของ user ({detail.projects.length})</div>
+            <div class="text-xs font-semibold text-dark-900/60 dark:text-dark-100/60 uppercase mb-2">แผนของ user ({detail.projects.length})</div>
             {#if detail.projects.length === 0}
-              <p class="text-sm text-dark-900/50">ยังไม่มีแผน</p>
+              <p class="text-sm text-dark-900/50 dark:text-dark-100/50">ยังไม่มีแผน</p>
             {:else}
               <div class="space-y-1.5">
                 {#each detail.projects as p}
-                  <div class="flex items-center justify-between text-sm py-1.5 border-b border-dark-100 last:border-0">
+                  <div class="flex items-center justify-between text-sm py-1.5 border-b border-dark-100 dark:border-dark-700 last:border-0">
                     <span>{p.name}</span>
-                    <span class="text-xs text-dark-900/50">{p.status} · ขั้นตอน {p.current_step} · {formatDate(p.updated_at)}</span>
+                    <span class="text-xs text-dark-900/50 dark:text-dark-100/50">{p.status} · ขั้นตอน {p.current_step} · {formatDate(p.updated_at)}</span>
                   </div>
                 {/each}
               </div>
@@ -496,11 +496,11 @@
           <!-- Activity -->
           <div class="grid sm:grid-cols-2 gap-4 text-sm">
             <div>
-              <div class="text-xs text-dark-900/50 uppercase">Generations</div>
+              <div class="text-xs text-dark-900/50 dark:text-dark-100/50 uppercase">Generations</div>
               <div class="mt-1">{detail.generations_summary.count} ครั้ง · ${detail.generations_summary.cost_usd.toFixed(4)}</div>
             </div>
             <div>
-              <div class="text-xs text-dark-900/50 uppercase">Tool runs ล่าสุด</div>
+              <div class="text-xs text-dark-900/50 dark:text-dark-100/50 uppercase">Tool runs ล่าสุด</div>
               <div class="mt-1">{detail.tool_runs.length ? detail.tool_runs.map(t => t.tool_name).join(', ') : '—'}</div>
             </div>
           </div>
@@ -508,13 +508,13 @@
           <!-- Credit history -->
           {#if detail.credit_transactions.length > 0}
             <div>
-              <div class="text-xs font-semibold text-dark-900/60 uppercase mb-2">ประวัติเครดิต</div>
+              <div class="text-xs font-semibold text-dark-900/60 dark:text-dark-100/60 uppercase mb-2">ประวัติเครดิต</div>
               <div class="space-y-1">
                 {#each detail.credit_transactions as t}
                   <div class="flex items-center justify-between text-xs py-1">
-                    <span class="{t.delta > 0 ? 'text-green-600' : 'text-red-600'} font-semibold">{t.delta > 0 ? '+' : ''}{t.delta}</span>
-                    <span class="text-dark-900/60">{t.reason}{t.note ? ` — ${t.note}` : ''}</span>
-                    <span class="text-dark-900/40">{formatDate(t.created_at)}</span>
+                    <span class="{t.delta > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'} font-semibold">{t.delta > 0 ? '+' : ''}{t.delta}</span>
+                    <span class="text-dark-900/60 dark:text-dark-100/60">{t.reason}{t.note ? ` — ${t.note}` : ''}</span>
+                    <span class="text-dark-900/40 dark:text-dark-100/40">{formatDate(t.created_at)}</span>
                   </div>
                 {/each}
               </div>
@@ -523,25 +523,25 @@
 
           <!-- Notes / admin action log -->
           <div>
-            <div class="text-xs font-semibold text-dark-900/60 uppercase mb-2">โน้ตทีม + ประวัติการช่วยเหลือ</div>
+            <div class="text-xs font-semibold text-dark-900/60 dark:text-dark-100/60 uppercase mb-2">โน้ตทีม + ประวัติการช่วยเหลือ</div>
             <div class="flex gap-2 mb-3">
-              <input type="text" bind:value={noteText} placeholder="บันทึกโน้ตถึงทีม..." class="flex-1 px-3 py-2 rounded-lg border border-dark-200 text-sm" />
+              <input type="text" bind:value={noteText} placeholder="บันทึกโน้ตถึงทีม..." class="flex-1 px-3 py-2 rounded-lg border border-dark-200 dark:border-dark-600 text-sm" />
               <button onclick={handleAddNote} disabled={actionBusy || !noteText.trim()} class="btn-secondary text-sm px-3 disabled:opacity-40">บันทึก</button>
             </div>
             {#if detail.admin_actions.length === 0}
-              <p class="text-sm text-dark-900/50">ยังไม่มีประวัติ</p>
+              <p class="text-sm text-dark-900/50 dark:text-dark-100/50">ยังไม่มีประวัติ</p>
             {:else}
               <div class="space-y-2">
                 {#each detail.admin_actions as a}
-                  <div class="text-xs bg-dark-50 rounded-lg p-2.5">
+                  <div class="text-xs bg-dark-50 dark:bg-dark-950 rounded-lg p-2.5">
                     <div class="flex items-center justify-between">
                       <span class="font-semibold">{actionLabel(a.action)}</span>
-                      <span class="text-dark-900/40">{formatDateTime(a.created_at)}</span>
+                      <span class="text-dark-900/40 dark:text-dark-100/40">{formatDateTime(a.created_at)}</span>
                     </div>
                     {#if a.action === 'note'}
-                      <div class="mt-1 text-dark-900/70">{JSON.parse(a.details).text}</div>
+                      <div class="mt-1 text-dark-900/70 dark:text-dark-100/70">{JSON.parse(a.details).text}</div>
                     {/if}
-                    <div class="mt-1 text-dark-900/40">โดย {a.admin_email || 'ระบบ'}</div>
+                    <div class="mt-1 text-dark-900/40 dark:text-dark-100/40">โดย {a.admin_email || 'ระบบ'}</div>
                   </div>
                 {/each}
               </div>
