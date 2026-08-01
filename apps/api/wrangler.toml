@@ -27,7 +27,14 @@ TURNSTILE_REQUIRED = "false"
 STRIPE_PUBLISHABLE_KEY = "pk_test_xxx"  # set via wrangler secret in production
 
 # Secrets (set via `wrangler secret put NAME`)
-# RESEND_API_KEY - email notifications
+# BREVO_API_KEY - email sending (transactional emails via Brevo — code reads this, NOT Resend)
+# BREVO_FROM_EMAIL - verified sender address for Brevo (falls back to noreply@businessaios.com if unset —
+#                     that address must be a verified/authenticated sender in Brevo or mail gets spam-filtered)
+# GOOGLE_CLIENT_ID - Google OAuth client id
+# GOOGLE_CLIENT_SECRET - Google OAuth client secret
+# GOOGLE_REDIRECT_URI - must exactly match an "Authorized redirect URI" registered in Google Cloud Console
+#                        (falls back to `${request origin}/api/auth/google/callback` if unset)
+# TURNSTILE_SECRET - Cloudflare Turnstile server-side secret (site key is public, above)
 # MINIMAX_API_KEY - AI API
 # MINIMAX_GROUP_ID - AI group ID
 # SESSION_SECRET - cookie signing (auto-generated, fallback to dev-secret)
