@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "web-dev",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd apps/web && npm run dev -- --port 5173"],
+      "port": 5173
+    },
+    {
+      "name": "api-dev",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd apps/api && npx wrangler dev --port 8787"],
+      "port": 8787
+    }
+  ]
+}
