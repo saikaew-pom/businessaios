@@ -55,4 +55,8 @@
   .heading-3 {
     @apply text-2xl font-semibold;
   }
+
+  .eyebrow-label {
+    @apply block text-xs font-semibold tracking-wide uppercase text-primary-600 dark:text-primary-400 mb-3;
+  }
 }

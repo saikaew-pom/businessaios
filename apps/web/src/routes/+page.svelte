@@ -1,6 +1,7 @@
 <script lang="ts">
   import { locale, toggleLocale } from '$lib/stores';
   import { t, type StringKey } from '$lib/i18n';
+  import heroCat from '$lib/assets/hero-cat.png';
 
   // ============================================
   // State
@@ -27,10 +28,10 @@
 </script>
 
 <svelte:head>
-  <title>Business Smart OS — ระบบปฏิบัติการอัจฉริยะสำหรับธุรกิจ</title>
-  <meta name="description" content="Fill 7 steps. Get a complete business plan. Generate a Brand Card, personas, content, and workflow with a Smart Engine. Export as PDF, Word, Excel." />
-  <meta property="og:title" content="Business Smart OS — ระบบปฏิบัติการอัจฉริยะสำหรับธุรกิจ" />
-  <meta property="og:description" content="Fill 7 steps. Get a complete business plan with a Smart Engine." />
+  <title>Business Smart OS — วางแผนการตลาดฉบับสมบูรณ์สำหรับ SME ไทย</title>
+  <meta name="description" content="Fill 7 steps. Get a complete marketing plan. Generate a Brand Card, personas, content, and workflow with a Smart Engine. Export as PDF, Word, Excel." />
+  <meta property="og:title" content="Business Smart OS — วางแผนการตลาดฉบับสมบูรณ์สำหรับ SME ไทย" />
+  <meta property="og:description" content="Fill 7 steps. Get a complete marketing plan with a Smart Engine." />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
 </svelte:head>
@@ -48,8 +49,8 @@
     <div class="hidden md:flex items-center gap-8">
       <a href="#features" class="text-sm text-dark-900/70 dark:text-dark-100/70 hover:text-dark-900 dark:hover:text-dark-50 transition">{t(currentLocale, 'nav.features')}</a>
       <a href="#how" class="text-sm text-dark-900/70 dark:text-dark-100/70 hover:text-dark-900 dark:hover:text-dark-50 transition">{t(currentLocale, 'nav.how')}</a>
-      <a href="#pricing" class="text-sm text-dark-900/70 dark:text-dark-100/70 hover:text-dark-900 dark:hover:text-dark-50 transition">{t(currentLocale, 'nav.pricing')}</a>
       <a href="#faq" class="text-sm text-dark-900/70 dark:text-dark-100/70 hover:text-dark-900 dark:hover:text-dark-50 transition">{t(currentLocale, 'nav.faq')}</a>
+      <a href="#pricing" class="text-sm text-dark-900/70 dark:text-dark-100/70 hover:text-dark-900 dark:hover:text-dark-50 transition">{t(currentLocale, 'nav.pricing')}</a>
     </div>
 
     <div class="flex items-center gap-3">
@@ -81,43 +82,70 @@
     <div class="absolute bottom-0 -right-1/4 w-1/2 h-1/2 bg-primary-500/5 rounded-full blur-3xl"></div>
   </div>
 
-  <div class="container-narrow text-center">
-    <!-- Badge -->
-    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-50 dark:bg-primary-900/40 border border-primary-100 dark:border-primary-800 mb-8 animate-fade-in">
-      <span class="w-2 h-2 rounded-full bg-primary-500 animate-pulse"></span>
-      <span class="text-xs font-medium text-primary-700 dark:text-primary-300">{t(currentLocale, 'hero.badge')}</span>
+  <div class="container-narrow grid lg:grid-cols-2 gap-12 items-center">
+    <div class="text-center lg:text-left">
+      <!-- Badge -->
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-50 dark:bg-primary-900/40 border border-primary-100 dark:border-primary-800 mb-8 animate-fade-in">
+        <span class="w-2 h-2 rounded-full bg-primary-500 animate-pulse"></span>
+        <span class="text-xs font-medium text-primary-700 dark:text-primary-300">{t(currentLocale, 'hero.badge')}</span>
+      </div>
+
+      <!-- Title -->
+      <h1 class="heading-1 mb-6 animate-slide-up">
+        <span class="block">{t(currentLocale, 'hero.title.1')}</span>
+        <span class="block bg-gradient-to-r from-primary-500 to-primary-700 bg-clip-text text-transparent">
+          {t(currentLocale, 'hero.title.2')}
+        </span>
+        <span class="block">{t(currentLocale, 'hero.title.3')}</span>
+      </h1>
+
+      <!-- Subtitle -->
+      <p class="text-lg sm:text-xl text-dark-900/70 dark:text-dark-100/70 max-w-2xl mx-auto lg:mx-0 mb-10 leading-relaxed">
+        {t(currentLocale, 'hero.subtitle')}
+      </p>
+
+      <!-- CTAs -->
+      <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 mb-8">
+        <a href="/register" class="btn-primary text-base px-8 py-4 w-full sm:w-auto">
+          {t(currentLocale, 'hero.cta.primary')}
+          <svg class="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+        </a>
+        <a href="#how" class="btn-secondary text-base px-8 py-4 w-full sm:w-auto">
+          {t(currentLocale, 'hero.cta.secondary')}
+        </a>
+      </div>
+
+      <!-- Social proof -->
+      <div class="flex items-center justify-center lg:justify-start gap-2 text-sm text-dark-900/60 dark:text-dark-100/60">
+        <svg class="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+        <span>{t(currentLocale, 'hero.proof')}</span>
+      </div>
     </div>
 
-    <!-- Title -->
-    <h1 class="heading-1 mb-6 animate-slide-up">
-      <span class="block">{t(currentLocale, 'hero.title.1')}</span>
-      <span class="block bg-gradient-to-r from-primary-500 to-primary-700 bg-clip-text text-transparent">
-        {t(currentLocale, 'hero.title.2')}
-      </span>
-      <span class="block">{t(currentLocale, 'hero.title.3')}</span>
-    </h1>
-
-    <!-- Subtitle -->
-    <p class="text-lg sm:text-xl text-dark-900/70 dark:text-dark-100/70 max-w-2xl mx-auto mb-10 leading-relaxed">
-      {t(currentLocale, 'hero.subtitle')}
-    </p>
-
-    <!-- CTAs -->
-    <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
-      <a href="/register" class="btn-primary text-base px-8 py-4 w-full sm:w-auto">
-        {t(currentLocale, 'hero.cta.primary')}
-        <svg class="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
-      </a>
-      <a href="#how" class="btn-secondary text-base px-8 py-4 w-full sm:w-auto">
-        {t(currentLocale, 'hero.cta.secondary')}
-      </a>
+    <div class="relative hidden lg:block">
+      <div class="absolute inset-[6%_8%] rounded-full bg-gradient-to-br from-amber-100/60 dark:from-amber-900/20 to-primary-50/60 dark:to-primary-900/20 blur-sm"></div>
+      <img src={heroCat} alt="" class="relative w-full max-w-md mx-auto" />
     </div>
+  </div>
+</section>
 
-    <!-- Social proof -->
-    <div class="flex items-center justify-center gap-2 text-sm text-dark-900/60 dark:text-dark-100/60">
-      <svg class="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
-      <span>{t(currentLocale, 'hero.proof')}</span>
-    </div>
+<!-- =========================== PROBLEM =========================== -->
+<section class="section bg-dark-50 dark:bg-dark-950">
+  <div class="container-narrow max-w-3xl text-center">
+    <p class="eyebrow-label">{t(currentLocale, 'problem.eyebrow')}</p>
+    <h2 class="heading-2 mb-4">{t(currentLocale, 'problem.title')}</h2>
+    <p class="text-lg text-dark-900/70 dark:text-dark-100/70 mb-10">{t(currentLocale, 'problem.subtitle')}</p>
+
+    <ul class="grid sm:grid-cols-2 gap-4 text-left mb-8">
+      {#each [1, 2, 3, 4] as i}
+        <li class="flex items-start gap-3 bg-white dark:bg-dark-800 rounded-xl p-4 border border-dark-100 dark:border-dark-700">
+          <span class="text-red-500 dark:text-red-400 flex-shrink-0">✕</span>
+          <span class="text-dark-900/80 dark:text-dark-100/80">{t(currentLocale, `problem.${i}` as StringKey)}</span>
+        </li>
+      {/each}
+    </ul>
+
+    <p class="text-dark-900/60 dark:text-dark-100/60 italic">{t(currentLocale, 'problem.agitate')}</p>
   </div>
 </section>
 
@@ -143,6 +171,53 @@
   </div>
 </section>
 
+<!-- =========================== TARGET AUDIENCE =========================== -->
+<section class="section">
+  <div class="container-narrow max-w-4xl">
+    <div class="text-center mb-14">
+      <p class="eyebrow-label">{t(currentLocale, 'audience.eyebrow')}</p>
+      <h2 class="heading-2">{t(currentLocale, 'audience.title')}</h2>
+    </div>
+
+    <div class="grid sm:grid-cols-2 gap-6">
+      <div class="bg-white dark:bg-dark-800 rounded-2xl p-6 border border-primary-100 dark:border-primary-900/60">
+        <h3 class="heading-3 mb-4 text-primary-600 dark:text-primary-400">{t(currentLocale, 'audience.for.title')}</h3>
+        <ul class="space-y-3 text-sm">
+          {#each [1, 2, 3, 4] as i}
+            <li class="flex items-start gap-2">
+              <span class="text-primary-500 flex-shrink-0">✓</span>
+              <span class="text-dark-900/80 dark:text-dark-100/80">{t(currentLocale, `audience.for.${i}` as StringKey)}</span>
+            </li>
+          {/each}
+        </ul>
+      </div>
+
+      <div class="bg-dark-50 dark:bg-dark-900 rounded-2xl p-6 border border-dark-100 dark:border-dark-700">
+        <h3 class="heading-3 mb-4 text-dark-900/70 dark:text-dark-100/70">{t(currentLocale, 'audience.not.title')}</h3>
+        <ul class="space-y-3 text-sm">
+          {#each [1, 2] as i}
+            <li class="flex items-start gap-2">
+              <span class="text-dark-900/40 dark:text-dark-100/40 flex-shrink-0">✕</span>
+              <span class="text-dark-900/60 dark:text-dark-100/60">{t(currentLocale, `audience.not.${i}` as StringKey)}</span>
+            </li>
+          {/each}
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================== TRIGGER =========================== -->
+<section class="section bg-gradient-to-br from-primary-500 to-primary-700">
+  <div class="container-narrow text-center max-w-2xl">
+    <h2 class="heading-2 text-white mb-4">{t(currentLocale, 'trigger.title')}</h2>
+    <p class="text-white/80 text-lg mb-8">{t(currentLocale, 'trigger.subtitle')}</p>
+    <a href="/register" class="inline-block bg-white text-primary-700 font-semibold py-3 px-8 rounded-lg hover:bg-white/90 transition">
+      {t(currentLocale, 'trigger.cta')}
+    </a>
+  </div>
+</section>
+
 <!-- =========================== HOW IT WORKS =========================== -->
 <section id="how" class="section">
   <div class="container-narrow">
@@ -157,6 +232,60 @@
           <div class="text-6xl font-bold text-primary-100 dark:text-primary-900/60 mb-4">0{i}</div>
           <h3 class="heading-3 mb-2">{t(currentLocale, `how.${i}.title` as StringKey)}</h3>
           <p class="text-dark-900/70 dark:text-dark-100/70 leading-relaxed">{t(currentLocale, `how.${i}.desc` as StringKey)}</p>
+        </div>
+      {/each}
+    </div>
+  </div>
+</section>
+
+<!-- =========================== FAQ / OBJECTIONS =========================== -->
+<section id="faq" class="section bg-dark-50 dark:bg-dark-950">
+  <div class="container-narrow max-w-3xl">
+    <div class="text-center mb-12">
+      <p class="eyebrow-label">{t(currentLocale, 'objections.eyebrow')}</p>
+      <h2 class="heading-2">{t(currentLocale, 'faq.title')}</h2>
+    </div>
+
+    <div class="space-y-3">
+      {#each faqs as faq, i}
+        <div class="bg-white dark:bg-dark-800 rounded-xl border border-dark-100 dark:border-dark-700 overflow-hidden">
+          <button
+            onclick={() => openFaq = openFaq === i ? null : i}
+            class="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-dark-50 dark:hover:bg-dark-900/50 transition"
+          >
+            <span class="font-semibold">{faq.q}</span>
+            <svg
+              class="w-5 h-5 text-dark-900/40 dark:text-dark-100/40 transition-transform"
+              class:rotate-180={openFaq === i}
+              fill="none" stroke="currentColor" viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </button>
+          {#if openFaq === i}
+            <div class="px-6 pb-4 text-dark-900/70 dark:text-dark-100/70 leading-relaxed">
+              {faq.a}
+            </div>
+          {/if}
+        </div>
+      {/each}
+    </div>
+  </div>
+</section>
+
+<!-- =========================== CREDIBILITY =========================== -->
+<section class="section">
+  <div class="container-narrow max-w-4xl">
+    <div class="text-center mb-14">
+      <p class="eyebrow-label">{t(currentLocale, 'credibility.eyebrow')}</p>
+      <h2 class="heading-2">{t(currentLocale, 'credibility.title')}</h2>
+    </div>
+
+    <div class="grid sm:grid-cols-3 gap-6">
+      {#each [1, 2, 3] as i}
+        <div class="text-center">
+          <h3 class="heading-3 mb-2 text-lg">{t(currentLocale, `credibility.${i}.title` as StringKey)}</h3>
+          <p class="text-sm text-dark-900/70 dark:text-dark-100/70 leading-relaxed">{t(currentLocale, `credibility.${i}.desc` as StringKey)}</p>
         </div>
       {/each}
     </div>
@@ -251,12 +380,21 @@
   </div>
 </section>
 
-<!-- =========================== GET STARTED =========================== -->
+<!-- =========================== RISK REVERSAL =========================== -->
 <section id="waitlist" class="section">
   <div class="container-narrow max-w-2xl">
     <div class="bg-gradient-to-br from-dark-900 to-dark-950 rounded-3xl p-8 sm:p-12 text-center">
-      <h2 class="heading-2 text-white mb-3">{t(currentLocale, 'waitlist.title')}</h2>
-      <p class="text-white/70 mb-8">{t(currentLocale, 'waitlist.subtitle')}</p>
+      <h2 class="heading-2 text-white mb-3">{t(currentLocale, 'risk.title')}</h2>
+      <p class="text-white/70 mb-8">{t(currentLocale, 'risk.subtitle')}</p>
+
+      <ul class="grid sm:grid-cols-3 gap-3 text-left mb-8 text-sm">
+        {#each [1, 2, 3] as i}
+          <li class="flex items-start gap-2 bg-white/5 rounded-lg p-3">
+            <span class="text-primary-400 flex-shrink-0">✓</span>
+            <span class="text-white/80">{t(currentLocale, `risk.point${i}` as StringKey)}</span>
+          </li>
+        {/each}
+      </ul>
 
       <div class="flex flex-col sm:flex-row gap-3 justify-center">
         <a
@@ -278,32 +416,19 @@
   </div>
 </section>
 
-<!-- =========================== FAQ =========================== -->
-<section id="faq" class="section bg-dark-50 dark:bg-dark-950">
-  <div class="container-narrow max-w-3xl">
-    <h2 class="heading-2 text-center mb-12">{t(currentLocale, 'faq.title')}</h2>
+<!-- =========================== UNIQUENESS =========================== -->
+<section class="section bg-dark-50 dark:bg-dark-950">
+  <div class="container-narrow max-w-4xl">
+    <div class="text-center mb-14">
+      <p class="eyebrow-label">{t(currentLocale, 'unique.eyebrow')}</p>
+      <h2 class="heading-2">{t(currentLocale, 'unique.title')}</h2>
+    </div>
 
-    <div class="space-y-3">
-      {#each faqs as faq, i}
-        <div class="bg-white dark:bg-dark-800 rounded-xl border border-dark-100 dark:border-dark-700 overflow-hidden">
-          <button
-            onclick={() => openFaq = openFaq === i ? null : i}
-            class="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-dark-50 dark:hover:bg-dark-900/50 transition"
-          >
-            <span class="font-semibold">{faq.q}</span>
-            <svg
-              class="w-5 h-5 text-dark-900/40 dark:text-dark-100/40 transition-transform"
-              class:rotate-180={openFaq === i}
-              fill="none" stroke="currentColor" viewBox="0 0 24 24"
-            >
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-            </svg>
-          </button>
-          {#if openFaq === i}
-            <div class="px-6 pb-4 text-dark-900/70 dark:text-dark-100/70 leading-relaxed">
-              {faq.a}
-            </div>
-          {/if}
+    <div class="grid sm:grid-cols-3 gap-6">
+      {#each [1, 2, 3] as i}
+        <div class="bg-white dark:bg-dark-800 rounded-2xl p-6 border border-dark-100 dark:border-dark-700">
+          <h3 class="font-semibold text-primary-600 dark:text-primary-400 mb-2 text-sm">{t(currentLocale, `unique.vs${i}.name` as StringKey)}</h3>
+          <p class="text-sm text-dark-900/70 dark:text-dark-100/70 leading-relaxed">{t(currentLocale, `unique.vs${i}.desc` as StringKey)}</p>
         </div>
       {/each}
     </div>

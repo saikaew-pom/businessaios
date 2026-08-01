@@ -28,12 +28,39 @@ export const dict = {
     // Hero
     'hero.badge': 'พร้อมใช้งานแล้ว · ใช้ฟรี',
     'hero.title.1': 'ใส่ข้อมูล 7 ขั้นตอน',
-    'hero.title.2': 'ได้แผนธุรกิจ',
-    'hero.title.3': 'ครบชุด',
+    'hero.title.2': 'ได้แผนการตลาด',
+    'hero.title.3': 'ครบชุด พร้อมใช้',
     'hero.subtitle': 'สร้าง Brand Card, กลุ่มลูกค้า, ปฏิทินคอนเทนต์, ขั้นตอนทำงาน และตัวชี้วัดผล ด้วยระบบอัจฉริยะ — Export เป็น PDF, Word, Excel ได้ทันที',
     'hero.cta.primary': 'เริ่มใช้งานฟรี',
     'hero.cta.secondary': 'ดูวิธีทำงาน',
     'hero.proof': 'ใช้แล้ววันนี้ ไม่ต้องรอ',
+
+    // Problem (Brain Audit — Bag 1: isolate the reader's actual pain)
+    'problem.eyebrow': 'ปัญหาที่ SME ไทยเจอทุกวัน',
+    'problem.title': 'ทำการตลาดคนเดียว ไม่รู้จะเริ่มตรงไหน',
+    'problem.subtitle': 'จ้างเอเจนซี่เต็มรูปแบบก็แพงเกินงบ จะทำเองก็ไม่มีเวลานั่งคิด position เขียนคอนเทนต์ วางแผนให้ครบ',
+    'problem.1': 'เปิดเพจ โพสต์ไปเรื่อยๆ ไม่มีทิศทาง ไม่รู้จะพูดกับใคร',
+    'problem.2': 'อยากลงโฆษณาแต่ไม่รู้จะเขียนข้อความยังไงให้คนสนใจ',
+    'problem.3': 'มีไอเดียเต็มหัว แต่ไม่มีเวลาจัดเป็นแผนที่ลงมือทำได้จริง',
+    'problem.4': 'จ้างที่ปรึกษาหรือเอเจนซี่ราคาหลักหมื่นถึงแสน ทั้งที่งบมีจำกัด',
+    'problem.agitate': 'ถ้าปล่อยไว้แบบนี้ต่อไป คู่แข่งที่มีแผนชัดเจนกว่าจะแซงหน้าไปเรื่อยๆ',
+
+    // Target Audience (Brain Audit — Bag 3: make the reader see themselves, or rule themselves out)
+    'audience.eyebrow': 'เหมาะกับใคร',
+    'audience.title': 'สร้างมาสำหรับเจ้าของธุรกิจที่ทำการตลาดเอง',
+    'audience.for.title': 'ใช่เลยถ้าคุณ...',
+    'audience.for.1': 'เป็นเจ้าของ SME ที่ต้องดูแลการตลาดเอง ไม่มีทีมการตลาดประจำ',
+    'audience.for.2': 'อยากได้แผนที่ชัดเจน ไม่ใช่แค่ไอเดียลอยๆ',
+    'audience.for.3': 'งบจำกัด จ้างเอเจนซี่เต็มรูปแบบไม่ไหว',
+    'audience.for.4': 'พร้อมลงมือทำเอง ถ้ามีแผนนำทางที่ชัดเจน',
+    'audience.not.title': 'อาจไม่ใช่สำหรับคุณถ้า...',
+    'audience.not.1': 'มีทีมการตลาดขนาดใหญ่ดูแลครบอยู่แล้ว',
+    'audience.not.2': 'ต้องการเอเจนซี่ทำให้ทุกอย่างแบบ full-service',
+
+    // Trigger (Brain Audit — Bag 4: why act now, not "someday")
+    'trigger.title': 'ทุกเดือนที่ไม่มีแผน คือเดือนที่เสียโอกาส',
+    'trigger.subtitle': 'ไม่ต้องรอให้พร้อม 100% — เริ่มวันนี้ ใช้เวลาประมาณ 45 นาที ก็ได้แผนที่ลงมือทำได้จริง',
+    'trigger.cta': 'เริ่มวางแผนตอนนี้',
 
     // Waitlist (kept for legacy email capture, not primary CTA anymore)
     'waitlist.title': 'พร้อมเริ่มแล้ว?',
@@ -46,9 +73,9 @@ export const dict = {
     'waitlist.error.generic': 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง',
     'waitlist.privacy': 'เราไม่ส่งสแปม และไม่แชร์อีเมลของคุณ',
 
-    // Features
-    'features.title': 'ทำไมต้อง Business Smart OS',
-    'features.subtitle': 'ไม่ใช่แค่แชทบอทอัจฉริยะ — เป็นระบบที่ออกแบบมาเพื่อ SME ไทยโดยเฉพาะ',
+    // Features (Brain Audit — Bag 2: the solution to the problem above)
+    'features.title': 'นี่คือระบบที่ช่วยแก้ปัญหานั้น',
+    'features.subtitle': 'ไม่ใช่แค่แชทบอทอัจฉริยะ — เป็นระบบที่ออกแบบมาเพื่อวางแผนการตลาดของ SME ไทยโดยเฉพาะ',
     'features.1.title': 'Wizard 7 ขั้น',
     'features.1.desc': 'กรอกข้อมูลตามขั้นตอน ไม่ต้องเรียน prompt ไม่ต้องเดา',
     'features.2.title': 'เครื่องมือเดี่ยว 10 แบบ',
@@ -108,7 +135,8 @@ export const dict = {
     'pricing.team.f5': 'คุ้มสุดต่อเครดิต',
     'pricing.team.cta': 'เติมเครดิต Pro',
 
-    // FAQ
+    // FAQ (Brain Audit — Bag 5: answer the objections that block signup)
+    'objections.eyebrow': 'ข้อสงสัยที่พบบ่อยก่อนตัดสินใจ',
     'faq.title': 'คำถามที่ถามบ่อย',
     'faq.q1': 'ต้องมี API Key ไหม?',
     'faq.a1': 'ไม่ต้องเลย — สมัครฟรีได้ 200 เครดิตทันที ใช้ระบบอัจฉริยะที่เตรียมไว้ให้แล้ว ถ้าอยากใช้ API key ของตัวเอง (BYOK) ก็เพิ่มได้ภายหลังจากหน้าโปรไฟล์',
@@ -122,6 +150,34 @@ export const dict = {
     'faq.a5': 'ถ้าคุณเพิ่ม API key ของตัวเอง (BYOK) จะถูก encrypt (AES-256) และเก็บใน Cloudflare D1 — เราไม่เห็น ไม่เก็บ log',
     'faq.q6': 'เครดิตหมดอายุไหม?',
     'faq.a6': 'ไม่หมดอายุ — ซื้อเมื่อไหร่ก็ได้ ใช้เมื่อไหร่ก็ได้ ไม่ใช่ค่าสมาชิกรายเดือน',
+
+    // Credibility (Brain Audit — Bag 6, generic credibility markers, not fabricated
+    // customer quotes — no real testimonials exist yet, see note in +page.svelte)
+    'credibility.eyebrow': 'ทำไมถึงเชื่อได้',
+    'credibility.title': 'ออกแบบมาเพื่อ SME ไทยโดยเฉพาะ',
+    'credibility.1.title': 'เข้าใจบริบทไทย',
+    'credibility.1.desc': 'รองรับ platform ที่ SME ไทยใช้จริง เช่น LINE, Facebook, TikTok',
+    'credibility.2.title': 'ไม่ใช่ของก็อปมาจากต่างประเทศ',
+    'credibility.2.desc': 'ออกแบบคำถามใน Wizard และเครื่องมือจากปัญหาจริงของ SME ไทย',
+    'credibility.3.title': 'ใช้งานได้จริงวันนี้',
+    'credibility.3.desc': 'ไม่ใช่ waitlist หรือ coming soon — สมัครแล้วใช้ได้ทันที',
+
+    // Risk Reversal (Brain Audit — Bag 7)
+    'risk.title': 'ไม่ต้องเสี่ยง ลองก่อนตัดสินใจ',
+    'risk.subtitle': 'สมัครฟรี ได้ 200 เครดิตทันที ลองสร้างแผนเต็มหรือเครื่องมือเดี่ยวได้จริง ก่อนควักเงินสักบาท',
+    'risk.point1': 'ไม่ต้องใส่บัตรเครดิตตอนสมัคร',
+    'risk.point2': 'เครดิตที่ซื้อไม่มีวันหมดอายุ ไม่ใช้ก็ไม่เสียของ',
+    'risk.point3': 'จ่ายครั้งเดียว ไม่ผูกมัดรายเดือน ไม่ auto-renew',
+
+    // Uniqueness (Brain Audit — Bag 8)
+    'unique.eyebrow': 'ต่างจากตัวเลือกอื่นยังไง',
+    'unique.title': 'ทำไมไม่ใช้ทางเลือกอื่นแทน',
+    'unique.vs1.name': 'เทียบกับ ChatGPT ทั่วไป',
+    'unique.vs1.desc': 'ไม่ต้องคิด prompt เอง มี Wizard 7 ขั้นถามคำถามที่ถูกต้องให้ และได้ไฟล์ export ใช้งานได้ทันที ไม่ใช่แค่ข้อความในแชท',
+    'unique.vs2.name': 'เทียบกับจ้างเอเจนซี่ / นักการตลาด',
+    'unique.vs2.desc': 'ราคาหลักร้อยแทนหลักหมื่น ได้ผลลัพธ์ทันที ไม่ต้องรอนัด brief หรือรอบแก้งาน',
+    'unique.vs3.name': 'เทียบกับ Canva / Template สำเร็จรูป',
+    'unique.vs3.desc': 'ไม่ใช่แค่ดีไซน์สวย แต่ได้กลยุทธ์และเนื้อหาที่คิดมาให้ตามบริบทธุรกิจของคุณจริงๆ',
 
     // Final CTA
     'cta.title': 'พร้อมแล้วหรือยัง?',
@@ -154,12 +210,39 @@ export const dict = {
 
     'hero.badge': 'Live now · Free to use',
     'hero.title.1': 'Fill 7 steps.',
-    'hero.title.2': 'Get a complete',
-    'hero.title.3': 'business plan.',
+    'hero.title.2': 'Get a marketing plan',
+    'hero.title.3': 'complete and ready to use.',
     'hero.subtitle': 'Generate a Brand Card, customer personas, content calendar, workflows, and KPIs with a Smart Engine — export as PDF, Word, or Excel instantly.',
     'hero.cta.primary': 'Start Free Now',
     'hero.cta.secondary': 'See how it works',
     'hero.proof': 'Use it today, no waiting',
+
+    // Problem (Brain Audit — Bag 1)
+    'problem.eyebrow': 'A problem every Thai SME runs into',
+    'problem.title': "Doing marketing alone, not sure where to start",
+    'problem.subtitle': "A full-service agency costs more than the budget allows. Doing it yourself means finding time to nail your positioning, write content, and plan it all out.",
+    'problem.1': "Posting on your page with no direction, unsure who you're even talking to",
+    'problem.2': "Want to run ads but don't know how to write copy that gets attention",
+    'problem.3': "Ideas everywhere in your head, but no time to turn them into a plan you can act on",
+    'problem.4': "Consultants and agencies quote tens of thousands of baht on a limited budget",
+    'problem.agitate': "Keep putting it off, and competitors with a clearer plan keep pulling ahead.",
+
+    // Target Audience (Brain Audit — Bag 3)
+    'audience.eyebrow': 'Who this is for',
+    'audience.title': 'Built for owners who handle their own marketing',
+    'audience.for.title': "This is for you if...",
+    'audience.for.1': "You're an SME owner handling marketing yourself, with no in-house team",
+    'audience.for.2': "You want a clear plan, not just loose ideas",
+    'audience.for.3': "Your budget can't stretch to a full-service agency",
+    'audience.for.4': "You're ready to execute yourself, given a clear plan to follow",
+    'audience.not.title': "This may not be for you if...",
+    'audience.not.1': "You already have a full in-house marketing team",
+    'audience.not.2': "You want an agency to handle everything, full-service",
+
+    // Trigger (Brain Audit — Bag 4)
+    'trigger.title': 'Every month without a plan is a month of lost opportunity',
+    'trigger.subtitle': "You don't need to be 100% ready — start today. About 45 minutes gets you a plan you can actually act on.",
+    'trigger.cta': 'Start planning now',
 
     'waitlist.title': 'Ready to start?',
     'waitlist.subtitle': 'Sign up free — no credit card required, use immediately',
@@ -171,8 +254,8 @@ export const dict = {
     'waitlist.error.generic': 'Something went wrong. Please try again.',
     'waitlist.privacy': 'No spam. We do not share your email.',
 
-    'features.title': 'Why Business Smart OS',
-    'features.subtitle': 'Not just a smart chatbot — a system built for Thai SMEs.',
+    'features.title': 'This is the system built to solve that',
+    'features.subtitle': 'Not just a smart chatbot — a system built for Thai SME marketing planning.',
     'features.1.title': '7-Step Wizard',
     'features.1.desc': 'Fill forms step by step. No prompt engineering. No guessing.',
     'features.2.title': '10 Standalone Tools',
@@ -228,6 +311,7 @@ export const dict = {
     'pricing.team.f5': 'Lowest cost per credit',
     'pricing.team.cta': 'Top up Pro',
 
+    'objections.eyebrow': 'Common questions before you decide',
     'faq.title': 'Frequently asked questions',
     'faq.q1': 'Do I need an API key?',
     'faq.a1': 'Not at all — sign up free and get 200 credits instantly, using our built-in Smart Engine. You can add your own API key (BYOK) later from your profile if you want to.',
@@ -241,6 +325,34 @@ export const dict = {
     'faq.a5': 'If you add your own API key (BYOK), it is encrypted (AES-256) and stored in Cloudflare D1. We never see it, never log it.',
     'faq.q6': 'Do credits expire?',
     'faq.a6': 'No — buy whenever, use whenever. It is not a monthly subscription.',
+
+    // Credibility (Brain Audit — Bag 6, generic credibility markers, not fabricated
+    // customer quotes — no real testimonials exist yet, see note in +page.svelte)
+    'credibility.eyebrow': 'Why you can trust this',
+    'credibility.title': 'Built specifically for Thai SMEs',
+    'credibility.1.title': 'Understands Thai context',
+    'credibility.1.desc': 'Built around the platforms Thai SMEs actually use — LINE, Facebook, TikTok',
+    'credibility.2.title': "Not a copy-paste of a foreign tool",
+    'credibility.2.desc': "Wizard questions and tools designed around real Thai SME problems",
+    'credibility.3.title': 'Live and usable today',
+    'credibility.3.desc': "Not a waitlist or 'coming soon' — sign up and use it immediately",
+
+    // Risk Reversal (Brain Audit — Bag 7)
+    'risk.title': "No risk — try it before you decide",
+    'risk.subtitle': 'Sign up free, get 200 credits instantly, and actually build a full plan or run a single tool before spending a baht.',
+    'risk.point1': 'No credit card required to sign up',
+    'risk.point2': "Purchased credits never expire — nothing wasted if you don't use them right away",
+    'risk.point3': 'One-time payment, no monthly lock-in, no auto-renewal',
+
+    // Uniqueness (Brain Audit — Bag 8)
+    'unique.eyebrow': 'How this is different',
+    'unique.title': 'Why not use something else instead',
+    'unique.vs1.name': 'vs. plain ChatGPT',
+    'unique.vs1.desc': "No prompt writing needed — a 7-step wizard asks the right questions, and you get exportable files, not just chat text",
+    'unique.vs2.name': 'vs. hiring an agency or marketer',
+    'unique.vs2.desc': 'Hundreds of baht instead of tens of thousands, results instantly — no waiting for briefs or revision rounds',
+    'unique.vs3.name': 'vs. Canva or templates',
+    'unique.vs3.desc': "Not just good-looking design — strategy and content actually built around your business context",
 
     'cta.title': 'Ready?',
     'cta.subtitle': 'Sign up free today. Use it immediately, no waiting.',
