@@ -124,26 +124,16 @@
 </script>
 
 <div class="min-h-screen bg-dark-50 dark:bg-dark-950">
-  <header class="bg-white dark:bg-dark-800 border-b border-dark-100 dark:border-dark-700 sticky top-0 z-10">
-    <div class="container-narrow flex items-center justify-between h-16">
-      <div class="flex items-center gap-3">
-        <a href="/dashboard" class="text-dark-900/60 dark:text-dark-100/60 hover:text-dark-900 dark:hover:text-dark-50">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-        </a>
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
-            <span class="text-white font-bold text-sm">B</span>
-          </div>
-          <span class="font-bold">เครื่องมือ</span>
-        </div>
-      </div>
+  <main class="container-narrow py-8 max-w-5xl">
+    <div class="flex items-center justify-between mb-4">
+      <a href="/dashboard" class="flex items-center gap-1 text-sm text-dark-900/60 dark:text-dark-100/60 hover:text-dark-900 dark:hover:text-dark-50">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        กลับ Dashboard
+      </a>
       <button onclick={toggleLocale} class="text-xs font-semibold px-2.5 py-1 rounded border border-dark-200 dark:border-dark-600 hover:bg-dark-50 dark:hover:bg-dark-700 transition">
         {$locale === 'th' ? 'EN' : 'TH'}
       </button>
     </div>
-  </header>
-
-  <main class="container-narrow py-8 max-w-5xl">
     <div class="mb-8 text-center">
       <div class="inline-block px-3 py-1 rounded-full bg-primary-50 dark:bg-primary-900/40 border border-primary-200 dark:border-primary-800 text-xs font-semibold text-primary-700 dark:text-primary-300 mb-3">
         ⚡ เครื่องมือ ระบบอัจฉริยะ แยกต่างหาก

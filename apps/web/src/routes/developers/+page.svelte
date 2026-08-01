@@ -90,19 +90,8 @@
 </svelte:head>
 
 <div class="min-h-screen bg-dark-50 dark:bg-dark-950">
-  <header class="bg-white dark:bg-dark-800 border-b border-dark-100 dark:border-dark-700 sticky top-0 z-10">
-    <div class="container-narrow flex items-center justify-between h-16">
-      <a href="/dashboard" class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
-          <span class="text-white font-bold text-sm">B</span>
-        </div>
-        <span class="font-bold text-lg">Business Smart OS</span>
-      </a>
-      <a href="/dashboard" class="text-sm text-primary-600 dark:text-primary-400 hover:underline">← กลับ Dashboard</a>
-    </div>
-  </header>
-
   <main class="container-narrow py-10 space-y-8">
+    <a href="/dashboard" class="text-sm text-primary-600 dark:text-primary-400 hover:underline">← กลับ Dashboard</a>
     <div class="flex items-start justify-between gap-4 flex-wrap">
       <div>
         <h1 class="heading-2 mb-1">🔌 Developers</h1>

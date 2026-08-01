@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { page } from '$app/stores';
-  import { user, fullUser, logout, initAuth, isAuthed } from '$lib/auth';
+  import { initAuth, isAuthed } from '$lib/auth';
   import StepAssets from '$lib/StepAssets.svelte';
   import { getProject, updateProject, generateStep, exportProject, exportProjectFormatted, getExportUrl, type ProjectWithData, type ExportFormat } from '$lib/api';
   import OutputRenderer from '$lib/OutputRenderer.svelte';
@@ -208,11 +208,6 @@
   function getOutput(step: number) {
     return project?.step_data?.[`step${step}`]?.output;
   }
-
-  async function handleLogout() {
-    await logout();
-    goto('/');
-  }
 </script>
 
 <svelte:head>
@@ -220,32 +215,13 @@
 </svelte:head>
 
 <div class="min-h-screen bg-dark-50 dark:bg-dark-950">
-  <!-- Header -->
-  <header class="bg-white dark:bg-dark-800 border-b border-dark-100 dark:border-dark-700 sticky top-0 z-10">
-    <div class="container-narrow flex items-center justify-between h-16">
-      <div class="flex items-center gap-3">
-        <a href="/dashboard" class="text-dark-900/60 dark:text-dark-100/60 hover:text-dark-900 dark:hover:text-dark-50">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-        </a>
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
-            <span class="text-white font-bold text-sm">B</span>
-          </div>
-          <span class="font-bold">{project?.name || 'Loading...'}</span>
-        </div>
-      </div>
-      <div class="flex items-center gap-3">
-        {#if $fullUser}
-          <span class="text-xs px-2 py-0.5 rounded-full bg-primary-50 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300" title="ระบบอัจฉริยะ credits คงเหลือ">⚡ {$fullUser.credits}</span>
-        {/if}
-        <a href="/dashboard" class="text-sm text-dark-900/60 dark:text-dark-100/60 hover:text-dark-900 dark:hover:text-dark-50">← กลับ</a>
-        <a href="/profile" class="text-sm text-dark-900/60 dark:text-dark-100/60 hover:text-dark-900 dark:hover:text-dark-50 hidden sm:inline">โปรไฟล์</a>
-        <button onclick={handleLogout} class="text-sm text-dark-900/60 dark:text-dark-100/60 hover:text-dark-900 dark:hover:text-dark-50">ออก</button>
-      </div>
-    </div>
-  </header>
-
   <main class="container-narrow py-6">
+    <div class="flex items-center gap-3 mb-4">
+      <a href="/dashboard" class="text-dark-900/60 dark:text-dark-100/60 hover:text-dark-900 dark:hover:text-dark-50">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+      </a>
+      <span class="font-bold">{project?.name || 'Loading...'}</span>
+    </div>
     {#if isLoading}
       <div class="text-center py-20 text-dark-900/60 dark:text-dark-100/60">กำลังโหลด...</div>
     {:else if !project}

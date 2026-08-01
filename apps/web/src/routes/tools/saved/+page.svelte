@@ -430,19 +430,11 @@ ${css}
 </svelte:head>
 
 <div class="min-h-screen bg-dark-50 dark:bg-dark-950">
-  <header class="bg-white dark:bg-dark-800 border-b border-dark-100 dark:border-dark-700 sticky top-0 z-10">
-    <div class="container-narrow flex items-center justify-between h-16">
-      <a href="/dashboard" class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
-          <span class="text-white font-bold text-sm">B</span>
-        </div>
-        <span class="font-bold text-lg">📂 บันทึกของฉัน</span>
-      </a>
+  <main class="container-narrow py-8">
+    <div class="flex items-center justify-between mb-4">
+      <h1 class="font-bold text-lg">📂 บันทึกของฉัน</h1>
       <a href="/tools" class="text-sm text-primary-600 dark:text-primary-400 hover:underline">← กลับไปเครื่องมือ</a>
     </div>
-  </header>
-
-  <main class="container-narrow py-8">
     <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
       <div class="text-sm text-dark-900/60 dark:text-dark-100/60">ทั้งหมด {saves.length} รายการ</div>
       <label class="flex items-center gap-2 text-sm cursor-pointer">

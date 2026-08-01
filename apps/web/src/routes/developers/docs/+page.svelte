@@ -179,19 +179,8 @@
 </svelte:head>
 
 <div class="min-h-screen bg-dark-50 dark:bg-dark-950">
-  <header class="bg-white dark:bg-dark-800 border-b border-dark-100 dark:border-dark-700 sticky top-0 z-10">
-    <div class="container-narrow flex items-center justify-between h-16">
-      <a href="/dashboard" class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
-          <span class="text-white font-bold text-sm">B</span>
-        </div>
-        <span class="font-bold text-lg">Business Smart OS</span>
-      </a>
-      <a href="/developers" class="text-sm text-primary-600 dark:text-primary-400 hover:underline">← กลับ Developers</a>
-    </div>
-  </header>
-
   <main class="container-narrow py-10 space-y-8 max-w-3xl">
+    <a href="/developers" class="text-sm text-primary-600 dark:text-primary-400 hover:underline">← กลับ Developers</a>
     <div>
       <h1 class="heading-2 mb-1">📖 คู่มือ MCP</h1>
       <p class="text-dark-900/60 dark:text-dark-100/60">รายละเอียดครบสำหรับต่อ Claude Code / Claude Desktop เข้ากับ Business Smart OS — ทุก tool call ใช้เครดิตเดียวกับบัญชีเว็บของคุณ</p>

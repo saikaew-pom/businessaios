@@ -222,19 +222,17 @@
 </svelte:head>
 
 <div class="min-h-screen bg-dark-50 dark:bg-dark-950">
-  <header class="bg-white dark:bg-dark-800 border-b border-dark-100 dark:border-dark-700 sticky top-0 z-10">
-    <div class="container-wide flex items-center justify-between h-16">
-      <a href="/dashboard" class="flex items-center gap-2">
+  <main class="container-wide py-8">
+    <div class="flex items-center justify-between gap-2 mb-6">
+      <div class="flex items-center gap-2">
         <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center">
           <span class="text-white font-bold text-sm">🛡️</span>
         </div>
-        <span class="font-bold text-lg">Operations Console</span>
-      </a>
+        <h1 class="font-bold text-lg">Operations Console</h1>
+      </div>
       <a href="/dashboard" class="text-sm text-primary-600 dark:text-primary-400 hover:underline">← กลับ Dashboard</a>
     </div>
-  </header>
 
-  <main class="container-wide py-8">
     <!-- Tabs -->
     <div class="flex gap-2 mb-6 border-b border-dark-100 dark:border-dark-700">
       <button onclick={() => tab = 'overview'} class="px-4 py-2 font-semibold {tab === 'overview' ? 'border-b-2 border-primary-600 dark:border-primary-400 text-primary-600 dark:text-primary-400' : 'text-dark-900/60 dark:text-dark-100/60'}">📊 ภาพรวม</button>

@@ -41,8 +41,13 @@
 </script>
 
 <div class="min-h-screen bg-dark-50 dark:bg-dark-950">
-  <!-- Header -->
-  <header class="bg-white dark:bg-dark-800 border-b border-dark-100 dark:border-dark-700 sticky top-0 z-10">
+  <!-- Tool sub-header (page-specific: title/language toggle/account).
+       Deliberately NOT sticky: the app-wide AppHeader (rendered by
+       +layout.svelte) already occupies the sticky top-0 slot on every authed
+       page, including this one. Making this bar sticky too would stack two
+       `top: 0` elements and the later one (this one) would paint over and
+       hide the AppHeader once scrolled past it. -->
+  <header class="bg-white dark:bg-dark-800 border-b border-dark-100 dark:border-dark-700">
     <div class="container-narrow flex items-center justify-between h-16">
       <div class="flex items-center gap-3">
         <a href="/dashboard" class="text-dark-900/60 dark:text-dark-100/60 hover:text-dark-900 dark:hover:text-dark-50">
