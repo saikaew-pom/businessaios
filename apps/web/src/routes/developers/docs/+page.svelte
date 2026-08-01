@@ -178,8 +178,8 @@
   <title>คู่มือ MCP — Business Smart OS</title>
 </svelte:head>
 
-<div class="min-h-screen bg-dark-50">
-  <header class="bg-white border-b border-dark-100 sticky top-0 z-10">
+<div class="min-h-screen bg-dark-50 dark:bg-dark-950">
+  <header class="bg-white dark:bg-dark-800 border-b border-dark-100 dark:border-dark-700 sticky top-0 z-10">
     <div class="container-narrow flex items-center justify-between h-16">
       <a href="/dashboard" class="flex items-center gap-2">
         <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
@@ -187,89 +187,89 @@
         </div>
         <span class="font-bold text-lg">Business Smart OS</span>
       </a>
-      <a href="/developers" class="text-sm text-primary-600 hover:underline">← กลับ Developers</a>
+      <a href="/developers" class="text-sm text-primary-600 dark:text-primary-400 hover:underline">← กลับ Developers</a>
     </div>
   </header>
 
   <main class="container-narrow py-10 space-y-8 max-w-3xl">
     <div>
       <h1 class="heading-2 mb-1">📖 คู่มือ MCP</h1>
-      <p class="text-dark-900/60">รายละเอียดครบสำหรับต่อ Claude Code / Claude Desktop เข้ากับ Business Smart OS — ทุก tool call ใช้เครดิตเดียวกับบัญชีเว็บของคุณ</p>
+      <p class="text-dark-900/60 dark:text-dark-100/60">รายละเอียดครบสำหรับต่อ Claude Code / Claude Desktop เข้ากับ Business Smart OS — ทุก tool call ใช้เครดิตเดียวกับบัญชีเว็บของคุณ</p>
     </div>
 
     <!-- Quickstart -->
-    <div class="bg-white rounded-2xl border border-dark-100 p-6">
+    <div class="bg-white dark:bg-dark-800 rounded-2xl border border-dark-100 dark:border-dark-700 p-6">
       <h2 class="font-semibold mb-4">เริ่มต้นใน 3 ขั้น</h2>
       <ol class="space-y-3 text-sm">
         <li class="flex gap-3">
-          <span class="shrink-0 w-6 h-6 rounded-full bg-primary-100 text-primary-700 font-bold flex items-center justify-center text-xs">1</span>
-          <span>ไปที่ <a href="/developers" class="text-primary-600 hover:underline">หน้า Developers</a> → กด "+ สร้าง token" → คัดลอก token ไว้ (แสดงครั้งเดียว)</span>
+          <span class="shrink-0 w-6 h-6 rounded-full bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 font-bold flex items-center justify-center text-xs">1</span>
+          <span>ไปที่ <a href="/developers" class="text-primary-600 dark:text-primary-400 hover:underline">หน้า Developers</a> → กด "+ สร้าง token" → คัดลอก token ไว้ (แสดงครั้งเดียว)</span>
         </li>
         <li class="flex gap-3">
-          <span class="shrink-0 w-6 h-6 rounded-full bg-primary-100 text-primary-700 font-bold flex items-center justify-center text-xs">2</span>
+          <span class="shrink-0 w-6 h-6 rounded-full bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 font-bold flex items-center justify-center text-xs">2</span>
           <span>รันคำสั่งที่คัดลอกมา (หรือแปะ config JSON ใน Claude Desktop) — ดูตัวอย่างคำสั่งได้ตอนสร้าง token</span>
         </li>
         <li class="flex gap-3">
-          <span class="shrink-0 w-6 h-6 rounded-full bg-primary-100 text-primary-700 font-bold flex items-center justify-center text-xs">3</span>
+          <span class="shrink-0 w-6 h-6 rounded-full bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 font-bold flex items-center justify-center text-xs">3</span>
           <span>ลองพิมพ์กับ Claude เช่น <em>"เช็คเครดิตของฉันหน่อย"</em> หรือ <em>"สร้างแผนใหม่ชื่อร้านกาแฟลุงมี"</em></span>
         </li>
       </ol>
-      <p class="text-xs text-dark-900/50 mt-4">MCP server URL: <code class="bg-dark-50 px-1.5 py-0.5 rounded">{mcpUrl}</code></p>
+      <p class="text-xs text-dark-900/50 dark:text-dark-100/50 mt-4">MCP server URL: <code class="bg-dark-50 dark:bg-dark-950 px-1.5 py-0.5 rounded">{mcpUrl}</code></p>
     </div>
 
     <!-- How responses work -->
-    <div class="bg-white rounded-2xl border border-dark-100 p-6">
+    <div class="bg-white dark:bg-dark-800 rounded-2xl border border-dark-100 dark:border-dark-700 p-6">
       <h2 class="font-semibold mb-2">รูปแบบผลลัพธ์</h2>
-      <p class="text-sm text-dark-900/70">
-        ทุก tool call ตอบกลับผ่าน MCP มาตรฐาน: <code class="bg-dark-50 px-1.5 py-0.5 rounded text-xs">content[0].text</code> เป็นสตริง JSON (ตัวอย่าง response ด้านล่างคือ JSON ที่อยู่ข้างในนั้น หลัง parse แล้ว) — ถ้าเกิด error ระหว่างทำงาน จะได้ <code class="bg-dark-50 px-1.5 py-0.5 rounded text-xs">isError: true</code> พร้อมข้อความอธิบายในเนื้อหาเดียวกัน
+      <p class="text-sm text-dark-900/70 dark:text-dark-100/70">
+        ทุก tool call ตอบกลับผ่าน MCP มาตรฐาน: <code class="bg-dark-50 dark:bg-dark-950 px-1.5 py-0.5 rounded text-xs">content[0].text</code> เป็นสตริง JSON (ตัวอย่าง response ด้านล่างคือ JSON ที่อยู่ข้างในนั้น หลัง parse แล้ว) — ถ้าเกิด error ระหว่างทำงาน จะได้ <code class="bg-dark-50 dark:bg-dark-950 px-1.5 py-0.5 rounded text-xs">isError: true</code> พร้อมข้อความอธิบายในเนื้อหาเดียวกัน
       </p>
     </div>
 
     <!-- Tool reference -->
     <div>
-      <h2 class="text-sm font-bold uppercase tracking-wider text-dark-900/50 mb-4">รายละเอียดแต่ละ Tool</h2>
+      <h2 class="text-sm font-bold uppercase tracking-wider text-dark-900/50 dark:text-dark-100/50 mb-4">รายละเอียดแต่ละ Tool</h2>
       <div class="space-y-4">
         {#each tools as tool}
-          <div class="bg-white rounded-2xl border border-dark-100 p-6">
+          <div class="bg-white dark:bg-dark-800 rounded-2xl border border-dark-100 dark:border-dark-700 p-6">
             <div class="flex items-center gap-2 mb-1 flex-wrap">
-              <code class="text-base font-bold text-primary-700">{tool.name}</code>
+              <code class="text-base font-bold text-primary-700 dark:text-primary-300">{tool.name}</code>
               {#if tool.credits}
-                <span class="text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 font-semibold">⚡ ใช้เครดิต</span>
+                <span class="text-xs px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 font-semibold">⚡ ใช้เครดิต</span>
               {/if}
             </div>
-            <p class="text-sm text-dark-900/70 mb-4">{tool.desc}</p>
+            <p class="text-sm text-dark-900/70 dark:text-dark-100/70 mb-4">{tool.desc}</p>
 
             {#if tool.params.length > 0}
               <!-- List, not a <table> — a rigid table forces horizontal scroll and
                    clips the "หมายเหตุ" notes column on a 375px screen; this reflows naturally at any width. -->
-              <div class="mb-4 divide-y divide-dark-100 border-t border-dark-100">
+              <div class="mb-4 divide-y divide-dark-100 dark:divide-dark-700 border-t border-dark-100 dark:border-dark-700">
                 {#each tool.params as p}
                   <div class="py-2.5 text-xs">
                     <div class="flex items-center gap-2 flex-wrap mb-1">
                       <code class="font-semibold">{p.name}</code>
-                      <span class="text-dark-900/50">{p.type}</span>
+                      <span class="text-dark-900/50 dark:text-dark-100/50">{p.type}</span>
                       {#if p.required}
-                        <span class="px-1.5 py-0.5 rounded bg-red-50 text-red-700 font-semibold">required</span>
+                        <span class="px-1.5 py-0.5 rounded bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-400 font-semibold">required</span>
                       {/if}
                     </div>
                     {#if p.note}
-                      <p class="text-dark-900/60">{p.note}</p>
+                      <p class="text-dark-900/60 dark:text-dark-100/60">{p.note}</p>
                     {/if}
                   </div>
                 {/each}
               </div>
             {:else}
-              <p class="text-xs text-dark-900/40 mb-4">ไม่ต้องใส่ parameter</p>
+              <p class="text-xs text-dark-900/40 dark:text-dark-100/40 mb-4">ไม่ต้องใส่ parameter</p>
             {/if}
 
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
-                <div class="text-xs font-semibold text-dark-900/50 uppercase mb-1">arguments ตัวอย่าง</div>
-                <pre class="bg-dark-50 rounded-lg p-3 text-xs overflow-x-auto">{tool.example}</pre>
+                <div class="text-xs font-semibold text-dark-900/50 dark:text-dark-100/50 uppercase mb-1">arguments ตัวอย่าง</div>
+                <pre class="bg-dark-50 dark:bg-dark-950 rounded-lg p-3 text-xs overflow-x-auto">{tool.example}</pre>
               </div>
               <div>
-                <div class="text-xs font-semibold text-dark-900/50 uppercase mb-1">response ตัวอย่าง</div>
-                <pre class="bg-dark-50 rounded-lg p-3 text-xs overflow-x-auto">{tool.response}</pre>
+                <div class="text-xs font-semibold text-dark-900/50 dark:text-dark-100/50 uppercase mb-1">response ตัวอย่าง</div>
+                <pre class="bg-dark-50 dark:bg-dark-950 rounded-lg p-3 text-xs overflow-x-auto">{tool.response}</pre>
               </div>
             </div>
           </div>
@@ -278,38 +278,38 @@
     </div>
 
     <!-- Error reference -->
-    <div class="bg-white rounded-2xl border border-dark-100 p-6">
+    <div class="bg-white dark:bg-dark-800 rounded-2xl border border-dark-100 dark:border-dark-700 p-6">
       <h2 class="font-semibold mb-4">Error ที่เจอบ่อย</h2>
-      <div class="divide-y divide-dark-100 border-t border-dark-100">
+      <div class="divide-y divide-dark-100 dark:divide-dark-700 border-t border-dark-100 dark:border-dark-700">
         {#each errors as e}
           <div class="py-3 text-sm">
-            <code class="text-xs font-semibold text-primary-700">{e.code}</code>
-            <p class="text-dark-900/70 mt-0.5">{e.meaning}</p>
-            <p class="text-dark-900/50 text-xs mt-0.5">→ {e.fix}</p>
+            <code class="text-xs font-semibold text-primary-700 dark:text-primary-300">{e.code}</code>
+            <p class="text-dark-900/70 dark:text-dark-100/70 mt-0.5">{e.meaning}</p>
+            <p class="text-dark-900/50 dark:text-dark-100/50 text-xs mt-0.5">→ {e.fix}</p>
           </div>
         {/each}
       </div>
     </div>
 
     <!-- FAQ -->
-    <div class="bg-white rounded-2xl border border-dark-100 p-6">
+    <div class="bg-white dark:bg-dark-800 rounded-2xl border border-dark-100 dark:border-dark-700 p-6">
       <h2 class="font-semibold mb-4">คำถามที่พบบ่อย</h2>
       <div class="space-y-4 text-sm">
         <div>
           <p class="font-semibold mb-1">เครดิตที่ใช้ผ่าน MCP แยกจากที่ใช้บนเว็บไหม?</p>
-          <p class="text-dark-900/70">ไม่แยก — ใช้เครดิตก้อนเดียวกับบัญชีของคุณ เช็คยอดได้ทั้งจากเว็บและจาก check_credits</p>
+          <p class="text-dark-900/70 dark:text-dark-100/70">ไม่แยก — ใช้เครดิตก้อนเดียวกับบัญชีของคุณ เช็คยอดได้ทั้งจากเว็บและจาก check_credits</p>
         </div>
         <div>
           <p class="font-semibold mb-1">Token ปลอดภัยแค่ไหน?</p>
-          <p class="text-dark-900/70">ระบบเก็บแค่ hash ของ token ไม่เก็บค่าจริง — token ตัวจริงแสดงให้เห็นครั้งเดียวตอนสร้าง เพิกถอนได้ทันทีที่หน้า Developers</p>
+          <p class="text-dark-900/70 dark:text-dark-100/70">ระบบเก็บแค่ hash ของ token ไม่เก็บค่าจริง — token ตัวจริงแสดงให้เห็นครั้งเดียวตอนสร้าง เพิกถอนได้ทันทีที่หน้า Developers</p>
         </div>
         <div>
           <p class="font-semibold mb-1">ทำไม generate_step / run_tool ถึงใช้เวลานาน?</p>
-          <p class="text-dark-900/70">เป็นการเรียกระบบอัจฉริยะจริง (ไม่ใช่ mock) ปกติใช้เวลา 5-15 วินาทีต่อครั้ง ขึ้นกับความยาวของผลลัพธ์</p>
+          <p class="text-dark-900/70 dark:text-dark-100/70">เป็นการเรียกระบบอัจฉริยะจริง (ไม่ใช่ mock) ปกติใช้เวลา 5-15 วินาทีต่อครั้ง ขึ้นกับความยาวของผลลัพธ์</p>
         </div>
         <div>
           <p class="font-semibold mb-1">ลืมคัดลอก token ตอนสร้างทำไง?</p>
-          <p class="text-dark-900/70">ดูค่าเดิมไม่ได้แล้ว ต้องเพิกถอนแล้วสร้างใหม่ที่หน้า Developers</p>
+          <p class="text-dark-900/70 dark:text-dark-100/70">ดูค่าเดิมไม่ได้แล้ว ต้องเพิกถอนแล้วสร้างใหม่ที่หน้า Developers</p>
         </div>
       </div>
     </div>
