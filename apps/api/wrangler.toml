@@ -4,6 +4,9 @@ compatibility_date = "2024-12-01"
 compatibility_flags = ["nodejs_compat"]
 account_id = "8d3b88fb762aaac5e9feca0421310dfb"
 
+[triggers]
+crons = ["*/1 * * * *"]
+
 # D1 Database
 [[d1_databases]]
 binding = "DB"
@@ -18,13 +21,52 @@ bucket_name = "businessaios-exports"
 
 # Environment variables
 [vars]
-ALLOWED_ORIGIN = "https://businessaios-web.pskspace.workers.dev,https://businessaios.pages.dev,https://businessaios-web.pskspace.workers.dev"
+ALLOWED_ORIGIN = "https://businessaios-web.pskspace.workers.dev,https://businessaios.pages.dev"
+API_URL = "https://businessaios-api.pskspace.workers.dev"
+WEB_URL = "https://businessaios-web.pskspace.workers.dev"
 RESEND_FROM_EMAIL = "onboarding@resend.dev"
 NOTIFY_EMAIL = "watcharapong.saikaew@gmail.com"
 MINIMAX_MODEL = "MiniMax-M3"
 TURNSTILE_SITE_KEY = "0x4AAAAAAD-Tp8_cHI9Xl8wM"
 TURNSTILE_REQUIRED = "false"
 STRIPE_PUBLISHABLE_KEY = "pk_test_xxx"  # set via wrangler secret in production
+CREATIVE_STUDIO_ENABLED = "true"
+BRAND_CONTEXT_ENABLED = "true"
+CREATIVE_EMBEDDED_ENABLED = "true"
+BRAND_COMPOSITION_ENABLED = "false"
+SOCIAL_PUBLISHING_ENABLED = "false"
+
+[env.staging]
+name = "businessaios-api-staging"
+
+[env.staging.triggers]
+crons = ["*/1 * * * *"]
+
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "businessaios-db-staging"
+database_id = "5a895ec0-3a30-494c-b478-e8f84496303a"
+migrations_dir = "migrations"
+
+[[env.staging.r2_buckets]]
+binding = "R2"
+bucket_name = "businessaios-exports-staging"
+
+[env.staging.vars]
+ALLOWED_ORIGIN = "https://businessaios-web-staging.pskspace.workers.dev,https://businessaios-web.pskspace.workers.dev"
+API_URL = "https://businessaios-api-staging.pskspace.workers.dev"
+WEB_URL = "https://businessaios-web-staging.pskspace.workers.dev"
+RESEND_FROM_EMAIL = "onboarding@resend.dev"
+NOTIFY_EMAIL = "watcharapong.saikaew@gmail.com"
+MINIMAX_MODEL = "MiniMax-M3"
+TURNSTILE_SITE_KEY = "0x4AAAAAAD-Tp8_cHI9Xl8wM"
+TURNSTILE_REQUIRED = "false"
+STRIPE_PUBLISHABLE_KEY = "pk_test_xxx"
+CREATIVE_STUDIO_ENABLED = "true"
+BRAND_CONTEXT_ENABLED = "true"
+CREATIVE_EMBEDDED_ENABLED = "true"
+BRAND_COMPOSITION_ENABLED = "true"
+SOCIAL_PUBLISHING_ENABLED = "true"
 
 # Secrets (set via `wrangler secret put NAME`)
 # BREVO_API_KEY - email sending (transactional emails via Brevo — code reads this, NOT Resend)
@@ -37,6 +79,7 @@ STRIPE_PUBLISHABLE_KEY = "pk_test_xxx"  # set via wrangler secret in production
 # TURNSTILE_SECRET - Cloudflare Turnstile server-side secret (site key is public, above)
 # MINIMAX_API_KEY - AI API
 # MINIMAX_GROUP_ID - AI group ID
+# MEDIA_SIGNING_SECRET - HMAC signing secret for future media/provider content URLs
 # SESSION_SECRET - cookie signing (auto-generated, fallback to dev-secret)
 # STRIPE_SECRET_KEY - Stripe API (PromptPay payments) — set via wrangler secret
 # STRIPE_WEBHOOK_SECRET - Stripe webhook signing secret — set via wrangler secret
