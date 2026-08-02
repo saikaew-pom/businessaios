@@ -35,7 +35,7 @@ BRAND_CONTEXT_ENABLED = "true"
 CREATIVE_EMBEDDED_ENABLED = "true"
 BRAND_COMPOSITION_ENABLED = "false"
 SOCIAL_PUBLISHING_ENABLED = "false"
-CONTENT_SERIES_ENABLED = "false"
+CONTENT_SERIES_ENABLED = "true"
 
 [env.staging]
 name = "businessaios-api-staging"
