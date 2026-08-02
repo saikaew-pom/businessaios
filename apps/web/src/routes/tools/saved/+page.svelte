@@ -149,6 +149,243 @@
     return '';
   }
 
+  function renderList(items: any[] | undefined, mapper: (item: any) => string = (item) => escape(item)): string {
+    if (!Array.isArray(items) || items.length === 0) return '';
+    return `<ul>${items.map((item) => `<li>${mapper(item)}</li>`).join('')}</ul>`;
+  }
+
+  function renderForceList(items: any[] | undefined): string {
+    if (!Array.isArray(items) || items.length === 0) return '<p class="muted">ไม่มีข้อมูล</p>';
+    return `<ul>${items.map((item) => `
+      <li>
+        <strong>${escape(item.force || '')}</strong>
+        ${item.intensity ? `<span class="pill">${escape(item.intensity)}</span>` : ''}
+        ${item.evidence ? `<div class="muted small">${escape(item.evidence)}</div>` : ''}
+      </li>
+    `).join('')}</ul>`;
+  }
+
+  const jtbdInputLabels: Record<string, string> = {
+    business_name: 'ชื่อธุรกิจ',
+    business_type: 'ประเภทธุรกิจ',
+    industry: 'อุตสาหกรรม',
+    location: 'พื้นที่/ตลาดหลัก',
+    differentiation: 'จุดแตกต่างของธุรกิจ',
+    price_range: 'ช่วงราคา',
+    customer_age: 'อายุลูกค้าเป้าหมาย',
+    customer_job: 'อาชีพ/บทบาทลูกค้า',
+    customer_income: 'รายได้/กำลังซื้อ',
+    core_problem: 'ปัญหาหลักของลูกค้า',
+    current_solutions: 'ทางออกที่ลูกค้าใช้อยู่ตอนนี้',
+    trigger_event: 'เหตุการณ์ที่กระตุ้นให้เริ่มมองหาทางออก',
+    known_objections: 'ข้อกังวล/แรงต้านก่อนซื้อ',
+  };
+
+  const jtbdBusinessTypeLabels: Record<string, string> = {
+    education: 'การศึกษา/การสอน',
+    service: 'ธุรกิจบริการ',
+    ecommerce: 'อีคอมเมิร์ซ',
+    retail: 'ค้าปลีก/หน้าร้าน',
+    food: 'อาหารและเครื่องดื่ม',
+    health: 'สุขภาพ/ความงาม',
+    technology: 'เทคโนโลยี',
+  };
+
+  const jtbdInputGroups = [
+    { title: 'ภาพรวมธุรกิจ', keys: ['business_name', 'business_type', 'industry', 'location', 'differentiation', 'price_range'] },
+    { title: 'ลูกค้าเป้าหมาย', keys: ['customer_age', 'customer_job', 'customer_income'] },
+    { title: 'สถานการณ์ซื้อ', keys: ['core_problem', 'current_solutions', 'trigger_event'] },
+    { title: 'ข้อกังวลก่อนตัดสินใจ', keys: ['known_objections'] },
+  ];
+
+  function hasPrintableValue(value: any): boolean {
+    return value !== undefined && value !== null && String(typeof value === 'object' ? JSON.stringify(value) : value).trim() !== '';
+  }
+
+  function getJtbdInputValue(input: any, key: string): any {
+    if (key === 'business_type') return input.business_type_resolved || input.business_type;
+    if (key === 'industry') return input.industry_resolved || input.industry || input.industry_custom;
+    return input[key];
+  }
+
+  function formatJtbdInputValue(key: string, value: any): string {
+    if (key === 'business_type') return jtbdBusinessTypeLabels[String(value)] || String(value);
+    if (key === 'price_range') {
+      const raw = String(value).trim();
+      return raw && !/[฿บาท]/.test(raw) ? `${raw} บาท` : raw;
+    }
+    if (typeof value === 'object') return JSON.stringify(value);
+    return String(value);
+  }
+
+  function renderJtbdInputBrief(input: any): string {
+    if (!input || typeof input !== 'object') return '';
+    const renderedGroups = jtbdInputGroups.map((group) => {
+      const rows = group.keys
+        .map((key) => ({ key, value: getJtbdInputValue(input, key) }))
+        .filter(({ value }) => hasPrintableValue(value))
+        .map((key) => `
+          <div class="brief-row">
+            <div class="brief-label">${escape(jtbdInputLabels[key.key] || key.key)}</div>
+            <div class="brief-value">${escape(formatJtbdInputValue(key.key, key.value))}</div>
+          </div>
+        `);
+      if (!rows.length) return '';
+      return `<div class="brief-card"><h3>${escape(group.title)}</h3>${rows.join('')}</div>`;
+    }).filter(Boolean);
+
+    if (!renderedGroups.length) return '';
+    return `
+      <section class="section">
+        <h2>Analysis Brief</h2>
+        <p class="muted small">ข้อมูลตั้งต้นที่ใช้วิเคราะห์ ไม่ใช่ผลลัพธ์สุดท้าย</p>
+        <div class="brief-grid">${renderedGroups.join('')}</div>
+      </section>
+    `;
+  }
+
+  function renderJtbdReport(output: any): string {
+    const primary = output.primary_job || {};
+    const dimensions = primary.dimensions || {};
+    const forces = output.forces_of_progress || {};
+    const insights = output.deep_research_insights || {};
+    const criteria = output.hiring_firing_criteria || {};
+
+    return `
+      ${output.summary ? `<section class="section">
+        <h2>Executive Summary</h2>
+        <div class="highlight">${escape(output.summary)}</div>
+      </section>` : ''}
+
+      ${output.answer_to_core_question ? `<section class="section">
+        <h2>Core Question</h2>
+        <div class="quote">${escape(output.answer_to_core_question)}</div>
+      </section>` : ''}
+
+      ${Object.keys(primary).length ? `<section class="section">
+        <h2>Primary Job</h2>
+        ${primary.job_statement ? `<div class="job-statement">${escape(primary.job_statement)}</div>` : ''}
+        <div class="grid2">
+          ${primary.situation ? `<div class="card"><h3>Situation</h3><p>${escape(primary.situation)}</p></div>` : ''}
+          ${primary.motivation ? `<div class="card"><h3>Motivation</h3><p>${escape(primary.motivation)}</p></div>` : ''}
+          ${primary.expected_outcome ? `<div class="card"><h3>Expected Outcome</h3><p>${escape(primary.expected_outcome)}</p></div>` : ''}
+          ${primary.job_verb_format ? `<div class="card"><h3>Job Verb Format</h3><p>${escape(primary.job_verb_format)}</p></div>` : ''}
+        </div>
+        ${Object.keys(dimensions).length ? `<div class="grid3">
+          ${dimensions.functional ? `<div class="card"><h3>Functional</h3><p>${escape(dimensions.functional)}</p></div>` : ''}
+          ${dimensions.emotional ? `<div class="card"><h3>Emotional</h3><p>${escape(dimensions.emotional)}</p></div>` : ''}
+          ${dimensions.social ? `<div class="card"><h3>Social</h3><p>${escape(dimensions.social)}</p></div>` : ''}
+        </div>` : ''}
+      </section>` : ''}
+
+      ${Array.isArray(output.related_jobs) && output.related_jobs.length ? `<section class="section">
+        <h2>Related Jobs</h2>
+        ${output.related_jobs.map((job: any) => `<div class="card">
+          <h3>${escape(job.job || '')}</h3>
+          ${job.context ? `<p><strong>Context:</strong> ${escape(job.context)}</p>` : ''}
+          ${job.opportunity ? `<p><strong>Opportunity:</strong> ${escape(job.opportunity)}</p>` : ''}
+          <p class="muted small">${job.importance ? `Importance: ${escape(job.importance)}` : ''}${job.satisfaction_current ? ` · Satisfaction: ${escape(job.satisfaction_current)}` : ''}</p>
+        </div>`).join('')}
+      </section>` : ''}
+
+      ${Object.keys(forces).length ? `<section class="section">
+        <h2>Forces of Progress</h2>
+        <div class="grid2">
+          <div class="card force push"><h3>Push</h3>${renderForceList(forces.push)}</div>
+          <div class="card force pull"><h3>Pull</h3>${renderForceList(forces.pull)}</div>
+          <div class="card force anxiety"><h3>Anxiety</h3>${renderForceList(forces.anxiety)}</div>
+          <div class="card force habit"><h3>Habit</h3>${renderForceList(forces.habit)}</div>
+        </div>
+        ${forces.verdict ? `<div class="highlight"><strong>Verdict:</strong> ${escape(forces.verdict)}</div>` : ''}
+      </section>` : ''}
+
+      ${Array.isArray(output.desired_outcomes) && output.desired_outcomes.length ? `<section class="section">
+        <h2>Desired Outcomes</h2>
+        <table>
+          <thead><tr><th>Outcome</th><th>Category</th><th>Importance</th><th>Satisfaction</th><th>Opportunity</th></tr></thead>
+          <tbody>
+            ${output.desired_outcomes.map((outcome: any) => `<tr>
+              <td>
+                <strong>${escape(outcome.outcome || '')}</strong>
+                ${outcome.why ? `<div class="muted small">${escape(outcome.why)}</div>` : ''}
+              </td>
+              <td>${escape(outcome.category || '-')}</td>
+              <td>${escape(outcome.importance ?? '-')}</td>
+              <td>${escape(outcome.satisfaction_current ?? '-')}</td>
+              <td><strong>${escape(outcome.opportunity_score ?? '-')}</strong></td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </section>` : ''}
+
+      ${Array.isArray(output.customer_decision_timeline) && output.customer_decision_timeline.length ? `<section class="section">
+        <h2>Customer Decision Timeline</h2>
+        ${output.customer_decision_timeline.map((stage: any) => `<div class="timeline-item">
+          <h3>${escape(stage.stage_name_th || stage.stage || '')}</h3>
+          ${stage.customer_thinks ? `<p><strong>Thinks:</strong> ${escape(stage.customer_thinks)}</p>` : ''}
+          ${stage.customer_feels ? `<p><strong>Feels:</strong> ${escape(stage.customer_feels)}</p>` : ''}
+          ${stage.customer_does ? `<p><strong>Does:</strong> ${escape(stage.customer_does)}</p>` : ''}
+          ${stage.what_they_need ? `<p><strong>Needs:</strong> ${escape(stage.what_they_need)}</p>` : ''}
+          ${stage.marketing_opportunity ? `<div class="opportunity">${escape(stage.marketing_opportunity)}</div>` : ''}
+        </div>`).join('')}
+      </section>` : ''}
+
+      ${Array.isArray(output.job_map) && output.job_map.length ? `<section class="section">
+        <h2>Job Map</h2>
+        <div class="grid2">
+          ${output.job_map.map((step: any) => `<div class="card">
+            <h3>${escape(step.step || '')}</h3>
+            ${step.customer_action ? `<p>${escape(step.customer_action)}</p>` : ''}
+            ${step.opportunity ? `<p><strong>Opportunity:</strong> ${escape(step.opportunity)}</p>` : ''}
+          </div>`).join('')}
+        </div>
+      </section>` : ''}
+
+      ${Object.keys(criteria).length ? `<section class="section">
+        <h2>Hiring & Firing Criteria</h2>
+        <div class="grid2">
+          ${criteria.fired_because ? `<div class="card"><h3>Fired Because</h3><p>${escape(criteria.fired_because)}</p></div>` : ''}
+          ${criteria.hired_because ? `<div class="card"><h3>Hired Because</h3><p>${escape(criteria.hired_because)}</p></div>` : ''}
+        </div>
+        ${criteria.switch_moment ? `<div class="highlight"><strong>Switch Moment:</strong> ${escape(criteria.switch_moment)}</div>` : ''}
+      </section>` : ''}
+
+      ${Object.keys(insights).length ? `<section class="section">
+        <h2>Deep Research Insights</h2>
+        ${insights.methodology ? `<p class="muted">Methodology: ${escape(insights.methodology)}</p>` : ''}
+        ${renderList(insights.key_insights)}
+        ${insights.what_most_brands_get_wrong ? `<div class="warning"><strong>What most brands get wrong:</strong> ${escape(insights.what_most_brands_get_wrong)}</div>` : ''}
+        ${Array.isArray(insights.validation_methods) && insights.validation_methods.length ? `<h3>Validation Methods</h3>${renderList(insights.validation_methods)}` : ''}
+      </section>` : ''}
+
+      ${Array.isArray(output.next_steps) && output.next_steps.length ? `<section class="section">
+        <h2>Next Steps</h2>
+        ${renderList(output.next_steps)}
+      </section>` : ''}
+
+      ${output.reasoning ? `<section class="section">
+        <h2>Strategic Reasoning</h2>
+        <div class="quote">${escape(output.reasoning)}</div>
+      </section>` : ''}
+    `;
+  }
+
+  function printableInputEntries(toolType: string, input: any): [string, any][] {
+    if (!input || typeof input !== 'object') return [];
+    const hidden = new Set([
+      'target_audience_ids',
+      'custom_audience_text',
+      'industry_custom',
+      'business_type_resolved',
+      'industry_resolved',
+      'target_audience_resolved',
+      'user_notes',
+    ]);
+    return Object.entries(input)
+      .filter(([key, value]) => !hidden.has(key) && value !== undefined && value !== null && String(typeof value === 'object' ? JSON.stringify(value) : value).trim() !== '')
+      .filter(([key]) => toolType !== 'jtbd_generator' || !key.endsWith('_id'));
+  }
+
   /**
    * Build a printable HTML for the save — opens in new tab for PDF print
    */
@@ -166,7 +403,25 @@
         h3 { font-size: 17px; color: #1e293b; margin-top: 20px; margin-bottom: 8px; }
         .meta { color: #64748b; font-size: 14px; margin-bottom: 24px; }
         .tag { display: inline-block; padding: 3px 10px; background: #dbeafe; color: #1d4ed8; border-radius: 12px; font-size: 12px; margin-right: 6px; }
-        .box { background: #f1f5f9; border-left: 4px solid #1d4ed8; padding: 12px 16px; border-radius: 4px; margin: 12px 0; }
+        .box, .card { background: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #1d4ed8; padding: 12px 16px; border-radius: 6px; margin: 12px 0; }
+        .highlight { background: #eff6ff; border-left: 4px solid #2563eb; padding: 14px 16px; border-radius: 6px; margin: 12px 0; }
+        .quote { background: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #7c3aed; padding: 14px 16px; border-radius: 6px; font-style: italic; margin: 12px 0; }
+        .warning { background: #fff7ed; border-left: 4px solid #f97316; padding: 12px 16px; border-radius: 6px; margin: 12px 0; }
+        .opportunity { background: #ecfdf5; border-left: 4px solid #10b981; padding: 10px 12px; border-radius: 6px; margin-top: 8px; }
+        .job-statement { background: #fffbeb; border: 1px solid #f59e0b; border-left: 5px solid #f97316; padding: 14px 16px; border-radius: 8px; font-weight: 600; margin: 12px 0; }
+        .section { margin-top: 28px; page-break-inside: avoid; }
+        .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 12px 0; }
+        .timeline-item { border-left: 3px solid #6366f1; padding: 6px 0 10px 14px; margin: 10px 0; }
+        .muted { color: #64748b; }
+        .small { font-size: 12px; }
+        .pill { display: inline-block; margin-left: 6px; padding: 2px 7px; border-radius: 999px; background: #e0e7ff; color: #3730a3; font-size: 11px; font-weight: 700; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 12px 0; }
+        th, td { padding: 8px 10px; border-bottom: 1px solid #e2e8f0; text-align: left; vertical-align: top; }
+        th { background: #f8fafc; color: #334155; font-size: 12px; text-transform: uppercase; letter-spacing: .02em; }
+        .force.push { border-left-color: #ef4444; }
+        .force.pull { border-left-color: #10b981; }
+        .force.anxiety { border-left-color: #f59e0b; }
+        .force.habit { border-left-color: #3b82f6; }
         .ok { background: #d1fae5; color: #065f46; padding: 2px 8px; border-radius: 4px; font-size: 13px; }
         .no { background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 4px; font-size: 13px; }
         .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 12px 0; }
@@ -175,7 +430,19 @@
         .bar-label { width: 130px; font-size: 13px; }
         .bar-track { flex: 1; height: 10px; background: #e2e8f0; border-radius: 5px; overflow: hidden; }
         .bar-fill { height: 100%; background: #3b82f6; }
-        @media print { body { margin: 0; padding: 20px; } }
+        .brief-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 12px; }
+        .brief-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; }
+        .brief-card h3 { margin-top: 0; color: #0f172a; }
+        .brief-row { padding: 9px 0; border-top: 1px solid #f1f5f9; }
+        .brief-row:first-of-type { border-top: 0; }
+        .brief-label { color: #64748b; font-size: 12px; font-weight: 700; margin-bottom: 2px; }
+        .brief-value { font-weight: 600; color: #172033; white-space: pre-wrap; }
+        @media print {
+          body { margin: 0; padding: 20px; max-width: none; }
+          .print-button { display: none !important; }
+          .section, .card, .box, .highlight, .quote, .timeline-item { break-inside: avoid; }
+          .brief-grid { grid-template-columns: 1fr 1fr; }
+        }
       </style>`;
 
     // Build tool-specific body
@@ -309,16 +576,19 @@
         ` : ''}
         ${output.reasoning ? `<h2>Reasoning</h2><div class="box">${escape(output.reasoning)}</div>` : ''}
       `;
+    } else if (save.tool_type === 'jtbd_generator') {
+      body += renderJtbdReport(output);
     } else {
       // Unknown — show raw JSON
       body = `<pre style="white-space:pre-wrap;background:#f1f5f9;padding:16px;border-radius:8px;">${escape(JSON.stringify(output, null, 2))}</pre>`;
     }
 
     // Input section
-    const inputSection = Object.keys(input).length ? `
+    const inputEntries = printableInputEntries(save.tool_type, input);
+    const inputSection = save.tool_type === 'jtbd_generator' ? renderJtbdInputBrief(input) : inputEntries.length ? `
       <h2>Input</h2>
       <table style="width:100%;border-collapse:collapse;font-size:14px;">
-        ${Object.entries(input).map(([k, v]) => `
+        ${inputEntries.map(([k, v]) => `
           <tr>
             <td style="padding:6px 12px;border-bottom:1px solid #e2e8f0;font-weight:600;width:30%;vertical-align:top;">${escape(k)}</td>
             <td style="padding:6px 12px;border-bottom:1px solid #e2e8f0;">${escape(String(typeof v === 'object' ? JSON.stringify(v) : v))}</td>
@@ -340,12 +610,12 @@ ${css}
       <h1>${escape(save.title)}</h1>
       <div class="meta">${escape(toolName)} · สร้างเมื่อ ${escape(createdAt)}</div>
     </div>
-    <button onclick="window.print()" style="padding:10px 20px;background:#1d4ed8;color:white;border:none;border-radius:6px;cursor:pointer;font-size:14px;">🖨️ Print / Save PDF</button>
-  </div>
+	    <button class="print-button" onclick="window.print()" style="padding:10px 20px;background:#1d4ed8;color:white;border:none;border-radius:6px;cursor:pointer;font-size:14px;">🖨️ Print / Save PDF</button>
+	  </div>
 
-  ${inputSection}
-  <h1 style="margin-top:48px;">Output</h1>
-  ${body}
+	  ${inputSection}
+	  <h1 style="margin-top:48px;">${save.tool_type === 'jtbd_generator' ? 'JTBD Report' : 'Output'}</h1>
+	  ${body}
 
   <div style="margin-top:60px;padding-top:20px;border-top:1px solid #e2e8f0;text-align:center;color:#94a3b8;font-size:12px;">
     สร้างโดย Business Smart OS
@@ -691,7 +961,7 @@ ${css}
 
                           <!-- Sample phrases -->
                           {#if output.sample_phrases}
-                            {@const sampleEntries = Object.entries(output.sample_phrases).filter(([_, list]: any) => Array.isArray(list) && list.length)}
+                            {@const sampleEntries = Object.entries(output.sample_phrases).filter(([_, list]: any) => Array.isArray(list) && list.length) as [string, any[]][]}
                             {#if sampleEntries.length}
                               <div class="bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 rounded-lg p-4">
                                 <div class="text-xs font-bold text-dark-900/60 dark:text-dark-100/60 uppercase tracking-wide mb-3">ตัวอย่างประโยค</div>

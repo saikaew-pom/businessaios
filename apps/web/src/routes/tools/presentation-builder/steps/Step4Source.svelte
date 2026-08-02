@@ -72,7 +72,7 @@
 
     if (sourceText.trim()) {
       // Split by double newlines
-      sourceText.split(/\n\n+/).forEach((block, i) => {
+      sourceText.split(/\n\n+/).forEach((block: string, i: number) => {
         if (block.trim()) {
           items.push({
             title: `Source ${i + 1}`,

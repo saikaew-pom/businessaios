@@ -374,13 +374,14 @@
           <div class="text-xs font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-3">📊 Voice Dimensions</div>
           <div class="space-y-3">
             {#each Object.entries(output.voice_dimensions) as [k, v]}
+              {@const score = Number(v)}
               <div>
                 <div class="flex justify-between text-sm mb-1">
                   <span class="font-medium capitalize">{k.replace(/_/g, ' ')}</span>
-                  <span class="text-primary-600 dark:text-primary-400 font-semibold">{v}/10</span>
+                  <span class="text-primary-600 dark:text-primary-400 font-semibold">{score}/10</span>
                 </div>
                 <div class="h-2 bg-dark-100 dark:bg-dark-700 rounded-full overflow-hidden">
-                  <div class="h-full bg-gradient-to-r from-purple-500 to-purple-700" style="width: {v * 10}%"></div>
+                  <div class="h-full bg-gradient-to-r from-purple-500 to-purple-700" style="width: {score * 10}%"></div>
                 </div>
               </div>
             {/each}

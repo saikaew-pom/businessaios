@@ -46,7 +46,7 @@
       assets = (await listStepAssets(projectId, stepNumber)).assets;
       if (canLink) {
         links = (await listProjectLinks(projectId)).links;
-        projects = (await listProjects()).projects.filter(p => p.id !== projectId);
+        projects = (await listProjects()).filter((p) => p.id !== projectId);
         toolSaves = await listSavedTools();
       }
     } catch (err) {

@@ -37,6 +37,26 @@ class Statement {
       },
     };
   }
+
+  first<T = any>(): T | null {
+    const row = this.db.prepare(this.sql).get();
+    return (row as T) ?? null;
+  }
+
+  all<T = any>(): { results: T[] } {
+    const rows = this.db.prepare(this.sql).all();
+    return { results: rows as T[] };
+  }
+
+  run(): { meta: { changes: number; last_row_id: number } } {
+    const result = this.db.prepare(this.sql).run();
+    return {
+      meta: {
+        changes: Number(result.changes),
+        last_row_id: Number(result.lastInsertRowid),
+      },
+    };
+  }
 }
 
 export function makeD1Shim(db: DatabaseSync) {

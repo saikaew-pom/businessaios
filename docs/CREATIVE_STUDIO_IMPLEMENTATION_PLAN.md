@@ -1384,9 +1384,9 @@ Smoke results:
 - [x] สร้าง upload intent endpoint พร้อม auth, CSRF และ quota
 - [x] สร้าง one-time binary upload route ที่ stream เข้า R2 quarantine
 - [x] validate magic bytes, MIME, size และ dimensions
-- [ ] strip metadata และ normalize image - deferred ไป dedicated media processor/Cloudflare Images ตาม Phase 0B decision
-- [ ] สร้าง thumbnail - deferred ไป dedicated media processor/Cloudflare Images ตาม Phase 0B decision
-- [x] เขียน input ลง R2 ด้วย key convention กลาง; thumbnail key ยัง deferred
+- [ ] strip metadata และ normalize image - ยัง deferred (EXIF strip/orientation ยังไม่ทำ)
+- [x] สร้าง thumbnail (2026-08-02) — ใช้ `@cf-wasm/photon` (WASM, decode/resize/encode จริง ไม่ใช่ Cloudflare Images) ผ่าน `POST /api/media/assets/:id/derive-thumbnail`; เก็บที่ `media/{user_id}/thumbnails/{asset_id}.webp` เดียวกันทุก asset type
+- [x] เขียน input ลง R2 ด้วย key convention กลาง; thumbnail key ใช้ path แยก (ดูข้างบน)
 - [x] บันทึก asset ownership ใน D1
 - [x] สร้าง basic list/detail/archive/favorite endpoints; advanced filters ยังทำใน Library UI phase
 - [x] สร้าง signed media URL service
@@ -1428,8 +1428,9 @@ GET    /api/media/provider-assets/:id
 PATCH  /api/media/assets/:id
 DELETE /api/media/assets/:id
 POST   /api/media/assets/:id/favorite
-POST   /api/media/assets/:id/derive-thumbnail      -> 501 processor_not_configured
-POST   /api/media/assets/:id/remove-background     -> 501 processor_not_configured
+POST   /api/media/assets/:id/derive-thumbnail      -> real implementation (2026-08-02), @cf-wasm/photon
+POST   /api/media/assets/:id/remove-background     -> real implementation (2026-08-02), fal-ai/imageutils/rembg
+                                                       via platform provider key (503 fal_not_configured if unset)
 ```
 
 Staging:
@@ -1461,7 +1462,7 @@ Security/behavior covered by tests:
 
 - [x] สร้าง normalized provider types
 - [x] สร้าง provider registry/router
-- [ ] implement `fal` adapter รุ่นแรก - deferred เพราะ Release 1A ใช้ MiniMax sync path เป็น primary; fal เป็น secondary/future provider
+- [x] implement `fal` adapter รุ่นแรก (2026-08-02) — sync `fal.run` call pattern (image_size/num_images/image_url mapping), เปิดใช้งานทันทีที่แอดมินวาง API key ผ่าน `/admin/creative` (ไม่ใช่ Worker secret) `ai_models` seed เป็น `is_maintenance=1` จนกว่าจะตั้งค่า key จริง — **ยังไม่ได้ทดสอบกับ live fal API จริง เพราะยังไม่มี key ให้ทดสอบ**; ยังไม่ implement webhook/async path ของ fal (ยังใช้ sync request/response เหมือน MiniMax) ดู test ใน `apps/api/test/mediaFoundation.test.ts` describe block "fal.ai provider"
 - [x] implement pricing preview service
 - [x] implement media credit hold ด้วย D1-backed reserve/finalize/refund
 - [x] สร้าง generation endpoint พร้อม persistent `Idempotency-Key`, request hash และ pricing quote
@@ -1569,9 +1570,9 @@ API config:   creative_studio=true, brand_context=true
 - [x] สร้าง queued/submitting/processing/cancel-requested/delivery-pending/completed/failed states
 - [x] ทำ polling ที่หยุดเมื่อ terminal state
 - [x] รองรับ responsive mobile layout และ dark mode ตาม convention ของระบบปัจจุบัน
-- [ ] เพิ่ม `@mention` autocomplete ด้วย keyboard
-- [ ] เพิ่ม reference influence/reorder UI
-- [ ] เพิ่ม drag/drop และ paste upload
+- [x] เพิ่ม `@mention` autocomplete ด้วย keyboard (2026-08-02) — live dropdown ตอนพิมพ์ `@`, ArrowUp/Down/Enter/Tab/Escape; ยังไม่ได้ทดสอบจริงในเบราว์เซอร์กับ session ที่ login แล้ว (ตรวจด้วย script จำลอง logic ล้วนๆ แทน) — ควร manual test อีกรอบหลัง login จริง
+- [x] เพิ่ม reference reorder UI (2026-08-02) — ปุ่ม ▲▼ ต่อการ์ด reference, ยังไม่ทำ influence-level UI (strict/balanced/loose ยังเลือกไม่ได้จาก UI)
+- [x] เพิ่ม drag/drop และ paste upload (2026-08-02) — วาง/ลากไฟล์เข้า dropzone เดิม, paste รูปจาก clipboard ได้ทั้งหน้า
 - [ ] แสดง credit balance สดบน Studio จาก `/api/me/credits`
 - [ ] เพิ่ม maintenance state รายโมเดลเมื่อ catalog ส่ง `is_maintenance`
 - [ ] ทำ Playwright E2E ด้วย authenticated staging account หลังเปิด feature flag
@@ -1622,11 +1623,10 @@ API config:   creative_studio=true, brand_context=true
 - [x] เพิ่ม provider attempt/status logging view
 - [x] เพิ่ม manual reconcile action ที่มี admin audit log
 - [x] เพิ่ม policy configuration ที่ไม่เปิด provider secret/raw bypass controls
-- [ ] เพิ่ม rate limit แยก upload, generate และ webhook
-- [ ] เพิ่ม storage quota และ retention cleanup plan
-- [ ] เพิ่ม purge worker และ orphan/quarantine cleanup
-- [ ] เพิ่ม alert condition สำหรับ stuck jobs และ abnormal refund rate
-- [ ] เพิ่ม alert สำหรับ expired hold, dead-letter work item และ `submission_unknown`
+- [x] เพิ่ม rate limit แยก upload, generate (2026-08-02) — `categoryRateLimit()` ใน `middleware.ts`, bucket แยกจาก flat limit เดิม; webhook ยังไม่มี route จริง (fal ยัง sync, ไม่มี webhook) จึงยังไม่ wire แยก — พร้อมใช้ทันทีที่เพิ่ม route
+- [x] เพิ่ม storage quota และ retention cleanup plan (2026-08-02) — `lib/media/quota.ts`, ops-configurable ผ่าน `MEDIA_STORAGE_QUOTA_MB`, default 1000MB/user, บังคับที่ `finalizeUploadedAsset`; archive ตั้ง `purge_after` = 30 วันอัตโนมัติ
+- [x] เพิ่ม purge worker และ orphan/quarantine cleanup (2026-08-02) — `lib/media/purge.ts`, sweep ทุก 1 นาทีผ่าน cron เดิม: ลบ R2 ของ archived asset ที่พ้น retention และของ upload intent ที่หมดอายุไม่เคย finalize
+- [x] เพิ่ม alert สำหรับ stuck jobs, dead-letter work item และ expired delivery deadline (2026-08-02) — `lib/media/reconciler.ts`: refund + mark failed อัตโนมัติสำหรับ generation ที่พ้น `delivery_deadline_at`, ส่งอีเมลแจ้ง `NOTIFY_EMAIL` เมื่อพบ dead-letter (throttle 1 ครั้ง/ชม. ผ่าน `rate_limits` table เดิม) — ยังไม่มี alert แยกสำหรับ "abnormal refund rate" โดยเฉพาะ (ยังเป็นงานที่เหลือ)
 
 ### Exit Criteria
 
@@ -1990,7 +1990,6 @@ apps/web/src/lib/mediaTypes.ts
 ### Secrets/variables ที่คาดว่าจะเพิ่ม
 
 ```text
-FAL_KEY
 MEDIA_SIGNING_SECRET
 CSRF_SIGNING_SECRET
 CREATIVE_STUDIO_ENABLED
@@ -2003,6 +2002,12 @@ META_APP_ID
 META_APP_SECRET
 TIKTOK_CLIENT_KEY
 TIKTOK_CLIENT_SECRET
+LINE_CHANNEL_SECRET (continued below)
+```
+
+หมายเหตุ 2026-08-02: fal.ai ไม่ใช้ `FAL_KEY` เป็น Worker secret อีกต่อไป — ระบบมีตาราง `platform_provider_keys` (migration `015-platform-provider-keys.sql`) ให้แอดมินวาง API key ผ่านหน้า `/admin/creative` โดยตรง (เก็บเข้ารหัสด้วย `MASTER_ENCRYPTION_KEY`) แล้วใช้งานได้ทันทีโดยไม่ต้อง deploy ใหม่ — ดู `apps/api/src/lib/media/providerKeys.ts`
+
+```text
 LINE_CHANNEL_SECRET
 LINE_CHANNEL_ACCESS_TOKEN
 CREATIVE_STUDIO_BETA_USER_IDS (optional)

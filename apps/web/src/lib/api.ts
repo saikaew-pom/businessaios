@@ -4,6 +4,7 @@
  */
 
 import { PUBLIC_API_URL } from '$env/static/public';
+import { getCsrfToken } from './config';
 
 // =====================================================
 // Types
@@ -49,6 +50,7 @@ export type ExportResult = {
   export_id: string;
   format: string;
   url: string;
+  download_url?: string;
   note: string;
 };
 
@@ -59,6 +61,176 @@ export type WaitlistResponse = {
   duplicate?: boolean;
 };
 
+export type MediaModel = {
+  id: string;
+  provider: string;
+  display_name: string;
+  model_type: 'image';
+  operation: 'text_to_image' | 'image_to_image';
+  capabilities: {
+    aspectRatios?: string[];
+    outputFormats?: string[];
+    maxOutputCount?: number;
+    references?: {
+      min?: number;
+      max?: number;
+      roles?: string[];
+      providerTypes?: string[];
+      disabledProviderTypes?: string[];
+    };
+  };
+  pricing: {
+    unit?: string;
+    credits_per_output?: number;
+    minimum_credits?: number;
+    billing_unit?: string;
+    release?: string;
+  };
+  pricing_version: string;
+  config_version: number;
+  is_maintenance: boolean;
+};
+
+export type MediaAsset = {
+  id: string;
+  asset_type: 'image' | 'product' | 'logo' | 'font' | 'mask' | 'thumbnail' | string;
+  source: 'upload' | 'generation' | string;
+  original_filename: string | null;
+  mime_type: string;
+  file_size: number;
+  width: number | null;
+  height: number | null;
+  metadata: Record<string, any>;
+  favorite: boolean;
+  lifecycle_status: string;
+  checksum_sha256: string | null;
+  created_at: number;
+  updated_at: number;
+  provider_url?: string;
+};
+
+export type MediaReferenceInput = {
+  asset_id: string;
+  mention_name: string;
+  reference_role?: string;
+  influence_level?: 'low' | 'balanced' | 'high' | string;
+  sort_order?: number;
+};
+
+export type MediaPricingQuote = {
+  id: string;
+  quote_id?: string;
+  model_id: string;
+  credits: number;
+  currency_note?: string;
+  capability_warnings?: string[];
+  pricing_version: string;
+  request_hash: string;
+  expires_at: number;
+};
+
+export type MediaGeneration = {
+  id: string;
+  model_id: string;
+  operation: 'text_to_image' | 'image_to_image';
+  prompt: string;
+  options: Record<string, any>;
+  status: 'queued' | 'submitting' | 'processing' | 'delivery_pending' | 'completed' | 'failed' | 'cancel_requested' | 'cancelled' | string;
+  submission_state: string;
+  delivery_status: string;
+  estimated_credits: number;
+  final_credits: number | null;
+  pricing_version: string;
+  expected_output_count: number;
+  delivered_output_count: number;
+  error_code: string | null;
+  error_message: string | null;
+  brand_profile_id: string | null;
+  brand_snapshot_id: string | null;
+  outputs: MediaAsset[];
+  created_at: number;
+  updated_at: number;
+  completed_at: number | null;
+};
+
+export type ContentItem = {
+  id: string;
+  user_id: string;
+  project_id: string | null;
+  project_name?: string | null;
+  source_type: string;
+  source_id: string | null;
+  source_hash: string | null;
+  title: string;
+  platform: string;
+  format: string;
+  pillar: string;
+  hook: string;
+  caption: string;
+  cta: string;
+  hashtags: string[];
+  visual_suggestion: string;
+  expected_engagement: string;
+  status: 'draft' | 'pending_review' | 'approved' | 'rejected' | 'scheduled' | 'published' | 'archived' | string;
+  scheduled_at: number | null;
+  timezone: string | null;
+  approved_at: number | null;
+  rejected_at: number | null;
+  rejection_reason: string | null;
+  published_ack_at: number | null;
+  manual_publish_url: string | null;
+  metadata: Record<string, any>;
+  primary_asset_id?: string | null;
+  created_at: number;
+  updated_at: number;
+};
+
+export type BrandKit = {
+  id: string;
+  project_id: string | null;
+  name: string;
+  colors: any[];
+  typography: Record<string, any>;
+  rules: Record<string, any>;
+  is_default: boolean;
+  lifecycle_status: 'active' | 'archived' | string;
+  brandbook_status: 'draft' | 'reviewed' | 'published' | string;
+  default_language: 'th' | 'en' | 'th-en' | string;
+  asset_count?: number;
+  archived_at?: number | null;
+  deleted_at?: number | null;
+  created_at: number;
+  updated_at: number;
+};
+
+export type BrandKitAsset = {
+  id: string;
+  brand_kit_id: string;
+  asset_id: string;
+  role: string;
+  license_confirmed: boolean;
+  license_note: string | null;
+  metadata: Record<string, any>;
+  original_filename?: string | null;
+  asset_type?: string;
+  mime_type?: string;
+  created_at: number;
+  updated_at: number;
+};
+
+export type SocialAccount = {
+  id: string;
+  project_id: string | null;
+  provider: string;
+  provider_account_id: string;
+  display_name: string;
+  metadata: Record<string, any>;
+  scopes: string[];
+  connection_status: string;
+  created_at: number;
+  updated_at: number;
+};
+
 // =====================================================
 // Helpers
 // =====================================================
@@ -67,13 +239,22 @@ async function fetchAPI<T = any>(
   path: string,
   options: RequestInit = {}
 ): Promise<T> {
+  const method = (options.method || 'GET').toUpperCase();
+  const headers = new Headers(options.headers);
+
+  if (!headers.has('Content-Type') && !(options.body instanceof FormData)) {
+    headers.set('Content-Type', 'application/json');
+  }
+
+  if (!['GET', 'HEAD', 'OPTIONS'].includes(method)) {
+    const csrfToken = await getCsrfToken();
+    if (csrfToken) headers.set('X-CSRF-Token', csrfToken);
+  }
+
   const res = await fetch(`${PUBLIC_API_URL}${path}`, {
     ...options,
     credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
+    headers,
   });
 
   if (!res.ok) {
@@ -107,6 +288,426 @@ export async function joinWaitlist(data: {
   }
 
   return res.json();
+}
+
+// =====================================================
+// Creative Studio Media API
+// =====================================================
+
+export async function listMediaModels(): Promise<MediaModel[]> {
+  const res = await fetchAPI<{ models: MediaModel[] }>('/api/media/models');
+  return res.models;
+}
+
+export async function previewMediaPricing(input: {
+  model_id: string;
+  operation?: string;
+  options?: Record<string, unknown>;
+  reference_count?: number;
+}): Promise<MediaPricingQuote> {
+  const quote = await fetchAPI<MediaPricingQuote>('/api/media/pricing/preview', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return {
+    ...quote,
+    id: quote.id || quote.quote_id || '',
+  };
+}
+
+export async function listMediaAssets(): Promise<MediaAsset[]> {
+  const res = await fetchAPI<{ assets: MediaAsset[] }>('/api/media/assets');
+  return res.assets;
+}
+
+export async function createMediaUploadIntent(file: File, assetType = 'image') {
+  return fetchAPI<{
+    intent_id: string;
+    asset_id: string;
+    upload_token: string;
+    upload_url: string;
+    expires_at: number;
+    max_bytes: number;
+  }>('/api/media/assets/upload-intents', {
+    method: 'POST',
+    body: JSON.stringify({
+      filename: file.name,
+      mime_type: mimeTypeForFile(file),
+      file_size: file.size,
+      asset_type: assetType,
+    }),
+  });
+}
+
+export async function createMediaUploadIntentWithMetadata(file: File, data: {
+  filename?: string;
+  asset_type?: string;
+  tags?: string[];
+}) {
+  return fetchAPI<{
+    intent_id: string;
+    asset_id: string;
+    upload_token: string;
+    upload_url: string;
+    expires_at: number;
+    max_bytes: number;
+  }>('/api/media/assets/upload-intents', {
+    method: 'POST',
+    body: JSON.stringify({
+      filename: data.filename || file.name,
+      mime_type: mimeTypeForFile(file),
+      file_size: file.size,
+      asset_type: data.asset_type || 'image',
+      tags: data.tags || [],
+    }),
+  });
+}
+
+export async function finalizeMediaUpload(assetId: string): Promise<MediaAsset> {
+  return fetchAPI<MediaAsset>(`/api/media/assets/${assetId}/finalize-upload`, {
+    method: 'POST',
+  });
+}
+
+export async function uploadMediaAsset(file: File, assetType = 'image'): Promise<MediaAsset> {
+  const intent = await createMediaUploadIntent(file, assetType);
+  return uploadMediaAssetWithIntent(file, intent);
+}
+
+export async function uploadMediaAssetWithMetadata(file: File, data: {
+  filename?: string;
+  asset_type?: string;
+  tags?: string[];
+}): Promise<MediaAsset> {
+  const intent = await createMediaUploadIntentWithMetadata(file, data);
+  return uploadMediaAssetWithIntent(file, intent);
+}
+
+async function uploadMediaAssetWithIntent(file: File, intent: {
+  upload_token: string;
+  upload_url: string;
+  asset_id: string;
+}): Promise<MediaAsset> {
+  const headers = new Headers({
+    'Content-Type': mimeTypeForFile(file),
+    'X-Upload-Token': intent.upload_token,
+  });
+  const csrfToken = await getCsrfToken();
+  if (csrfToken) headers.set('X-CSRF-Token', csrfToken);
+
+  const uploadRes = await fetch(`${PUBLIC_API_URL}${intent.upload_url}`, {
+    method: 'PUT',
+    credentials: 'include',
+    headers,
+    body: file,
+  });
+
+  if (!uploadRes.ok) {
+    const err = await uploadRes.json().catch(() => ({ message: `HTTP ${uploadRes.status}` }));
+    throw new Error(err.message || err.error || `HTTP ${uploadRes.status}`);
+  }
+
+  return finalizeMediaUpload(intent.asset_id);
+}
+
+function mimeTypeForFile(file: File) {
+  if (file.type) return file.type;
+  const name = file.name.toLowerCase();
+  if (name.endsWith('.jpg') || name.endsWith('.jpeg')) return 'image/jpeg';
+  if (name.endsWith('.png')) return 'image/png';
+  if (name.endsWith('.webp')) return 'image/webp';
+  if (name.endsWith('.ttf')) return 'font/ttf';
+  if (name.endsWith('.otf')) return 'font/otf';
+  if (name.endsWith('.woff2')) return 'font/woff2';
+  if (name.endsWith('.woff')) return 'font/woff';
+  return 'application/octet-stream';
+}
+
+export async function validateMediaReferences(input: {
+  model_id: string;
+  prompt: string;
+  references: MediaReferenceInput[];
+}) {
+  return fetchAPI<{
+    model_id: string;
+    operation: string;
+    prompt_mentions: string[];
+    references: MediaReferenceInput[];
+    warnings: string[];
+  }>('/api/media/references/validate', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
+export async function createMediaGeneration(input: {
+  model_id: string;
+  prompt: string;
+  options: Record<string, unknown>;
+  references: MediaReferenceInput[];
+  quote_id: string;
+  expected_pricing_version: string;
+  brand_profile_id?: string | null;
+  creative_request_id?: string | null;
+}, idempotencyKey: string) {
+  return fetchAPI<{
+    generation: MediaGeneration;
+    credits_remaining?: number;
+    idempotent: boolean;
+  }>('/api/media/generations', {
+    method: 'POST',
+    headers: { 'Idempotency-Key': idempotencyKey },
+    body: JSON.stringify(input),
+  });
+}
+
+export async function listMediaGenerations(): Promise<MediaGeneration[]> {
+  const res = await fetchAPI<{ generations: MediaGeneration[] }>('/api/media/generations');
+  return res.generations;
+}
+
+export async function getMediaGeneration(id: string): Promise<MediaGeneration> {
+  const res = await fetchAPI<{ generation: MediaGeneration }>(`/api/media/generations/${id}`);
+  return res.generation;
+}
+
+export async function cancelMediaGeneration(id: string): Promise<MediaGeneration> {
+  const res = await fetchAPI<{ generation: MediaGeneration }>(`/api/media/generations/${id}/cancel`, {
+    method: 'POST',
+  });
+  return res.generation;
+}
+
+export async function updateMediaAsset(id: string, data: { original_filename?: string; lifecycle_status?: string; asset_type?: string; tags?: string[] }) {
+  return fetchAPI<MediaAsset>(`/api/media/assets/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function favoriteMediaAsset(id: string, favorite = true) {
+  return fetchAPI<MediaAsset>(`/api/media/assets/${id}/favorite`, {
+    method: 'POST',
+    body: JSON.stringify({ favorite }),
+  });
+}
+
+export async function deleteMediaAsset(id: string) {
+  return fetchAPI<{ ok: boolean }>(`/api/media/assets/${id}`, { method: 'DELETE' });
+}
+
+export function getMediaAssetContentUrl(assetId: string): string {
+  return `${PUBLIC_API_URL}/api/media/assets/${assetId}/content`;
+}
+
+// =====================================================
+// Creative Content Workspace API
+// =====================================================
+
+export async function listContentItems(opts: { status?: string; project_id?: string; limit?: number } = {}): Promise<ContentItem[]> {
+  const params = new URLSearchParams();
+  Object.entries(opts).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') params.set(key, String(value));
+  });
+  const qs = params.toString();
+  const res = await fetchAPI<{ items: ContentItem[] }>(`/api/content-items${qs ? `?${qs}` : ''}`);
+  return res.items;
+}
+
+export async function materializeStep5ContentItems(projectId: string): Promise<{ materialized: number; items: ContentItem[] }> {
+  return fetchAPI(`/api/projects/${projectId}/content-items/materialize-step5`, { method: 'POST' });
+}
+
+export async function transitionContentItem(id: string, data: {
+  action: 'approve' | 'reject' | 'schedule' | 'unschedule' | 'manual_publish_ack' | 'archive';
+  reason?: string;
+  scheduled_at?: number | null;
+  timezone?: string;
+  manual_publish_url?: string;
+}): Promise<ContentItem> {
+  const res = await fetchAPI<{ item: ContentItem }>(`/api/content-items/${id}/transition`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+  return res.item;
+}
+
+export async function attachContentItemAsset(id: string, data: {
+  asset_id: string;
+  link_role?: string;
+  is_primary?: boolean;
+}) {
+  return fetchAPI<{ ok: boolean; link_id: string }>(`/api/content-items/${id}/assets`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function createContentItemCreativeRequest(id: string) {
+  return fetchAPI<{ ok: boolean; creative_request_id: string; brief: Record<string, any> }>(`/api/content-items/${id}/creative-requests`, {
+    method: 'POST',
+  });
+}
+
+// =====================================================
+// Brand Kit / Composition API
+// =====================================================
+
+export async function listBrandKits(status: 'active' | 'archived' | 'all' = 'active'): Promise<BrandKit[]> {
+  const res = await fetchAPI<{ brand_kits: BrandKit[] }>(`/api/brand-kits?status=${encodeURIComponent(status)}`);
+  return res.brand_kits;
+}
+
+export async function getBrandKit(id: string): Promise<{ brand_kit: BrandKit; assets: BrandKitAsset[] }> {
+  return fetchAPI<{ brand_kit: BrandKit; assets: BrandKitAsset[] }>(`/api/brand-kits/${id}`);
+}
+
+export async function createBrandKit(data: {
+  name: string;
+  project_id?: string | null;
+  colors?: any[];
+  typography?: Record<string, any>;
+  rules?: Record<string, any>;
+  is_default?: boolean;
+  default_language?: string;
+  brandbook_status?: string;
+}) {
+  const res = await fetchAPI<{ brand_kit: BrandKit }>('/api/brand-kits', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+  return res.brand_kit;
+}
+
+export async function updateBrandKit(id: string, data: Partial<{
+  name: string;
+  colors: any[];
+  typography: Record<string, any>;
+  rules: Record<string, any>;
+  is_default: boolean;
+  default_language: string;
+  brandbook_status: string;
+}>) {
+  const res = await fetchAPI<{ brand_kit: BrandKit }>(`/api/brand-kits/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+  return res.brand_kit;
+}
+
+export async function setDefaultBrandKit(id: string) {
+  const res = await fetchAPI<{ brand_kit: BrandKit }>(`/api/brand-kits/${id}/default`, { method: 'POST' });
+  return res.brand_kit;
+}
+
+export async function archiveBrandKit(id: string) {
+  const res = await fetchAPI<{ brand_kit: BrandKit }>(`/api/brand-kits/${id}/archive`, { method: 'POST' });
+  return res.brand_kit;
+}
+
+export async function restoreBrandKit(id: string) {
+  const res = await fetchAPI<{ brand_kit: BrandKit }>(`/api/brand-kits/${id}/restore`, { method: 'POST' });
+  return res.brand_kit;
+}
+
+export async function deleteBrandKit(id: string) {
+  return fetchAPI<{ ok: boolean }>(`/api/brand-kits/${id}`, { method: 'DELETE' });
+}
+
+export async function attachBrandKitAsset(id: string, data: {
+  asset_id: string;
+  role?: string;
+  license_confirmed?: boolean;
+  license_note?: string;
+  metadata?: Record<string, any>;
+}) {
+  return fetchAPI<{ ok: boolean; asset_link_id: string }>(`/api/brand-kits/${id}/assets`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function detachBrandKitAsset(id: string, assetLinkId: string) {
+  return fetchAPI<{ ok: boolean }>(`/api/brand-kits/${id}/assets/${assetLinkId}`, { method: 'DELETE' });
+}
+
+export async function exportBrandKitPdf(id: string, data: { language?: string } = {}) {
+  return fetchAPI<{
+    ok: boolean;
+    export_id: string;
+    format: string;
+    language: string;
+    url: string;
+    download_url: string;
+  }>(`/api/brand-kits/${id}/export/pdf`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function generateBrandKitSmartWriting(id: string, data: {
+  brandbook: Record<string, any>;
+  language?: string;
+  mode?: string;
+}) {
+  return fetchAPI<{
+    ok: boolean;
+    output: Record<string, any>;
+    meta: {
+      model: string;
+      duration_ms: number;
+      tokens?: { prompt_tokens: number; completion_tokens: number; total_tokens: number };
+      cost_usd: number;
+      credits_used: number;
+      credits_remaining: number;
+    };
+  }>(`/api/brand-kits/${id}/smart-writing`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+// =====================================================
+// Social Publishing API
+// =====================================================
+
+export async function getSocialCapabilities() {
+  return fetchAPI<{
+    mode: string;
+    direct_publishing_ready: boolean;
+    providers: Array<{ id: string; label: string; configured: boolean; direct_publish_enabled: boolean; required_scopes: string[]; setup_state: string }>;
+    note: string;
+  }>('/api/social/capabilities');
+}
+
+export async function listSocialAccounts(): Promise<SocialAccount[]> {
+  const res = await fetchAPI<{ accounts: SocialAccount[] }>('/api/social/accounts');
+  return res.accounts;
+}
+
+export async function createManualSocialAccount(data: {
+  provider: string;
+  display_name: string;
+  provider_account_id?: string;
+  project_id?: string | null;
+}) {
+  return fetchAPI<{ ok: boolean }>('/api/social/accounts/manual', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function createSocialPublication(data: {
+  content_item_id: string;
+  social_account_id: string;
+  scheduled_at?: number | null;
+  timezone?: string;
+  idempotency_key?: string;
+}) {
+  return fetchAPI<{ ok: boolean; status: string; note?: string }>('/api/social/publications', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
 }
 
 // =====================================================
@@ -463,6 +1064,8 @@ export type ToolSave = {
   id: string;
   tool_type: 'pain_generator' | 'brand_voice' | 'persona_builder' | 'competitor_analysis' | 'jtbd_generator' | 'value_proposition_canvas' | 'business_model_canvas' | 'million_dollar_offer' | 'objection_handler' | 'hook_library';
   title: string;
+  input?: any;
+  output?: any;
   archived: 0 | 1;
   created_at: number;
   updated_at: number;
@@ -531,6 +1134,7 @@ export type FullUser = {
   two_factor_enabled: 0 | 1;
   credits: number;
   created_at: number;
+  updated_at?: number;
 };
 
 export async function getMeFull(): Promise<FullUser | null> {
@@ -726,6 +1330,75 @@ export async function adminListEmails() {
   return fetchAPI<{ emails: any[] }>('/api/admin/emails');
 }
 
+export type AdminCreativeModel = {
+  id: string;
+  provider: string;
+  provider_model_id: string;
+  display_name: string;
+  model_type: string;
+  operation: string;
+  capabilities: Record<string, any>;
+  pricing: Record<string, any>;
+  pricing_version: string;
+  config_version: number;
+  is_active: boolean;
+  is_maintenance: boolean;
+  sort_order: number;
+  created_at: number;
+  updated_at: number;
+};
+
+export async function adminListCreativeModels() {
+  return fetchAPI<{ schema_ready: boolean; models: AdminCreativeModel[] }>('/api/admin/creative/models');
+}
+
+export async function adminUpdateCreativeModel(id: string, data: {
+  display_name?: string;
+  is_active?: boolean;
+  is_maintenance?: boolean;
+  sort_order?: number;
+  pricing?: Record<string, any>;
+  capabilities?: Record<string, any>;
+}) {
+  return fetchAPI<{ ok: boolean }>(`/api/admin/creative/models/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function adminGetCreativeStats() {
+  return fetchAPI<{ schema_ready: boolean; stats: any }>('/api/admin/creative/stats');
+}
+
+export async function adminGetCreativeGeneration(id: string) {
+  return fetchAPI<any>(`/api/admin/creative/generations/${id}`);
+}
+
+export async function adminRunCreativeReconcile() {
+  return fetchAPI<{ ok: boolean; result: any }>('/api/admin/creative/reconcile', {
+    method: 'POST',
+  });
+}
+
+export type AdminProviderKey = {
+  provider: string;
+  key_hint: string | null;
+  is_active: boolean;
+  updated_by: string | null;
+  updated_at: number;
+};
+
+export async function adminListProviderKeys() {
+  return fetchAPI<{ schema_ready: boolean; providers: AdminProviderKey[] }>('/api/admin/creative/providers');
+}
+
+export async function adminSetProviderKey(provider: string, apiKey: string) {
+  return fetchAPI<{ ok: boolean; key_hint: string }>(`/api/admin/creative/providers/${provider}/key`, {
+    method: 'PUT',
+    body: JSON.stringify({ api_key: apiKey }),
+  });
+}
+
 // =====================================================
 // MCP (Developers — connect Claude Code / Claude Desktop)
 // =====================================================
@@ -902,6 +1575,7 @@ export type PresentationStep = {
   step_number: number;
   status: 'pending' | 'generating' | 'done' | 'error';
   framework_variant?: string;
+  input_json?: any;
   output_json?: any;
   custom_system_prompt?: string;
   updated_at: number;

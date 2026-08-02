@@ -956,7 +956,7 @@ export function buildProjectMarkdown(project: any, stepData: any): string {
 
 export function buildProjectCSV(project: any, stepData: any): string {
   const normalize = (d: any) => d?.output || d;
-  const rows: string[] = [['Step', 'Field', 'Value']];
+  const rows: string[][] = [['Step', 'Field', 'Value']];
 
   for (const n of STEPS) {
     const data = normalize(stepData[`step${n}`]);
@@ -1086,4 +1086,3 @@ export function buildProjectDocx(project: any, stepData: any): string {
 
   return sections.join('\n');
 }
-

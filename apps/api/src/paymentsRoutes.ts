@@ -108,6 +108,7 @@ payments.post('/api/payments/create-intent', requireAuth, async (c) => {
 payments.get('/api/payments/status/:id', requireAuth, async (c) => {
   const user = c.get('user')!;
   const id = c.req.param('id');
+  if (!id) return c.json({ error: 'missing_payment_id' }, 400);
 
   // Check our DB first
   const row = await c.env.DB.prepare(

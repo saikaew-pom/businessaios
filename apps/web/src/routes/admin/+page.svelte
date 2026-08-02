@@ -230,7 +230,10 @@
         </div>
         <h1 class="font-bold text-lg">Operations Console</h1>
       </div>
-      <a href="/dashboard" class="text-sm text-primary-600 dark:text-primary-400 hover:underline">← กลับ Dashboard</a>
+      <div class="flex items-center gap-3">
+        <a href="/admin/creative" class="text-sm text-primary-600 dark:text-primary-400 hover:underline">Creative Ops</a>
+        <a href="/dashboard" class="text-sm text-primary-600 dark:text-primary-400 hover:underline">← กลับ Dashboard</a>
+      </div>
     </div>
 
     <!-- Tabs -->

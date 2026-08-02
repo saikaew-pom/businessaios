@@ -70,6 +70,11 @@ const REQUIRED_TABLES = [
   'tool_runs', 'tool_saves', 'tool_save_exports', 'email_verifications',
   'otp_codes', 'credit_transactions', 'rate_limits', 'step_assets',
   'project_links', 'admin_actions', 'email_outbox', 'mcp_tokens',
+  'ai_models', 'media_assets', 'media_generations', 'generation_references',
+  'generation_attempts', 'media_credit_holds', 'brand_profiles',
+  'brand_profile_selections', 'brand_context_snapshots',
+  'provider_webhook_events', 'media_work_items', 'media_pricing_quotes',
+  'media_upload_intents', 'brandbook_exports', 'platform_provider_keys',
 ];
 
 describe('auto-applied migrations alone (`wrangler d1 migrations apply`)', () => {
@@ -109,6 +114,66 @@ describe('auto-applied migrations alone (`wrangler d1 migrations apply`)', () =>
       db.exec(`INSERT INTO mcp_tokens (id, user_id, token_hash, token_hint, created_at)
                VALUES ('mt1', 'u1', 'deadbeef', 'ab12', 0)`)
     ).not.toThrow();
+  });
+
+  it('creative studio core tables are usable (009 — media foundation)', () => {
+    db.exec(`INSERT OR IGNORE INTO users (id, email, password_hash, plan, created_at, updated_at)
+             VALUES ('u-media', 'media@test.com', 'x', 'free', 0, 0)`);
+    expect(() =>
+      db.exec(`
+        INSERT INTO ai_models (
+          id, provider, provider_model_id, display_name, model_type, operation,
+          capabilities_json, pricing_json, pricing_version, created_at, updated_at
+        )
+        VALUES (
+          'model-1', 'minimax', 'image-01', 'MiniMax Image', 'image', 'text_to_image',
+          '{"aspectRatios":["1:1"],"outputFormats":["url"],"maxOutputCount":1}',
+          '{"credits_per_output":2}', 'v1', 0, 0
+        );
+        INSERT INTO media_pricing_quotes (
+          id, user_id, model_id, request_hash, pricing_version, credits,
+          pricing_snapshot_json, expires_at, created_at
+        )
+        VALUES ('quote-1', 'u-media', 'model-1', 'hash', 'v1', 2, '{}', 100, 0);
+        INSERT INTO brand_profiles (
+          id, user_id, name, business_summary, audience_json, tone_of_voice_json,
+          content_pillars_json, offers_json, rules_json, default_reference_asset_ids_json,
+          created_at, updated_at
+        )
+        VALUES ('brand-1', 'u-media', 'Brand', '', '[]', '[]', '[]', '[]', '{}', '[]', 0, 0);
+        INSERT INTO media_work_items (
+          id, work_type, dedupe_key, available_at, payload_json, created_at, updated_at
+        )
+        VALUES ('work-1', 'submit_generation', 'submit:generation-1', 0, '{}', 0, 0);
+      `)
+    ).not.toThrow();
+  });
+
+  it('platform_provider_keys is usable (015 — admin-managed platform provider keys)', () => {
+    expect(() =>
+      db.exec(`
+        INSERT INTO platform_provider_keys (
+          provider, encrypted_key, key_hint, is_active, updated_by, created_at, updated_at
+        )
+        VALUES ('fal', 'salt.iv.ciphertext', '••••1234', 1, 'admin-1', 0, 0);
+      `)
+    ).not.toThrow();
+    // provider is the primary key — re-configuring the same provider must
+    // upsert, not create a duplicate row (this is what the admin "paste a new
+    // key" flow relies on via ON CONFLICT(provider) DO UPDATE).
+    expect(() =>
+      db.exec(`
+        INSERT INTO platform_provider_keys (
+          provider, encrypted_key, key_hint, is_active, updated_by, created_at, updated_at
+        )
+        VALUES ('fal', 'salt2.iv2.ciphertext2', '••••5678', 1, 'admin-1', 0, 0)
+        ON CONFLICT(provider) DO UPDATE SET
+          encrypted_key = excluded.encrypted_key, key_hint = excluded.key_hint, updated_at = excluded.updated_at;
+      `)
+    ).not.toThrow();
+    const rows = db.prepare('SELECT key_hint FROM platform_provider_keys WHERE provider = ?').all('fal') as any[];
+    expect(rows).toHaveLength(1);
+    expect(rows[0].key_hint).toBe('••••5678');
   });
 
   it('KNOWN GAP: users/projects columns from 001-v2/002 are wiped by 0003_mvp_clean on a fresh apply', () => {

@@ -1275,7 +1275,7 @@ export function renderHookCanvas(title: string, input: any, output: any): string
       <div class="plat-item">
         <div class="name">${platEmoji[k]} ${platLabel[k]} (${platforms[k].length})</div>
         <ul>
-          ${platforms[k].slice(0, 3).map((h: string) => `<li>${escape(typeof h === 'string' ? h : h.hook || '')}</li>`).join('')}
+          ${platforms[k].slice(0, 3).map((h: any) => `<li>${escape(typeof h === 'string' ? h : h.hook || '')}</li>`).join('')}
         </ul>
       </div>
     `).join('')}

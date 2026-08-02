@@ -272,13 +272,20 @@
             e.preventDefault();
             const form = e.target as HTMLFormElement;
             const fd = new FormData(form);
-            const data = {
+            const data: {
+              title: string;
+              objective: 'informative' | 'persuasive' | 'story';
+              target_slides: number;
+              time_minutes: number;
+              color_theme: string;
+              language: 'th' | 'en';
+            } = {
               title: fd.get('title') as string,
-              objective: fd.get('objective') as any,
+              objective: (fd.get('objective') as 'informative' | 'persuasive' | 'story') || 'informative',
               target_slides: parseInt(fd.get('target_slides') as string) || 10,
               time_minutes: parseInt(fd.get('time_minutes') as string) || 15,
               color_theme: fd.get('color_theme') as string,
-              language: (fd.get('language') as string) || 'th',
+              language: ((fd.get('language') as 'th' | 'en') || 'th'),
             };
             if (data.title.trim()) handleCreate(data);
           }}

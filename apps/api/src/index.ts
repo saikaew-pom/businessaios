@@ -13,7 +13,17 @@ import { hashPassword, verifyPassword, generateSessionToken, generateId, encrypt
 import { PROMPT_TEMPLATES, STEPS } from './lib/prompts';
 import { renderCanvasPDF } from './lib/canvasTemplates';
 import { buildProjectHTML, buildProjectMarkdown, buildProjectCSV, buildProjectDocx, escapeHtmlForDoc } from './lib/projectExport';
-import { requireAuth, rateLimit, getSessionToken, setSessionCookie, clearSessionCookie } from './lib/middleware';
+import {
+  requireAuth,
+  rateLimit,
+  getSessionToken,
+  setSessionCookie,
+  clearSessionCookie,
+  requireCsrf,
+  getAllowedCorsOrigin,
+  getCsrfTokenForRequest,
+  buildSessionCookieHeader,
+} from './lib/middleware';
 import { sendEmail, loginOTPTemplate } from './lib/email';
 import { sendVerificationEmail, sendPasswordResetOTP } from './lib/verification';
 import { verifyTurnstile } from './lib/turnstile';
@@ -26,6 +36,10 @@ import paymentsRoutes from './paymentsRoutes';
 import { createToolRoutes } from './toolRoutes';
 import { createAdminRoutes } from './adminRoutes';
 import { createMcpRoutes } from './mcpRoutes';
+import mediaRoutes, { runMediaScheduled } from './mediaRoutes';
+import contentRoutes from './contentRoutes';
+import brandKitRoutes from './brandKitRoutes';
+import socialRoutes from './socialRoutes';
 
 // =====================================================
 // App
@@ -39,24 +53,13 @@ app.use('*', async (c, next) => {
 });
 
 app.use('*', cors({
-  origin: (origin) => {
-    // No Origin header (e.g. curl, server-to-server) — allow, there's no browser
-    // cookie to steal in that case.
-    if (!origin) return '*';
-    if (origin.includes('localhost') || origin.includes('127.0.0.1')) return origin;
-    if (origin.endsWith('.pages.dev')) return origin;
-    if (origin.endsWith('.workers.dev')) return origin;
-    if (origin.endsWith('.businessaios.com')) return origin;
-    // Anything else: reject. Do NOT fall through to `return origin` here —
-    // combined with credentials:true + SameSite=None cookies, that reflected
-    // any origin back and let any website ride the user's session (CSRF).
-    return null;
-  },
-  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowHeaders: ['Content-Type', 'Authorization'],
+  origin: (origin, c) => getAllowedCorsOrigin(origin, c.env),
+  allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token', 'Idempotency-Key', 'X-Upload-Token'],
   credentials: true,
   maxAge: 86400,
 }));
+app.use('*', requireCsrf);
 
 // =====================================================
 // Health
@@ -81,16 +84,24 @@ app.get('/health', (c) => c.json({ status: 'ok', timestamp: new Date().toISOStri
  * Public config — exposes non-secret env values to the frontend
  * (e.g. Turnstile site key, feature flags)
  */
-app.get('/api/config', (c) => {
+app.get('/api/config', async (c) => {
   const env = c.env;
   return c.json({
     turnstile: {
-      site_key: (env as any).TURNSTILE_SITE_KEY || null,
-      required: (env as any).TURNSTILE_REQUIRED !== 'false' && !!(env as any).TURNSTILE_SECRET,
+      site_key: env.TURNSTILE_SITE_KEY || null,
+      required: env.TURNSTILE_REQUIRED !== 'false' && !!env.TURNSTILE_SECRET,
     },
     features: {
-      email_verification: !!(env as any).BREVO_API_KEY,
-      google_oauth: !!(env as any).GOOGLE_CLIENT_ID,
+      email_verification: !!env.BREVO_API_KEY,
+      google_oauth: !!env.GOOGLE_CLIENT_ID,
+      creative_studio: env.CREATIVE_STUDIO_ENABLED === 'true',
+      brand_context: env.BRAND_CONTEXT_ENABLED === 'true',
+      creative_embedded: env.CREATIVE_EMBEDDED_ENABLED === 'true',
+      brand_composition: env.BRAND_COMPOSITION_ENABLED === 'true',
+      social_publishing: env.SOCIAL_PUBLISHING_ENABLED === 'true',
+    },
+    security: {
+      csrf_token: await getCsrfTokenForRequest(c),
     },
   });
 });
@@ -788,7 +799,7 @@ app.get('/api/exports/:id', requireAuth, async (c) => {
   // For HTML exports (project PDF flow) — render inline so browser can print
   // For other formats (md, json, csv, doc) — force download
   const fmt = (exp.format || 'html').toLowerCase();
-  const fileSize = (await obj.body?.getSize?.()) ?? 0;
+  const fileSize = obj.size ?? 0;
   const filename = `${exp.project_id || 'export'}-${id}.${fmt}`;
 
   if (fmt === 'html' || fmt === 'pdf') {
@@ -987,12 +998,10 @@ app.get('/api/auth/google/callback', async (c) => {
       c.req.header('cf-connecting-ip') || null).run();
 
     // Set session cookie + redirect
-    const cookieExpired = Math.floor(SESSION_TTL_MS / 1000);
     const headers = new Headers();
     headers.set('Location', `${webUrl}/dashboard?google_login=success`);
-    headers.set('Set-Cookie',
-      `session=${sessionToken}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=${cookieExpired}`);
-    headers.append('Set-Cookie', `google_oauth_state=; Path=/; Max-Age=0`);
+    headers.set('Set-Cookie', buildSessionCookieHeader(sessionToken, expiresAt));
+    headers.append('Set-Cookie', 'google_oauth_state=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0');
 
     return new Response(null, { status: 302, headers });
   } catch (err: any) {
@@ -1429,7 +1438,9 @@ app.post('/api/projects/:id/export', requireAuth, async (c) => {
   const user = c.get('user')!;
   const projectId = c.req.param('id');
   const env = c.env;
-  const body = await c.req.json<{ format?: 'html' | 'pdf' | 'md' | 'markdown' | 'json' | 'csv' | 'doc' | 'docx' }>().catch(() => ({}));
+  const body = await c.req
+    .json<{ format?: 'html' | 'pdf' | 'md' | 'markdown' | 'json' | 'csv' | 'doc' | 'docx' }>()
+    .catch((): { format?: 'html' | 'pdf' | 'md' | 'markdown' | 'json' | 'csv' | 'doc' | 'docx' } => ({}));
 
   const project = await env.DB.prepare(
     'SELECT * FROM projects WHERE id = ? AND user_id = ?'
@@ -1527,7 +1538,9 @@ app.post('/api/tools/saved/:id/export', requireAuth, async (c) => {
   const user = c.get('user')!;
   const id = c.req.param('id');
   const env = c.env;
-  const body = await c.req.json<{ format?: 'md' | 'json' | 'pdf' }>().catch(() => ({}));
+  const body = await c.req
+    .json<{ format?: 'md' | 'json' | 'pdf' }>()
+    .catch((): { format?: 'md' | 'json' | 'pdf' } => ({}));
 
   const row = await env.DB.prepare(
     'SELECT * FROM tool_saves WHERE id = ? AND user_id = ?'
@@ -1549,28 +1562,21 @@ app.post('/api/tools/saved/:id/export', requireAuth, async (c) => {
     mimeType = 'application/json; charset=utf-8';
     fileExt = 'json';
   } else if (format === 'pdf') {
-    // Canvas PDF — one-page A3 landscape for VPC + BMC + Offer + Objection + Hook
-    const canvasHtml = renderCanvasPDF(row.tool_type, title, input, output);
-    if (!canvasHtml) {
-      return c.json({ error: 'canvas_not_supported', message: 'Canvas PDF ยังไม่รองรับ tool นี้ (รองรับ VPC, BMC, Offer, Objection, Hook)' }, 400);
+    if (row.tool_type === 'jtbd_generator') {
+      content = buildJtbdReportHTML(title, row.created_at, input, output);
+    } else {
+      // Canvas PDF — one-page A3 landscape for VPC + BMC + Offer + Objection + Hook
+      const canvasHtml = renderCanvasPDF(row.tool_type, title, input, output);
+      if (!canvasHtml) {
+        return c.json({ error: 'canvas_not_supported', message: 'Canvas PDF ยังไม่รองรับ tool นี้ (รองรับ VPC, BMC, Offer, Objection, Hook, JTBD)' }, 400);
+      }
+      content = canvasHtml;
     }
-    content = canvasHtml;
     mimeType = 'text/html; charset=utf-8';
     fileExt = 'html'; // Store as HTML, but format field = pdf for client
   } else {
     // Markdown
-    const lines: string[] = [`# ${title}`, '', `**ประเภท:** ${row.tool_type}`, `**สร้างเมื่อ:** ${new Date(row.created_at).toLocaleDateString('th-TH')}`, '', '---', ''];
-    lines.push('## Input');
-    lines.push('```json');
-    lines.push(JSON.stringify(input, null, 2));
-    lines.push('```');
-    lines.push('');
-    lines.push('## Output');
-    lines.push('```json');
-    lines.push(JSON.stringify(output, null, 2));
-    lines.push('```');
-    lines.push('');
-    content = lines.join('\n');
+    content = buildSavedToolMarkdown(title, row.tool_type, row.created_at, input, output);
     mimeType = 'text/markdown; charset=utf-8';
     fileExt = 'md';
   }
@@ -1590,6 +1596,397 @@ app.post('/api/tools/saved/:id/export', requireAuth, async (c) => {
   return c.json({ ok: true, export_id: exportId, format: dbFormat, url: `/api/tool-exports/${exportId}`, download_url: `/api/tool-exports/${exportId}` });
 });
 
+function buildSavedToolMarkdown(title: string, toolType: string, createdAt: number, input: any, output: any): string {
+  if (toolType === 'jtbd_generator') {
+    return buildJtbdMarkdown(title, createdAt, input, output);
+  }
+
+  const lines: string[] = [
+    `# ${title}`,
+    '',
+    `**ประเภท:** ${toolType}`,
+    `**สร้างเมื่อ:** ${new Date(createdAt).toLocaleDateString('th-TH')}`,
+    '',
+    '---',
+    '',
+    '## Input',
+    '```json',
+    JSON.stringify(input, null, 2),
+    '```',
+    '',
+    '## Output',
+    '```json',
+    JSON.stringify(output, null, 2),
+    '```',
+    '',
+  ];
+  return lines.join('\n');
+}
+
+const JTBD_INPUT_LABELS: Record<string, string> = {
+  business_name: 'ชื่อธุรกิจ',
+  business_type: 'ประเภทธุรกิจ',
+  industry: 'อุตสาหกรรม',
+  location: 'พื้นที่/ตลาดหลัก',
+  differentiation: 'จุดแตกต่างของธุรกิจ',
+  price_range: 'ช่วงราคา',
+  customer_age: 'อายุลูกค้าเป้าหมาย',
+  customer_job: 'อาชีพ/บทบาทลูกค้า',
+  customer_income: 'รายได้/กำลังซื้อ',
+  core_problem: 'ปัญหาหลักของลูกค้า',
+  current_solutions: 'ทางออกที่ลูกค้าใช้อยู่ตอนนี้',
+  trigger_event: 'เหตุการณ์ที่กระตุ้นให้เริ่มมองหาทางออก',
+  known_objections: 'ข้อกังวล/แรงต้านก่อนซื้อ',
+};
+
+const JTBD_BUSINESS_TYPE_LABELS: Record<string, string> = {
+  education: 'การศึกษา/การสอน',
+  service: 'ธุรกิจบริการ',
+  ecommerce: 'อีคอมเมิร์ซ',
+  retail: 'ค้าปลีก/หน้าร้าน',
+  food: 'อาหารและเครื่องดื่ม',
+  health: 'สุขภาพ/ความงาม',
+  technology: 'เทคโนโลยี',
+};
+
+const JTBD_INPUT_GROUPS = [
+  { title: 'ภาพรวมธุรกิจ', keys: ['business_name', 'business_type', 'industry', 'location', 'differentiation', 'price_range'] },
+  { title: 'ลูกค้าเป้าหมาย', keys: ['customer_age', 'customer_job', 'customer_income'] },
+  { title: 'สถานการณ์ซื้อ', keys: ['core_problem', 'current_solutions', 'trigger_event'] },
+  { title: 'ข้อกังวลก่อนตัดสินใจ', keys: ['known_objections'] },
+];
+
+function hasExportValue(value: any): boolean {
+  return value !== undefined && value !== null && String(typeof value === 'object' ? JSON.stringify(value) : value).trim() !== '';
+}
+
+function getJtbdInputValue(input: any, key: string): any {
+  if (key === 'business_type') return input.business_type_resolved || input.business_type;
+  if (key === 'industry') return input.industry_resolved || input.industry || input.industry_custom;
+  return input[key];
+}
+
+function formatJtbdInputValue(key: string, value: any): string {
+  if (key === 'business_type') return JTBD_BUSINESS_TYPE_LABELS[String(value)] || String(value);
+  if (key === 'price_range') {
+    const raw = String(value).trim();
+    return raw && !/[฿บาท]/.test(raw) ? `${raw} บาท` : raw;
+  }
+  if (typeof value === 'object') return JSON.stringify(value);
+  return String(value);
+}
+
+function getJtbdInputGroups(input: any): Array<{ title: string; rows: Array<{ key: string; label: string; value: string }> }> {
+  if (!input || typeof input !== 'object') return [];
+  return JTBD_INPUT_GROUPS.map((group) => ({
+    title: group.title,
+    rows: group.keys
+      .map((key) => ({ key, rawValue: getJtbdInputValue(input, key) }))
+      .filter(({ rawValue }) => hasExportValue(rawValue))
+      .map(({ key, rawValue }) => ({
+        key,
+        label: JTBD_INPUT_LABELS[key] || key,
+        value: formatJtbdInputValue(key, rawValue),
+      })),
+  })).filter((group) => group.rows.length > 0);
+}
+
+function buildJtbdMarkdown(title: string, createdAt: number, input: any, output: any): string {
+  const lines: string[] = [
+    `# ${title}`,
+    '',
+    `**ประเภท:** JTBD Generator`,
+    `**สร้างเมื่อ:** ${new Date(createdAt).toLocaleDateString('th-TH')}`,
+    '',
+  ];
+
+  const inputGroups = getJtbdInputGroups(input);
+  if (inputGroups.length) {
+    lines.push('## Analysis Brief', '');
+    lines.push('ข้อมูลตั้งต้นที่ใช้วิเคราะห์ ไม่ใช่ผลลัพธ์สุดท้าย', '');
+    for (const group of inputGroups) {
+      lines.push(`### ${group.title}`, '');
+      for (const row of group.rows) {
+        lines.push(`- **${row.label}:** ${row.value}`);
+      }
+      lines.push('');
+    }
+  }
+
+  if (output.summary) section(lines, 'Executive Summary', output.summary);
+  if (output.answer_to_core_question) section(lines, 'Core Question Answer', output.answer_to_core_question);
+
+  const primary = output.primary_job || {};
+  if (Object.keys(primary).length) {
+    lines.push('## Primary Job', '');
+    if (primary.job_statement) lines.push(primary.job_statement, '');
+    if (primary.situation) lines.push(`**Situation:** ${primary.situation}`);
+    if (primary.motivation) lines.push(`**Motivation:** ${primary.motivation}`);
+    if (primary.expected_outcome) lines.push(`**Expected Outcome:** ${primary.expected_outcome}`);
+    if (primary.job_verb_format) lines.push(`**Job Verb Format:** ${primary.job_verb_format}`);
+    if (primary.dimensions) {
+      lines.push('', '### Dimensions', '');
+      if (primary.dimensions.functional) lines.push(`- **Functional:** ${primary.dimensions.functional}`);
+      if (primary.dimensions.emotional) lines.push(`- **Emotional:** ${primary.dimensions.emotional}`);
+      if (primary.dimensions.social) lines.push(`- **Social:** ${primary.dimensions.social}`);
+    }
+    lines.push('');
+  }
+
+  if (Array.isArray(output.related_jobs) && output.related_jobs.length) {
+    lines.push('## Related Jobs', '');
+    for (const job of output.related_jobs) {
+      lines.push(`### ${job.job || 'Related job'}`);
+      if (job.context) lines.push(`- **Context:** ${job.context}`);
+      if (job.importance) lines.push(`- **Importance:** ${job.importance}`);
+      if (job.satisfaction_current) lines.push(`- **Current Satisfaction:** ${job.satisfaction_current}`);
+      if (job.opportunity) lines.push(`- **Opportunity:** ${job.opportunity}`);
+      lines.push('');
+    }
+  }
+
+  const forces = output.forces_of_progress || {};
+  if (Object.keys(forces).length) {
+    lines.push('## Forces of Progress', '');
+    forceSection(lines, 'Push', forces.push);
+    forceSection(lines, 'Pull', forces.pull);
+    forceSection(lines, 'Anxiety', forces.anxiety);
+    forceSection(lines, 'Habit', forces.habit);
+    if (forces.verdict) lines.push(`**Verdict:** ${forces.verdict}`, '');
+    if (forces.switch_likelihood) lines.push(`**Switch Likelihood:** ${forces.switch_likelihood}`, '');
+  }
+
+  if (Array.isArray(output.desired_outcomes) && output.desired_outcomes.length) {
+    lines.push('## Desired Outcomes', '');
+    for (const outcome of output.desired_outcomes) {
+      lines.push(`### ${outcome.outcome || 'Outcome'}`);
+      lines.push(`- **Category:** ${outcome.category || '-'}`);
+      lines.push(`- **Importance:** ${outcome.importance ?? '-'}`);
+      lines.push(`- **Current Satisfaction:** ${outcome.satisfaction_current ?? '-'}`);
+      lines.push(`- **Opportunity Score:** ${outcome.opportunity_score ?? '-'}`);
+      if (outcome.why) lines.push(`- **Why:** ${outcome.why}`);
+      lines.push('');
+    }
+  }
+
+  if (Array.isArray(output.customer_decision_timeline) && output.customer_decision_timeline.length) {
+    lines.push('## Customer Decision Timeline', '');
+    for (const stage of output.customer_decision_timeline) {
+      lines.push(`### ${stage.stage_name_th || stage.stage || 'Stage'}`);
+      if (stage.customer_thinks) lines.push(`- **Thinks:** ${stage.customer_thinks}`);
+      if (stage.customer_feels) lines.push(`- **Feels:** ${stage.customer_feels}`);
+      if (stage.customer_does) lines.push(`- **Does:** ${stage.customer_does}`);
+      if (stage.what_they_need) lines.push(`- **Needs:** ${stage.what_they_need}`);
+      if (stage.marketing_opportunity) lines.push(`- **Marketing Opportunity:** ${stage.marketing_opportunity}`);
+      lines.push('');
+    }
+  }
+
+  if (Array.isArray(output.job_map) && output.job_map.length) {
+    lines.push('## Job Map', '');
+    for (const step of output.job_map) {
+      lines.push(`### ${step.step || 'Step'}`);
+      if (step.customer_action) lines.push(`- **Customer Action:** ${step.customer_action}`);
+      if (step.opportunity) lines.push(`- **Opportunity:** ${step.opportunity}`);
+      lines.push('');
+    }
+  }
+
+  const criteria = output.hiring_firing_criteria || {};
+  if (Object.keys(criteria).length) {
+    lines.push('## Hiring & Firing Criteria', '');
+    if (criteria.fired_because) lines.push(`**Fired because:** ${criteria.fired_because}`, '');
+    if (criteria.hired_because) lines.push(`**Hired because:** ${criteria.hired_because}`, '');
+    if (criteria.switch_moment) lines.push(`**Switch moment:** ${criteria.switch_moment}`, '');
+  }
+
+  const insights = output.deep_research_insights || {};
+  if (Object.keys(insights).length) {
+    lines.push('## Deep Research Insights', '');
+    if (insights.methodology) lines.push(`**Methodology:** ${insights.methodology}`, '');
+    if (Array.isArray(insights.key_insights)) {
+      for (const insight of insights.key_insights) lines.push(`- ${insight}`);
+      lines.push('');
+    }
+    if (insights.what_most_brands_get_wrong) lines.push(`**What most brands get wrong:** ${insights.what_most_brands_get_wrong}`, '');
+    if (Array.isArray(insights.validation_methods)) {
+      lines.push('### Validation Methods', '');
+      for (const method of insights.validation_methods) lines.push(`- ${method}`);
+      lines.push('');
+    }
+  }
+
+  if (Array.isArray(output.next_steps) && output.next_steps.length) {
+    lines.push('## Next Steps', '');
+    for (const nextStep of output.next_steps) lines.push(`- ${nextStep}`);
+    lines.push('');
+  }
+  if (output.reasoning) section(lines, 'Strategic Reasoning', output.reasoning);
+
+  return lines.join('\n');
+}
+
+function buildJtbdReportHTML(title: string, createdAt: number, input: any, output: any): string {
+  const esc = escapeHtmlForDoc;
+  const list = (items: any[] | undefined, renderer: (item: any) => string) => (
+    Array.isArray(items) && items.length ? `<ul>${items.map(renderer).join('')}</ul>` : '<p class="muted">ไม่มีข้อมูล</p>'
+  );
+  const forceList = (items: any[] | undefined) => list(items, (item) => `
+    <li><strong>${esc(item.force || '')}</strong>${item.intensity ? ` <span class="pill">${esc(item.intensity)}</span>` : ''}${item.evidence ? `<br><span>${esc(item.evidence)}</span>` : ''}</li>
+  `);
+  const inputGroups = getJtbdInputGroups(input);
+  const primary = output.primary_job || {};
+  const forces = output.forces_of_progress || {};
+  const criteria = output.hiring_firing_criteria || {};
+  const insights = output.deep_research_insights || {};
+
+  return `<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<title>${esc(title)} - JTBD Report</title>
+<style>
+  @page { size: A4; margin: 16mm; }
+  * { box-sizing: border-box; }
+  body { font-family: "Noto Sans Thai", "Inter", Arial, sans-serif; color: #172033; line-height: 1.65; margin: 0; background: #f6f7fb; }
+  main { max-width: 960px; margin: 0 auto; padding: 28px; background: #fff; }
+  h1 { font-size: 30px; margin: 0 0 8px; color: #111827; }
+  h2 { font-size: 19px; margin: 30px 0 12px; color: #1d4ed8; border-bottom: 2px solid #dbeafe; padding-bottom: 6px; }
+  h3 { font-size: 15px; margin: 18px 0 8px; color: #334155; }
+  p { margin: 0 0 10px; }
+  ul { margin: 0; padding-left: 20px; }
+  li { margin: 6px 0; }
+  table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 12px; }
+  th, td { border: 1px solid #e2e8f0; padding: 8px; vertical-align: top; text-align: left; }
+  th { background: #f1f5f9; color: #334155; }
+  .meta { color: #64748b; margin-bottom: 20px; }
+  .box { border: 1px solid #dbeafe; background: #eff6ff; border-radius: 8px; padding: 14px; margin: 10px 0; }
+  .job { border-left: 4px solid #2563eb; background: #f8fafc; padding: 14px; margin: 10px 0; }
+  .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .card { border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; break-inside: avoid; }
+  .brief-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .brief-card h3 { margin-top: 0; }
+  .brief-row { border-top: 1px solid #f1f5f9; padding: 8px 0; }
+  .brief-row:first-of-type { border-top: 0; }
+  .brief-label { color: #64748b; font-size: 12px; font-weight: 700; }
+  .brief-value { font-weight: 600; white-space: pre-wrap; }
+  .pill { display: inline-block; background: #e0f2fe; color: #0369a1; border-radius: 999px; padding: 1px 8px; font-size: 11px; font-weight: 700; }
+  .muted { color: #64748b; }
+  .small { font-size: 12px; color: #64748b; }
+  .section { break-inside: avoid; }
+  @media print { body { background: #fff; } main { padding: 0; } .section, .card, tr { break-inside: avoid; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>${esc(title)}</h1>
+  <div class="meta">JTBD Generator Report · ${new Date(createdAt).toLocaleDateString('th-TH')}</div>
+
+  ${inputGroups.length ? `<section class="section"><h2>Analysis Brief</h2><p class="muted small">ข้อมูลตั้งต้นที่ใช้วิเคราะห์ ไม่ใช่ผลลัพธ์สุดท้าย</p><div class="brief-grid">${inputGroups.map((group) => `
+    <div class="card brief-card"><h3>${esc(group.title)}</h3>${group.rows.map((row) => `
+      <div class="brief-row"><div class="brief-label">${esc(row.label)}</div><div class="brief-value">${esc(row.value)}</div></div>
+    `).join('')}</div>
+  `).join('')}</div></section>` : ''}
+
+  ${output.summary ? `<section class="section"><h2>Executive Summary</h2><div class="box">${esc(output.summary)}</div></section>` : ''}
+  ${output.answer_to_core_question ? `<section class="section"><h2>Core Question Answer</h2><p>${esc(output.answer_to_core_question)}</p></section>` : ''}
+
+  ${Object.keys(primary).length ? `<section class="section"><h2>Primary Job</h2>
+    ${primary.job_statement ? `<div class="job"><strong>${esc(primary.job_statement)}</strong></div>` : ''}
+    <div class="grid">
+      ${primary.situation ? `<div class="card"><h3>Situation</h3><p>${esc(primary.situation)}</p></div>` : ''}
+      ${primary.motivation ? `<div class="card"><h3>Motivation</h3><p>${esc(primary.motivation)}</p></div>` : ''}
+      ${primary.expected_outcome ? `<div class="card"><h3>Expected Outcome</h3><p>${esc(primary.expected_outcome)}</p></div>` : ''}
+      ${primary.job_verb_format ? `<div class="card"><h3>Job Verb Format</h3><p>${esc(primary.job_verb_format)}</p></div>` : ''}
+    </div>
+    ${primary.dimensions ? `<div class="grid3" style="margin-top:12px;">
+      <div class="card"><h3>Functional</h3><p>${esc(primary.dimensions.functional || '-')}</p></div>
+      <div class="card"><h3>Emotional</h3><p>${esc(primary.dimensions.emotional || '-')}</p></div>
+      <div class="card"><h3>Social</h3><p>${esc(primary.dimensions.social || '-')}</p></div>
+    </div>` : ''}
+  </section>` : ''}
+
+  ${Array.isArray(output.related_jobs) && output.related_jobs.length ? `<section class="section"><h2>Related Jobs</h2>${output.related_jobs.map((job: any) => `
+    <div class="card"><h3>${esc(job.job || 'Related job')}</h3>
+      ${job.context ? `<p><strong>Context:</strong> ${esc(job.context)}</p>` : ''}
+      ${job.importance ? `<p><strong>Importance:</strong> ${esc(job.importance)}</p>` : ''}
+      ${job.satisfaction_current ? `<p><strong>Current Satisfaction:</strong> ${esc(job.satisfaction_current)}</p>` : ''}
+      ${job.opportunity ? `<p><strong>Opportunity:</strong> ${esc(job.opportunity)}</p>` : ''}
+    </div>`).join('')}</section>` : ''}
+
+  ${Object.keys(forces).length ? `<section class="section"><h2>Forces of Progress</h2>
+    <div class="grid">
+      <div class="card"><h3>Push</h3>${forceList(forces.push)}</div>
+      <div class="card"><h3>Pull</h3>${forceList(forces.pull)}</div>
+      <div class="card"><h3>Anxiety</h3>${forceList(forces.anxiety)}</div>
+      <div class="card"><h3>Habit</h3>${forceList(forces.habit)}</div>
+    </div>
+    ${forces.verdict ? `<div class="box"><strong>Verdict:</strong> ${esc(forces.verdict)}</div>` : ''}
+    ${forces.switch_likelihood ? `<p><strong>Switch Likelihood:</strong> ${esc(forces.switch_likelihood)}</p>` : ''}
+  </section>` : ''}
+
+  ${Array.isArray(output.desired_outcomes) && output.desired_outcomes.length ? `<section class="section"><h2>Desired Outcomes</h2>
+    <table><thead><tr><th>Outcome</th><th>Category</th><th>Importance</th><th>Satisfaction</th><th>Opportunity</th><th>Why</th></tr></thead><tbody>
+    ${output.desired_outcomes.map((outcome: any) => `<tr>
+      <td>${esc(outcome.outcome || '')}</td><td>${esc(outcome.category || '')}</td><td>${esc(outcome.importance ?? '-')}</td>
+      <td>${esc(outcome.satisfaction_current ?? '-')}</td><td>${esc(outcome.opportunity_score ?? '-')}</td><td>${esc(outcome.why || '')}</td>
+    </tr>`).join('')}</tbody></table>
+  </section>` : ''}
+
+  ${Array.isArray(output.customer_decision_timeline) && output.customer_decision_timeline.length ? `<section class="section"><h2>Customer Decision Timeline</h2>${output.customer_decision_timeline.map((stage: any) => `
+    <div class="card"><h3>${esc(stage.stage_name_th || stage.stage || 'Stage')}</h3>
+      ${stage.customer_thinks ? `<p><strong>Thinks:</strong> ${esc(stage.customer_thinks)}</p>` : ''}
+      ${stage.customer_feels ? `<p><strong>Feels:</strong> ${esc(stage.customer_feels)}</p>` : ''}
+      ${stage.customer_does ? `<p><strong>Does:</strong> ${esc(stage.customer_does)}</p>` : ''}
+      ${stage.what_they_need ? `<p><strong>Needs:</strong> ${esc(stage.what_they_need)}</p>` : ''}
+      ${stage.marketing_opportunity ? `<p><strong>Marketing Opportunity:</strong> ${esc(stage.marketing_opportunity)}</p>` : ''}
+    </div>`).join('')}</section>` : ''}
+
+  ${Array.isArray(output.job_map) && output.job_map.length ? `<section class="section"><h2>Job Map</h2>${output.job_map.map((step: any) => `
+    <div class="card"><h3>${esc(step.step || 'Step')}</h3>
+      ${step.customer_action ? `<p><strong>Customer Action:</strong> ${esc(step.customer_action)}</p>` : ''}
+      ${step.opportunity ? `<p><strong>Opportunity:</strong> ${esc(step.opportunity)}</p>` : ''}
+    </div>`).join('')}</section>` : ''}
+
+  ${Object.keys(criteria).length ? `<section class="section"><h2>Hiring & Firing Criteria</h2>
+    ${criteria.fired_because ? `<p><strong>Fired because:</strong> ${esc(criteria.fired_because)}</p>` : ''}
+    ${criteria.hired_because ? `<p><strong>Hired because:</strong> ${esc(criteria.hired_because)}</p>` : ''}
+    ${criteria.switch_moment ? `<p><strong>Switch moment:</strong> ${esc(criteria.switch_moment)}</p>` : ''}
+  </section>` : ''}
+
+  ${Object.keys(insights).length ? `<section class="section"><h2>Deep Research Insights</h2>
+    ${insights.methodology ? `<p><strong>Methodology:</strong> ${esc(insights.methodology)}</p>` : ''}
+    ${Array.isArray(insights.key_insights) ? list(insights.key_insights, (insight) => `<li>${esc(insight)}</li>`) : ''}
+    ${insights.what_most_brands_get_wrong ? `<div class="box"><strong>What most brands get wrong:</strong> ${esc(insights.what_most_brands_get_wrong)}</div>` : ''}
+    ${Array.isArray(insights.validation_methods) ? `<h3>Validation Methods</h3>${list(insights.validation_methods, (method) => `<li>${esc(method)}</li>`)}` : ''}
+  </section>` : ''}
+
+  ${Array.isArray(output.next_steps) && output.next_steps.length ? `<section class="section"><h2>Next Steps</h2>${list(output.next_steps, (step) => `<li>${esc(step)}</li>`)}</section>` : ''}
+  ${output.reasoning ? `<section class="section"><h2>Strategic Reasoning</h2><p>${esc(output.reasoning)}</p></section>` : ''}
+</main>
+</body>
+</html>`;
+}
+
+function section(lines: string[], heading: string, body: string) {
+  lines.push(`## ${heading}`, '', body, '');
+}
+
+function forceSection(lines: string[], heading: string, items: any[] | undefined) {
+  if (!Array.isArray(items) || items.length === 0) return;
+  lines.push(`### ${heading}`, '');
+  for (const item of items) {
+    lines.push(`- **${item.force || ''}**${item.intensity ? ` (${item.intensity})` : ''}${item.evidence ? ` - ${item.evidence}` : ''}`);
+  }
+  lines.push('');
+}
+
+function formatMarkdownValue(value: any): string {
+  if (typeof value === 'object') return JSON.stringify(value);
+  return String(value);
+}
+
 // =====================================================
 // Tool Save Export Download (separate from project exports)
 // Returns file with Content-Disposition: attachment
@@ -1608,7 +2005,7 @@ app.get('/api/tool-exports/:id', requireAuth, async (c) => {
   const obj = await env.R2.get(exp.r2_key);
   if (!obj) return c.json({ error: 'not_found_in_storage' }, 404);
 
-  const fileSize = (await obj.body?.getSize?.()) ?? 0;
+  const fileSize = obj.size ?? 0;
 
   // For PDF (canvas) format, serve HTML inline so browser can render + print
   if (exp.format === 'pdf') {
@@ -1636,7 +2033,9 @@ app.get('/api/tool-exports/:id', requireAuth, async (c) => {
 app.get('/api/projects/:id/steps/:step/assets', requireAuth, async (c) => {
   const user = c.get('user')!;
   const projectId = c.req.param('id');
-  const stepNum = parseInt(c.req.param('step'), 10);
+  const stepParam = c.req.param('step');
+  if (!stepParam) return c.json({ error: 'missing_step' }, 400);
+  const stepNum = parseInt(stepParam, 10);
 
   const project = await c.env.DB.prepare(
     'SELECT id FROM projects WHERE id = ? AND user_id = ?'
@@ -1655,7 +2054,9 @@ app.get('/api/projects/:id/steps/:step/assets', requireAuth, async (c) => {
 app.post('/api/projects/:id/steps/:step/assets', requireAuth, async (c) => {
   const user = c.get('user')!;
   const projectId = c.req.param('id');
-  const stepNum = parseInt(c.req.param('step'), 10);
+  const stepParam = c.req.param('step');
+  if (!stepParam) return c.json({ error: 'missing_step' }, 400);
+  const stepNum = parseInt(stepParam, 10);
   const body = await c.req.json<{
     kind?: 'note' | 'file' | 'link';
     title?: string;
@@ -1749,7 +2150,9 @@ app.delete('/api/projects/:id/steps/:step/assets/:assetId', requireAuth, async (
 app.post('/api/projects/:id/steps/:step/upload-text', requireAuth, async (c) => {
   const user = c.get('user')!;
   const projectId = c.req.param('id');
-  const stepNum = parseInt(c.req.param('step'), 10);
+  const stepParam = c.req.param('step');
+  if (!stepParam) return c.json({ error: 'missing_step' }, 400);
+  const stepNum = parseInt(stepParam, 10);
   const body = await c.req.json<{
     title?: string;
     file_name?: string;
@@ -1922,7 +2325,9 @@ app.delete('/api/projects/:id/links/:linkId', requireAuth, async (c) => {
 app.post('/api/tools/saved/:id/promote', requireAuth, async (c) => {
   const user = c.get('user')!;
   const id = c.req.param('id');
-  const body = await c.req.json<{ target_kind?: 'playbook' | 'native' }>().catch(() => ({}));
+  const body = await c.req
+    .json<{ target_kind?: 'playbook' | 'native' }>()
+    .catch((): { target_kind?: 'playbook' | 'native' } => ({}));
   const targetKind = body.target_kind || 'playbook'; // default: import into playbook
 
   const tool = await c.env.DB.prepare(
@@ -2925,6 +3330,14 @@ createToolRoutes(app);
 createAdminRoutes(app);
 
 // =====================================================
+// Creative Studio / Media Foundation
+// =====================================================
+app.route('/', mediaRoutes);
+app.route('/', contentRoutes);
+app.route('/', brandKitRoutes);
+app.route('/', socialRoutes);
+
+// =====================================================
 // MCP Server (Phase D — Claude Code / Claude Desktop integration)
 // =====================================================
 createMcpRoutes(app);
@@ -2949,4 +3362,16 @@ app.onError((err, c) => {
   return c.json({ error: 'internal_error', message: err.message || 'Something went wrong' }, 500);
 });
 
-export default app;
+async function scheduled(_event: ScheduledEvent, env: Bindings, _ctx: ExecutionContext) {
+  const result = await runMediaScheduled(env);
+  if (result.claimed > 0) {
+    console.log('[MediaScheduled]', result);
+  }
+}
+
+export { app, scheduled };
+
+export default {
+  fetch: app.fetch,
+  scheduled,
+};

@@ -4,7 +4,7 @@
   import { page } from '$app/stores';
   import { initAuth, isAuthed } from '$lib/auth';
   import StepAssets from '$lib/StepAssets.svelte';
-  import { getProject, updateProject, generateStep, exportProject, exportProjectFormatted, getExportUrl, type ProjectWithData, type ExportFormat } from '$lib/api';
+  import { getProject, updateProject, generateStep, exportProject, exportProjectFormatted, getExportUrl, materializeStep5ContentItems, type ProjectWithData, type ExportFormat } from '$lib/api';
   import OutputRenderer from '$lib/OutputRenderer.svelte';
 
   // Reactive project ID from URL params
@@ -15,6 +15,7 @@
   let isLoading = $state(true);
   let isGenerating = $state(false);
   let isExporting = $state(false);
+  let isMaterializingContent = $state(false);
   let error = $state('');
   let success = $state('');
   let exportUrl = $state('');
@@ -169,6 +170,22 @@
       error = err.message;
     } finally {
       isExporting = false;
+    }
+  }
+
+  async function handleMaterializeContent() {
+    if (!project || isMaterializingContent) return;
+    error = '';
+    success = '';
+    isMaterializingContent = true;
+    try {
+      const res = await materializeStep5ContentItems(project.id);
+      success = `สร้าง Content Inbox แล้ว ${res.materialized} รายการ`;
+      goto('/inbox');
+    } catch (err: any) {
+      error = err.message;
+    } finally {
+      isMaterializingContent = false;
     }
   }
 
@@ -490,6 +507,17 @@
               </button>
             </h3>
             <OutputRenderer step={currentStep} output={getOutput(currentStep)} />
+            {#if currentStep === 5}
+              <div class="mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-primary-200 dark:border-primary-800 bg-primary-50 dark:bg-primary-950/30 p-4">
+                <div class="flex-1 min-w-[220px]">
+                  <div class="font-semibold text-dark-900 dark:text-dark-50">ส่งปฏิทินนี้เข้า Content Inbox</div>
+                  <div class="text-sm text-dark-900/60 dark:text-dark-100/60">แยกโพสต์เป็นงานรายชิ้น เพื่อ approve, schedule และส่งต่อไปสร้างภาพใน Studio</div>
+                </div>
+                <button onclick={handleMaterializeContent} disabled={isMaterializingContent} class="btn-primary">
+                  {isMaterializingContent ? 'กำลังสร้าง...' : 'เปิดใน Inbox'}
+                </button>
+              </div>
+            {/if}
           </div>
         {/if}
 

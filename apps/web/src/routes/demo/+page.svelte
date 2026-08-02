@@ -376,26 +376,26 @@
             <div class="grid grid-cols-4 gap-2 mb-4">
               <div class="bg-green-50 border-2 border-green-300 rounded-lg p-2 text-center">
                 <div class="text-[10px] text-green-700">Dream Outcome</div>
-                <div class="text-xl font-black text-green-600">{step.content.valueEq.dreamOutcome}/10</div>
+                <div class="text-xl font-black text-green-600">{step.content.valueEq?.dreamOutcome ?? 0}/10</div>
               </div>
               <div class="bg-green-50 border-2 border-green-300 rounded-lg p-2 text-center">
                 <div class="text-[10px] text-green-700">Likelihood</div>
-                <div class="text-xl font-black text-green-600">{step.content.valueEq.perceivedLikelihood}/10</div>
+                <div class="text-xl font-black text-green-600">{step.content.valueEq?.perceivedLikelihood ?? 0}/10</div>
               </div>
               <div class="bg-red-50 border-2 border-red-300 rounded-lg p-2 text-center">
                 <div class="text-[10px] text-red-700">Time Delay</div>
-                <div class="text-xl font-black text-red-600">{step.content.valueEq.timeDelay}/10</div>
+                <div class="text-xl font-black text-red-600">{step.content.valueEq?.timeDelay ?? 0}/10</div>
               </div>
               <div class="bg-red-50 border-2 border-red-300 rounded-lg p-2 text-center">
                 <div class="text-[10px] text-red-700">Effort</div>
-                <div class="text-xl font-black text-red-600">{step.content.valueEq.effortSacrifice}/10</div>
+                <div class="text-xl font-black text-red-600">{step.content.valueEq?.effortSacrifice ?? 0}/10</div>
               </div>
             </div>
             <div class="grid grid-cols-2 gap-3">
               <div class="bg-emerald-50 border-2 border-emerald-300 rounded-xl p-3">
                 <div class="text-xs text-emerald-700 font-bold uppercase mb-1">💰 Price</div>
-                <div class="text-2xl font-black text-emerald-900">{step.content.price.value}</div>
-                <div class="text-[10px] text-emerald-700 mt-1">Ratio: {step.content.price.ratio} · Anchor: {step.content.price.anchor}</div>
+                <div class="text-2xl font-black text-emerald-900">{step.content.price?.value ?? ''}</div>
+                <div class="text-[10px] text-emerald-700 mt-1">Ratio: {step.content.price?.ratio ?? ''} · Anchor: {step.content.price?.anchor ?? ''}</div>
               </div>
               <div class="bg-blue-50 border-2 border-blue-300 rounded-xl p-3">
                 <div class="text-xs text-blue-700 font-bold uppercase mb-1">🛡️ Guarantee</div>

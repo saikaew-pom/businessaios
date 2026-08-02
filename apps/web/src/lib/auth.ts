@@ -36,7 +36,7 @@ export async function refreshFullUser() {
 
 export async function login(email: string, password: string, otp?: string, turnstile_token?: string) {
   const res = await apiLogin(email, password, otp, turnstile_token);
-  user.set(res.user);
+  user.set(res.user ?? null);
   await refreshFullUser();
   return res;
 }

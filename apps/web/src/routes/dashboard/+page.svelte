@@ -25,27 +25,31 @@
   let projectMenu = $state<string | null>(null); // open menu for project id
   let actionMessage = $state('');
 
-  onMount(async () => {
-    await initAuth();
-    if (!$isAuthed) {
-      goto('/login');
-      return;
-    }
-    if ($page.url.searchParams.get('verify') === '1') {
-      verificationBanner = true;
-    }
-    const kindParam = $page.url.searchParams.get('kind');
-    if (kindParam) kindFilter = kindParam;
-    await loadProjects();
-    // Close action menu on outside click
-    const handler = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (!target.closest('[data-action-menu]')) {
-        projectMenu = null;
+  onMount(() => {
+    let cleanup: (() => void) | undefined;
+    (async () => {
+      await initAuth();
+      if (!$isAuthed) {
+        goto('/login');
+        return;
       }
-    };
-    document.addEventListener('click', handler);
-    return () => document.removeEventListener('click', handler);
+      if ($page.url.searchParams.get('verify') === '1') {
+        verificationBanner = true;
+      }
+      const kindParam = $page.url.searchParams.get('kind');
+      if (kindParam) kindFilter = kindParam;
+      await loadProjects();
+      // Close action menu on outside click
+      const handler = (e: MouseEvent) => {
+        const target = e.target as HTMLElement;
+        if (!target.closest('[data-action-menu]')) {
+          projectMenu = null;
+        }
+      };
+      document.addEventListener('click', handler);
+      cleanup = () => document.removeEventListener('click', handler);
+    })();
+    return () => cleanup?.();
   });
 
   async function loadProjects() {
@@ -190,13 +194,13 @@
 
 <div class="min-h-screen bg-dark-50 dark:bg-dark-950 dark:text-dark-50">
   <main class="container-narrow py-10">
-    {#if false && $fullUser && !$fullUser.email_verified}
+    {#if false && $fullUser?.email_verified === 0}
       <div class="mb-6 p-4 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 flex items-start gap-3">
         <span class="text-2xl">📧</span>
         <div class="flex-1">
           <div class="font-semibold text-amber-900 dark:text-amber-200">กรุณายืนยันอีเมล</div>
           <div class="text-sm text-amber-800 dark:text-amber-300 mt-1">
-            ส่งลิงก์ยืนยันไปที่ <b>{$fullUser.email}</b> แล้ว กรุณาคลิกลิงก์ในอีเมลเพื่อเริ่มใช้งาน
+            ส่งลิงก์ยืนยันไปที่ <b>{$fullUser?.email}</b> แล้ว กรุณาคลิกลิงก์ในอีเมลเพื่อเริ่มใช้งาน
             {#if verifySent}
               <span class="text-green-700 dark:text-green-400 ml-2">✓ ส่งใหม่แล้ว</span>
             {/if}
@@ -217,6 +221,7 @@
       </div>
       <div class="flex items-center gap-4 flex-wrap">
         <a href="/tools" class="text-sm text-dark-900/60 dark:text-dark-100/60 hover:text-primary-600 font-medium">⚡ หรือลองเครื่องมือเดี่ยว</a>
+        <a href="/studio" class="text-sm text-dark-900/60 dark:text-dark-100/60 hover:text-primary-600 font-medium">🎨 เปิด Creative Studio</a>
         <button onclick={() => showCreate ? (showCreate = false) : openCreate()} class="btn-primary">+ สร้างแผนใหม่</button>
       </div>
     </div>
@@ -236,6 +241,40 @@
           <svg class="w-5 h-5 group-hover:translate-x-1 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
         </div>
       </a>
+
+      <a href="/studio" class="block mb-6 rounded-2xl border border-dark-100 bg-white p-5 transition hover:border-primary-200 hover:shadow-lg dark:border-dark-700 dark:bg-dark-800 group">
+        <div class="flex items-center gap-4">
+          <div class="text-4xl">🎨</div>
+          <div class="flex-1">
+            <div class="font-bold text-lg">Creative Studio</div>
+            <div class="text-sm text-dark-900/60 dark:text-dark-100/60">สร้างภาพแคมเปญ เก็บ reference image และใช้เครดิตเดียวกับบัญชี</div>
+          </div>
+          <svg class="w-5 h-5 text-dark-900/40 transition group-hover:translate-x-1 dark:text-dark-100/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+        </div>
+      </a>
+
+      <div class="grid md:grid-cols-2 gap-4 mb-6">
+        <a href="/inbox" class="rounded-2xl border border-dark-100 bg-white p-5 transition hover:border-primary-200 hover:shadow-lg dark:border-dark-700 dark:bg-dark-800 group">
+          <div class="flex items-center gap-4">
+            <div class="text-3xl">📥</div>
+            <div class="flex-1">
+              <div class="font-bold text-lg">Content Inbox</div>
+              <div class="text-sm text-dark-900/60 dark:text-dark-100/60">รีวิวโพสต์จาก calendar ก่อนส่งไปสร้าง creative หรือ schedule</div>
+            </div>
+            <svg class="w-5 h-5 text-dark-900/40 transition group-hover:translate-x-1 dark:text-dark-100/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+          </div>
+        </a>
+        <a href="/works" class="rounded-2xl border border-dark-100 bg-white p-5 transition hover:border-primary-200 hover:shadow-lg dark:border-dark-700 dark:bg-dark-800 group">
+          <div class="flex items-center gap-4">
+            <div class="text-3xl">🗂️</div>
+            <div class="flex-1">
+              <div class="font-bold text-lg">Works</div>
+              <div class="text-sm text-dark-900/60 dark:text-dark-100/60">ดูสถานะงาน creative และคอนเทนต์ทั้งหมดในที่เดียว</div>
+            </div>
+            <svg class="w-5 h-5 text-dark-900/40 transition group-hover:translate-x-1 dark:text-dark-100/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+          </div>
+        </a>
+      </div>
 
       <StrategicToolsWidget />
     {/if}

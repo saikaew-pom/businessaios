@@ -144,6 +144,17 @@
       </p>
     </div>
 
+    <a href="/studio" class="mb-10 block rounded-2xl border border-dark-100 bg-white p-5 transition hover:border-primary-300 hover:shadow-xl dark:border-dark-700 dark:bg-dark-800 group">
+      <div class="flex flex-wrap items-center gap-4">
+        <div class="text-5xl">🎨</div>
+        <div class="min-w-0 flex-1">
+          <div class="text-lg font-bold group-hover:text-primary-600 dark:group-hover:text-primary-400">Creative Studio</div>
+          <div class="mt-1 text-sm text-dark-900/70 dark:text-dark-100/70">ต่อยอด insight จาก tools เป็นภาพแคมเปญ ใช้ reference image และจ่ายด้วย credits</div>
+        </div>
+        <div class="text-sm font-semibold text-primary-600 dark:text-primary-400">เปิด Studio →</div>
+      </div>
+    </a>
+
     {#each categories as cat}
       <div class="mb-10">
         <h2 class="text-sm font-bold uppercase tracking-wider text-dark-900/50 dark:text-dark-100/50 mb-4">{cat.name}</h2>

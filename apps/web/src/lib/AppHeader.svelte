@@ -28,6 +28,9 @@
       {/if}
       <!-- Everything below is reachable via the mobile bottom nav (โปรไฟล์ → account links, logout) -->
       <div class="hidden sm:flex items-center gap-3">
+        <a href="/studio" class="text-sm text-dark-900/70 dark:text-dark-100/70 hover:text-dark-900 dark:hover:text-dark-50 font-semibold">🎨 Studio</a>
+        <a href="/inbox" class="text-sm text-dark-900/70 dark:text-dark-100/70 hover:text-dark-900 dark:hover:text-dark-50 font-semibold">Inbox</a>
+        <a href="/works" class="text-sm text-dark-900/70 dark:text-dark-100/70 hover:text-dark-900 dark:hover:text-dark-50 font-semibold">Works</a>
         <a href="/billing" class="text-sm text-dark-900/70 dark:text-dark-100/70 hover:text-dark-900 dark:hover:text-dark-50 font-semibold">💰 เติมเงิน</a>
         <a href="/profile" class="text-sm text-dark-900/70 dark:text-dark-100/70 hover:text-dark-900 dark:hover:text-dark-50">โปรไฟล์</a>
         <a href="/tools/saved" class="text-sm text-dark-900/70 dark:text-dark-100/70 hover:text-dark-900 dark:hover:text-dark-50">📂 บันทึก</a>

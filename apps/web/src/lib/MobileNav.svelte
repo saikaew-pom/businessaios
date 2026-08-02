@@ -4,6 +4,7 @@
   const items = [
     { href: '/dashboard', icon: '🏠', label: 'หน้าแรก' },
     { href: '/tools', icon: '⚡', label: 'เครื่องมือ' },
+    { href: '/studio', icon: '🎨', label: 'Studio' },
     { href: '/billing', icon: '💰', label: 'เครดิต' },
     { href: '/profile', icon: '👤', label: 'โปรไฟล์' },
   ];

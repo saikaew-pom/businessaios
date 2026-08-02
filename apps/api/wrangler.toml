@@ -80,6 +80,8 @@ SOCIAL_PUBLISHING_ENABLED = "true"
 # MINIMAX_API_KEY - AI API
 # MINIMAX_GROUP_ID - AI group ID
 # MEDIA_SIGNING_SECRET - HMAC signing secret for future media/provider content URLs
+# MEDIA_STORAGE_QUOTA_MB - optional, plain [vars] not a secret; per-user media storage cap in MB,
+#                           defaults to 1000 if unset (lib/media/quota.ts)
 # SESSION_SECRET - cookie signing (auto-generated, fallback to dev-secret)
 # STRIPE_SECRET_KEY - Stripe API (PromptPay payments) — set via wrangler secret
 # STRIPE_WEBHOOK_SECRET - Stripe webhook signing secret — set via wrangler secret

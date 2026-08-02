@@ -263,7 +263,7 @@
   <div>
     {#if output.calendar && output.calendar.length > 0}
       <div class="text-xs text-dark-900/60 dark:text-dark-100/60 mb-3">
-        📅 {output.calendar.length} posts · {output.calendar.filter(p => p.pillar === 'awareness').length} awareness · {output.calendar.filter(p => p.pillar === 'education').length} education · {output.calendar.filter(p => p.pillar === 'social_proof').length} social proof · {output.calendar.filter(p => p.pillar === 'conversion').length} conversion
+        📅 {output.calendar.length} posts · {output.calendar.filter((p: any) => p.pillar === 'awareness').length} awareness · {output.calendar.filter((p: any) => p.pillar === 'education').length} education · {output.calendar.filter((p: any) => p.pillar === 'social_proof').length} social proof · {output.calendar.filter((p: any) => p.pillar === 'conversion').length} conversion
       </div>
       <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {#each output.calendar as post}
@@ -441,16 +441,17 @@
         <div class="text-xs font-semibold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-3">📅 Action Plan 30 วัน</div>
         <div class="space-y-3">
           {#each Object.entries(output.action_plan_30d) as [week, plan]}
+            {@const typedPlan = plan as any}
             <div class="bg-dark-50 dark:bg-dark-900 rounded-lg p-4">
               <div class="text-xs font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-1">{week}</div>
-              <div class="font-semibold text-dark-900 dark:text-dark-50 mb-2">{plan.theme}</div>
-              {#if plan.tasks}
+              <div class="font-semibold text-dark-900 dark:text-dark-50 mb-2">{typedPlan.theme}</div>
+              {#if typedPlan.tasks}
                 <ul class="text-sm space-y-1">
-                  {#each plan.tasks as task}<li class="flex gap-2"><span class="text-primary-500">•</span>{task}</li>{/each}
+                  {#each typedPlan.tasks as task}<li class="flex gap-2"><span class="text-primary-500">•</span>{task}</li>{/each}
                 </ul>
               {/if}
-              {#if plan.outcome}
-                <div class="text-xs text-dark-900/60 dark:text-dark-100/60 mt-2">🎯 {plan.outcome}</div>
+              {#if typedPlan.outcome}
+                <div class="text-xs text-dark-900/60 dark:text-dark-100/60 mt-2">🎯 {typedPlan.outcome}</div>
               {/if}
             </div>
           {/each}
