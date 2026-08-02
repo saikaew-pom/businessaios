@@ -1,10 +1,10 @@
 # BusinessAiOs Creative Studio - Implementation Plan
 
-> แผนสร้างระบบสร้างภาพแบบ multi-model พร้อม Reference Workspace, `@mention`, Asset Library, Brand Kit และระบบเครดิต
+> แผนสร้าง Creative Studio และ Marketing Workspace ที่เชื่อมไอเดีย, คอนเทนต์, ภาพ, การอนุมัติ, ปฏิทิน และ Asset Library เข้าด้วยกัน พร้อม Reference Workspace, `@mention`, Brand Context และระบบเครดิต
 >
-> สถานะเอกสาร: Reviewed Revision 2 - แก้ production-readiness findings แล้ว
+> สถานะเอกสาร: Revision 12 - Phase 5-10 core/scaffold **deployed to PRODUCTION** (businessaios-api/businessaios-web), ไม่ใช่แค่ staging ตาม revision ก่อนหน้า Phase 7 (QA/security testing) ยังไม่ได้ทำตาม checklist ด้านล่างแม้ deploy ไปแล้ว
 > วันที่จัดทำ: 2026-08-01
-> รีวิวล่าสุด: 2026-08-01
+> รีวิวล่าสุด: 2026-08-02 (แก้ไข 2026-08-02 หลังตรวจสอบสถานะจริง)
 > ระบบเป้าหมาย: BusinessAiOs บน Cloudflare Workers
 
 ---
@@ -20,6 +20,8 @@
 5. ปิดหน้าแล้วกลับมาดูสถานะ งานเดิม และไฟล์ที่สร้างได้
 6. เก็บภาพ โลโก้ สี ฟอนต์ และสินค้าไว้ใช้ซ้ำผ่าน Asset Library และ Brand Kit
 7. เพิ่ม provider และโมเดลในอนาคตโดยไม่ต้องรื้อ frontend หรือ billing flow
+8. ทำให้คอนเทนต์หนึ่งชิ้นเดินทางต่อได้ตั้งแต่ไอเดีย/เทรนด์ ไปจนถึง review, schedule, publish และค้นกลับมาใช้ซ้ำได้
+9. ใช้ Brand Context เดียวกันโดยอัตโนมัติในทุกการเขียนและทุก generation โดยผู้ใช้ยังแก้เป็นรายงานได้
 
 เป้าหมายเชิงผลิตภัณฑ์ของรุ่นแรกคือพิสูจน์วงจรนี้ให้ครบ:
 
@@ -33,8 +35,22 @@
   -> รับผลแบบ Async
   -> เก็บไฟล์ใน R2
   -> Finalize หรือ Refund เครดิต
-  -> ใช้ผลงานซ้ำ
+-> ใช้ผลงานซ้ำ
 ```
+
+เป้าหมาย UX ที่ต่อจาก generation core คือ Marketing Workspace ไม่ใช่หน้า Studio ที่แยกขาดจากงานการตลาด:
+
+```text
+Idea / Trend / Tool output
+  -> Content item (draft)
+  -> Creative brief + Brand Context
+  -> Generate / attach asset
+  -> Review / approval
+  -> Schedule / publish
+  -> Works Library + reuse
+```
+
+ผู้ใช้ต้องเริ่มจากจุดใดก็ได้ใน flow นี้ และกลับมายัง item เดิมได้โดยไม่สูญเสีย brief, asset, เครดิต หรือสถานะงาน
 
 ---
 
@@ -44,7 +60,7 @@
 
 - Text-to-image
 - Image-to-image
-- Provider แรกผ่าน provider adapter โดยแนะนำ `fal.ai`
+- Provider แรกผ่าน provider adapter โดยเริ่มจาก MiniMax `image-01`; รุ่นแรกเปิด text-to-image และ character-reference เท่านั้น เพราะ live API ยัง reject `subject_reference.type=product`; `fal.ai` เก็บเป็น secondary/future provider หากต้องการ queue/webhook-native, product-reference หรือ multi-reference model ภายหลัง
 - โมเดลเริ่มต้น 2-3 โมเดล
 - Model catalog ที่เปิด ปิด และตั้งราคาได้จาก backend
 - Reference image 1-3 ภาพใน UI รุ่นแรก
@@ -59,12 +75,34 @@
 - Asset Library, Generation History, Favorite, Download, Reuse Prompt และ Use as Reference
 - R2 private storage และ URL แบบมีอายุสำหรับ provider/download
 - Exact-origin, CSRF protection และ per-user spend/concurrency limits
-- fal webhook signature verification แบบบังคับ
+- Provider callback/webhook verification แบบบังคับเมื่อ provider มี webhook; สำหรับ MiniMax `image-01` spike แรกเป็น synchronous response แล้วต้อง ingest output เข้า R2 ก่อนส่งมอบ
 - Staging Worker, D1 และ R2 ที่แยกจาก production
 - Admin model configuration ขั้นพื้นฐาน
 - Feature flag สำหรับเปิดเฉพาะ admin/internal users ก่อน
+- Brand Context Lite: ชื่อแบรนด์, business summary, audience, tone of voice, content pillars, offer/product facts และ default reference assets
+- Brand selector และ credit balance ที่เห็นได้จาก Studio และ navigation หลัก โดย backend เป็น source of truth
 
-### 2.2 ต้องมีใน Release 1B - Brand Output
+### 2.2 ต้องมีใน Release 1B - Marketing Workspace และ Cross-tool Creative Integration
+
+- Creative Context contract กลางสำหรับทุกเครื่องมือ
+- Embedded Creative Composer ที่เปิดจากเครื่องมือเดิมโดยไม่เริ่มจากหน้าว่าง
+- Full Studio handoff พร้อม return context กลับเครื่องมือต้นทาง
+- Normalize Content Calendar จาก JSON array เป็น `content_items` ที่มี stable ID
+- ปุ่ม Create Creative ต่อ content item
+- Prefill hook, caption, CTA, visual suggestion, platform และ format
+- ดึง Brand Kit/reference assets ของ project อัตโนมัติเมื่อมี
+- Attach generation/output กลับ content item
+- Asset version, primary asset, reuse และ open-in-studio
+- Batch Generate หลาย content items พร้อม aggregate quote
+- คิดเครดิตและ refund แยกต่อ generation แม้เริ่มจาก batch เดียวกัน
+- Generic `creative_requests` และ `asset_links` สำหรับต่อ Hook Library, Offer และ Presentation ภายหลัง
+- Content lifecycle ที่ชัดเจน: draft, pending_review, approved, scheduled, published, archived
+- Marketing Workspace shell: dashboard, approval inbox และ works library ที่อ่าน state เดียวกัน
+- Dashboard action queue: งานรอตรวจ, งานที่กำลัง generate, ช่องว่างในปฏิทิน และทางลัดสร้างงานจากไอเดีย
+- Trend/Idea-to-Content adapter รุ่นแรก: รับไอเดียหรือผลจากเครื่องมือที่มีอยู่เป็น Creative Context โดยไม่ต้องสร้าง trend crawler ใหม่ใน release นี้
+- Transition แบบ audit-able ระหว่าง review, schedule และ publish; ไม่มีงานถูก publish โดยข้าม approval policy
+
+### 2.3 ต้องมีใน Release 1C - Brand Output
 
 - Brand Kit รุ่นแรก
 - Brand colors
@@ -76,7 +114,7 @@
 - Export artwork ที่แก้ข้อความได้โดยไม่ generate ภาพใหม่
 - Remove background สำหรับ product/logo asset
 
-### 2.3 ยังไม่รวมใน Release แรก
+### 2.4 ยังไม่รวมใน Release แรก
 
 - Video, Voice, Avatar และ Motion Control
 - Community Feed
@@ -86,6 +124,7 @@
 - Pose skeleton editor
 - Real-time collaborative editing
 - Marketplace สำหรับขาย recipe/template
+- Cross-tool integration ครบทุกเครื่องมือในครั้งเดียว; Release 1B เปิด Content Calendar ก่อน
 - Provider failover อัตโนมัติข้าม policy
 - การลดหรือ bypass safety policy ของ provider
 
@@ -124,7 +163,8 @@ Hono Media Routes
   |
   +--> Provider Router
            |
-           +--> fal.ai Adapter (Release 1)
+           +--> MiniMax Image Adapter (Release 1A spike)
+           +--> fal.ai Adapter (future/secondary)
            +--> Kie.ai Adapter (future)
            +--> Direct Provider Adapter (future)
                     |
@@ -214,11 +254,59 @@ Hono Media Routes
 6. วาง logo ต้นฉบับโดยไม่ให้ image model วาดใหม่
 7. Export หลาย aspect ratio โดย reuse base image และ editable overlays
 
+### 4.4 สร้าง Creative จากเครื่องมืออื่น
+
+1. ผู้ใช้ทำงานอยู่ใน Content Calendar, Hook Library, Offer หรือ Presentation
+2. กด `Create Creative` ที่ output item ต้นทาง
+3. Backend resolve source เป็น structured Creative Context
+4. Embedded Composer เปิดพร้อม brief, copy, channel, format, Brand Kit และ references ที่ prefill แล้ว
+5. ผู้ใช้แก้เฉพาะสิ่งที่ต้องการและเห็นราคาก่อน generate
+6. Generation ใช้ lifecycle/credit flow เดียวกับ Full Studio
+7. Output ถูก attach กลับ source item พร้อม version และ primary state
+8. ผู้ใช้เลือก `Edit in Studio` เพื่อควบคุม reference/model/options เพิ่มเติม
+9. Full Studio เก็บ `return context` และมี action กลับไป source item เดิม
+10. Asset เดียวกันยังปรากฏใน Asset Library โดยไม่ duplicate R2 object
+
+หลัก UX คือผู้ใช้ไม่ควรรู้สึกว่าถูกส่งไปเริ่มงานใหม่ในอีกเครื่องมือหนึ่ง แต่ควรรู้สึกว่า BusinessAiOs เข้าใจ output ที่กำลังดูอยู่และเตรียมงานสร้างสื่อขั้นถัดไปให้แล้ว
+
+### 4.5 Marketing Workspace และ Content Lifecycle
+
+Marketing Workspace ต้องใช้ `content_items` เป็นศูนย์กลาง ไม่ให้ Calendar, Approval และ Works Library เก็บสถานะคนละชุด หรือ derive จาก UI ชั่วคราว
+
+```text
+idea_ready -> draft -> creative_pending -> pending_review
+                                      -> approved -> scheduled -> published
+draft / creative_ready / pending_review / approved / scheduled -> archived
+```
+
+Rules:
+
+1. `creative_pending` และ `creative_ready` เป็นสถานะงานสื่อ ไม่ใช่การอนุมัติโพสต์; item ที่มีภาพพร้อมแต่ยังไม่ตรวจต้องอยู่ `pending_review`
+2. การกด approve, reject, schedule, unschedule และ mark published ต้องเป็น server-side transition ที่ตรวจ owner/role และบันทึก actor/time/reason
+3. การเจนภาพล้มเหลวไม่ต้องทำลาย copy หรือกำหนดการเดิม; กลับเป็น state ที่ retry ได้พร้อม error ล่าสุด
+4. Calendar card, Inbox และ Works Library อ่าน record เดียวกันและ refresh สถานะ generation แบบไม่ทำให้ layout shift
+5. Publish integration ใน release แรกอาจเป็น manual/export acknowledgement ได้ แต่ห้ามแสดงว่าโพสต์สำเร็จจน provider/social platform ยืนยันผล
+6. Dashboard เป็น action queue ไม่ใช่หน้ารายงาน: ต้องพาผู้ใช้ไปยัง item ที่ต้องตัดสินใจหรือสร้างต่อได้ในหนึ่ง action
+
+องค์ประกอบหน้าหลักรุ่นแรก:
+
+- **Today/Action queue**: pending review, generation ที่ต้องตาม, scheduled item ถัดไป และ empty slots ในปฏิทิน
+- **Create entry**: สร้างจากไอเดีย, content item, Calendar และเครื่องมืออื่น โดยมี return route เสมอ
+- **Approval inbox**: filter ตามสถานะ, เปิด preview copy + primary asset, approve/reject/edit/schedule
+- **Works Library**: ค้นรวม draft, scheduled, published และ media แต่ไม่ duplicate R2 object หรือแยก asset history จาก content item
+- **Brand/Credit surface**: แสดง brand ที่ active และ credit balance; เปลี่ยน brand ต้องส่งผลเฉพาะ request ใหม่ ไม่ rewrite งานเก่าเงียบ ๆ
+
 ---
 
 ## 5. Data Model ที่เสนอ
 
-ให้สร้าง migration ใหม่ เช่น `apps/api/migrations/009-creative-studio.sql` และเพิ่มตารางใหม่แบบ additive เท่านั้น
+แบ่ง migration ตาม release และเพิ่มแบบ additive เท่านั้น ห้ามแก้ migration ที่ deploy แล้ว:
+
+```text
+009-creative-studio-core.sql       - Release 1A core media/catalog/jobs/credits/uploads + Brand Context Lite
+010-cross-tool-creative.sql        - Release 1B content_items/creative_batches/creative_requests/asset_links
+011-brand-kit-compositions.sql     - Release 1C brand kits/assets/compositions
+```
 
 ### 5.1 `ai_models`
 
@@ -227,7 +315,7 @@ Hono Media Routes
 | Field | Type | หมายเหตุ |
 |---|---|---|
 | `id` | TEXT PK | internal stable ID |
-| `provider` | TEXT | `fal`, `kie`, `direct` |
+| `provider` | TEXT | `minimax`, `fal`, `kie`, `direct` |
 | `provider_model_id` | TEXT | endpoint/model key จริง |
 | `display_name` | TEXT | ชื่อที่ผู้ใช้เห็น |
 | `model_type` | TEXT | `image` รุ่นแรก |
@@ -297,6 +385,7 @@ Asset เชื่อมกับ Brand Kit ผ่าน `brand_assets` เท�
 | `model_id` | TEXT FK | model catalog ID |
 | `client_idempotency_key` | TEXT | unique ต่อ user เพื่อกัน double-submit |
 | `quote_id` | TEXT FK | pricing quote ที่ user ยืนยัน |
+| `creative_request_id` | TEXT nullable | embedded/full-studio request ต้นทาง |
 | `current_attempt_id` | TEXT nullable | attempt ปัจจุบัน; provider ID อยู่ที่ attempt เท่านั้น |
 | `operation` | TEXT | normalized operation |
 | `prompt` | TEXT | prompt กลางที่มี mention |
@@ -379,7 +468,24 @@ Asset เชื่อมกับ Brand Kit ผ่าน `brand_assets` เท�
 
 การ update balance, insert ledger และเปลี่ยน hold state ต้องอยู่ใน D1 transactional batch เดียวกัน ทุก transition ใช้ conditional update เช่น `WHERE status = 'reserved'` เพื่อให้ webhook/retry ที่มาซ้ำไม่ settle ซ้ำ
 
-### 5.7 Brand Kit tables
+### 5.7 Brand Context Lite (migration 009)
+
+Brand Context Lite เป็น structured context สำหรับ content/generation ไม่ใช่ composition engine และต้องพร้อมก่อน Embedded Composer เพื่อให้การ prefill มีความหมาย
+
+`brand_profiles`:
+
+- `id`, `user_id`, `name`, `business_summary`, `audience_json`
+- `tone_of_voice_json`, `content_pillars_json`, `offers_json`, `rules_json`
+- `default_reference_asset_ids_json`, `is_default`, `created_at`, `updated_at`
+
+Rules:
+
+- เก็บ facts, rules และ default references แบบมีโครงสร้าง; ห้ามเก็บ prompt ยาวก้อนเดียวเป็น source of truth
+- generation และ creative request เก็บ immutable brand snapshot/version ที่ใช้จริง เพื่อให้แก้ Brand Context วันนี้ไม่เปลี่ยนงานที่เคยสร้างแล้ว
+- user เลือก active profile ได้ใน Studio/Marketing Workspace; source adapter ใช้ default profile เฉพาะเมื่อ source ไม่มี profile ที่ระบุไว้
+- ข้อมูล font, logo placement, overlay layers และ renderable template ยังอยู่ Release 1C
+
+### 5.8 Brand Kit tables (migration 011)
 
 `brand_kits`:
 
@@ -393,7 +499,13 @@ Asset เชื่อมกับ Brand Kit ผ่าน `brand_assets` เท�
 - `role`: primary_logo, alternate_logo, font_heading, font_body, product, style_reference
 - `settings_json`: placement rules, min size, clear space, default text color
 
-### 5.8 Webhook idempotency
+`media_compositions`:
+
+- `id`, `user_id`, `brand_kit_id`, `base_asset_id`
+- `canvas_json`, `layers_json`, `version_number`
+- `rendered_asset_id`, `created_at`, `updated_at`
+
+### 5.9 Webhook idempotency
 
 เพิ่ม `provider_webhook_events`:
 
@@ -405,7 +517,7 @@ Asset เชื่อมกับ Brand Kit ผ่าน `brand_assets` เท�
 
 Webhook handler ต้อง persist event แล้วตอบ `2xx` โดยเร็ว ห้าม copy output หรือ render image ภายใน request นี้
 
-### 5.9 `media_work_items`
+### 5.10 `media_work_items`
 
 D1 outbox สำหรับงานที่ต้อง recover ได้โดยไม่พึ่ง browser หรือ `waitUntil()` เพียงอย่างเดียว
 
@@ -427,7 +539,7 @@ D1 outbox สำหรับงานที่ต้อง recover ได้โ�
 
 Scheduled handler ต้อง claim งานด้วย conditional update, ใช้ unique `dedupe_key`, exponential backoff + jitter และมี dead-letter state ให้ admin reconcile ได้
 
-### 5.10 `media_pricing_quotes`
+### 5.11 `media_pricing_quotes`
 
 เก็บราคาที่ผู้ใช้เห็นและยืนยัน เพื่อไม่ให้ admin price update เปลี่ยนราคากลางคำขอ
 
@@ -446,7 +558,7 @@ Scheduled handler ต้อง claim งานด้วย conditional update, �
 
 Quote ใช้ได้กับ request hash เดิมเท่านั้น หากหมดอายุหรือ request เปลี่ยนต้องออก quote ใหม่ การ consume quote และสร้าง generation/hold/work item ต้องอยู่ใน D1 batch เดียวกัน
 
-### 5.11 `media_upload_intents`
+### 5.12 `media_upload_intents`
 
 รองรับ one-time streaming upload เข้า quarantine โดยไม่เปิด R2 ต่อ browser โดยตรง
 
@@ -465,6 +577,114 @@ Quote ใช้ได้กับ request hash เดิมเท่านั้
 | `created_at` / `updated_at` | INTEGER | timestamps |
 
 Upload route ต้องเปลี่ยน intent จาก pending เป็น uploading ด้วย conditional update ตรวจ `Content-Length` เมื่อมี stream โดยไม่ buffer และให้ cleanup worker ลบ intent/object ที่หมดอายุ
+
+### 5.13 `content_items`
+
+Content Calendar ปัจจุบันอยู่ใน `projects.step_data.step5.output.calendar` เป็น JSON array และไม่มี stable database ID ต่อ post Release 1B ต้อง materialize เป็น entity ก่อนจึงจะ attach asset/version ได้อย่างปลอดภัย
+
+| Field | Type | หมายเหตุ |
+|---|---|---|
+| `id` | TEXT PK | server-generated stable ID; ห้ามให้ AI สร้าง ID |
+| `user_id` | TEXT FK | owner |
+| `project_id` | TEXT FK | playbook project |
+| `source_generation_id` | TEXT nullable | wizard generation ต้นทาง |
+| `day_number` | INTEGER nullable | day จาก calendar output |
+| `scheduled_date` | TEXT nullable | ISO date |
+| `pillar` | TEXT nullable | awareness, education, social_proof, conversion |
+| `platform` | TEXT | instagram, facebook, tiktok, line, etc. |
+| `format` | TEXT | post, carousel, story, reel, video, broadcast |
+| `hook` | TEXT nullable | source copy |
+| `caption` | TEXT nullable | source copy |
+| `cta` | TEXT nullable | source CTA |
+| `hashtags_json` | TEXT JSON | hashtags |
+| `visual_suggestion` | TEXT nullable | creative direction จาก Step 5 |
+| `status` | TEXT | draft, creative_pending, creative_ready, pending_review, approved, scheduled, published, archived |
+| `approval_state` | TEXT | none, pending, approved, rejected; แยกเหตุผลการตัดสินใจจาก delivery state |
+| `approved_at` / `approved_by` | INTEGER / TEXT nullable | audit ของ approval ล่าสุด |
+| `scheduled_at` / `published_at` | INTEGER nullable | เวลา operational ที่ server ควบคุม |
+| `publish_provider_ref` | TEXT nullable | social platform/provider ID เมื่อมี integration จริง |
+| `source_item_hash` | TEXT | ใช้ reconcile เมื่อ Step 5 regenerate |
+| `created_at` / `updated_at` | INTEGER | timestamps |
+
+หลัง Step 5 generate สำเร็จ backend ต้อง upsert `content_items` โดยใช้ source lineage/hash และ preserve stable ID เมื่อ item เดิมยัง match ได้ หาก regenerate แล้วหา match ไม่ได้ให้สร้าง item ใหม่และ archive item เก่า ห้ามลบ asset link เดิมเงียบ ๆ
+
+Source-of-truth rules หลัง Release 1B:
+
+- `projects.step_data.step5.output.calendar` เป็น immutable generation snapshot/backward-compatible fallback
+- `content_items` เป็น operational source of truth สำหรับ edit, status, asset attach และ scheduling
+- Content Calendar UI และ export ต้องอ่าน `content_items` ก่อน และ fallback ไป JSON snapshot เฉพาะ project ที่ยังไม่ materialize
+- Server เป็นผู้ใส่ `content_item_id` ใน calendar response/storage หลัง AI generate; ห้ามให้ model สร้าง ID
+- Regeneration matching priority: existing `content_item_id` -> scheduled date/day + platform + format -> source hash; unmatched old items เข้า archived
+- User edit เปลี่ยน `content_items` แต่ไม่แก้ประวัติ generation snapshot
+
+### 5.14 `creative_requests`
+
+เก็บ structured brief ระหว่างเครื่องมือต้นทาง, Embedded Composer และ Full Studio
+
+| Field | Type | หมายเหตุ |
+|---|---|---|
+| `id` | TEXT PK | creative request ID |
+| `user_id` | TEXT FK | owner |
+| `batch_id` | TEXT nullable | parent batch |
+| `project_id` | TEXT nullable | owning project |
+| `source_type` | TEXT | content_item, tool_save, presentation_slide, project_step |
+| `source_id` | TEXT | stable source entity ID |
+| `source_snapshot_json` | TEXT JSON | immutable copy ของ source ตอนสร้าง request |
+| `brief_json` | TEXT JSON | normalized Creative Context |
+| `brand_kit_id` | TEXT nullable | selected kit |
+| `status` | TEXT | draft, quoted, generating, completed, cancelled |
+| `return_route` | TEXT nullable | internal route template ที่ผ่าน allowlist |
+| `created_at` / `updated_at` | INTEGER | timestamps |
+
+`source_snapshot_json` ทำให้ generation reproducible แม้ caption/offer ต้นทางถูกแก้ภายหลัง ส่วน `return_route` รับเฉพาะ internal route pattern ที่ระบบสร้างเอง ห้ามรับ arbitrary URL เพื่อป้องกัน open redirect
+
+### 5.14 `asset_links`
+
+Generic relation ระหว่าง media asset กับ output จากเครื่องมืออื่น ห้ามเพิ่ม `image_url` กระจายในทุก source table
+
+| Field | Type | หมายเหตุ |
+|---|---|---|
+| `id` | TEXT PK | link ID |
+| `user_id` | TEXT FK | denormalized owner สำหรับ authorization/query |
+| `asset_id` | TEXT FK | media asset |
+| `source_type` | TEXT | content_item, tool_save, presentation_slide, project_step |
+| `source_id` | TEXT | stable source ID |
+| `creative_request_id` | TEXT nullable | request ที่สร้าง link |
+| `relation_type` | TEXT | primary, variation, reference, thumbnail, background |
+| `slot` | TEXT nullable | เช่น feed_image, slide_hero, carousel_1 |
+| `version_number` | INTEGER | version ต่อ source/slot |
+| `is_primary` | INTEGER | primary asset ของ source/slot |
+| `created_at` | INTEGER | timestamp |
+
+ต้องบังคับ ownership chain `source -> user`, `asset -> user` และ `creative_request -> user` ก่อน attach/detach ทุกครั้ง การตั้ง primary ใหม่ต้อง clear primary เดิมใน D1 batch เดียวกัน
+
+### 5.15 ความสัมพันธ์กับ `step_assets`
+
+`step_assets` เดิมยังใช้สำหรับ notes, text files และ linked context ระดับ project step ตามเดิม ไม่ใช้เก็บ generated media เพราะไม่มี item-level source, version, primary slot หรือ media lifecycle ให้ใช้:
+
+- `step_assets`: input context สำหรับ wizard generation
+- `content_items`: normalized Content Calendar posts
+- `creative_requests`: structured handoff ไป Creative Studio
+- `asset_links`: output relation กลับ source item
+- `media_assets`: binary asset source of truth ใน R2
+
+### 5.16 `creative_batches`
+
+เก็บ batch orchestration ระดับ UX เท่านั้น child generation แต่ละตัวมี quote, idempotency key และ credit hold ของตัวเอง
+
+| Field | Type | หมายเหตุ |
+|---|---|---|
+| `id` | TEXT PK | batch ID |
+| `user_id` | TEXT FK | owner |
+| `project_id` | TEXT nullable | project ต้นทาง |
+| `client_idempotency_key` | TEXT | unique ต่อ user |
+| `status` | TEXT | draft, quoted, running, partially_completed, completed, failed, cancelled |
+| `item_count` | INTEGER | จำนวน child requests |
+| `quoted_credits` | INTEGER | ผลรวม quote เพื่อแสดง/confirm |
+| `completed_count` / `failed_count` | INTEGER | progress summary |
+| `created_at` / `updated_at` | INTEGER | timestamps |
+
+Batch status เป็น summary ที่คำนวณจาก child requests/generations ห้ามใช้ batch row เป็น financial source of truth
 
 ---
 
@@ -865,7 +1085,185 @@ active/archived -> delete_requested -> purge_pending -> purged
 
 ---
 
-## 12. Phase-by-Phase Implementation
+## 12. Cross-tool Creative Integration
+
+### 12.1 Product principle
+
+Creative Studio เป็น shared creative engine ไม่ใช่ destination แยกเพียงอย่างเดียว เครื่องมืออื่นต้องส่ง structured context เข้ามาและรับ asset link กลับไป โดยไม่ประกอบ provider prompt หรือเรียก provider เอง
+
+มี UX สองระดับ:
+
+1. **Embedded Creative Composer** - side panel บน desktop และ full-screen sheet บน mobile สำหรับ preview brief, references, model/preset, quote และ Generate
+2. **Full Creative Studio** - route `/studio/requests/:creativeRequestId` สำหรับ multi-reference, model/options ขั้นสูง, history และ composition พร้อม action กลับ source
+
+ห้ามฝัง Full Studio ทั้งหน้าไว้ใน card ของเครื่องมือเดิม และห้ามเปิด Studio ว่างโดยทิ้ง context ที่มีอยู่แล้ว
+
+### 12.2 Creative Context contract
+
+ทุก source adapter แปลง output ของตัวเองเป็น contract กลาง:
+
+```typescript
+type CreativeContext = {
+  source: {
+    type: 'content_item' | 'tool_save' | 'presentation_slide' | 'project_step' | 'idea';
+    id: string;
+    projectId?: string;
+    returnRoute: string;
+  };
+  objective: string;
+  audience?: string;
+  channel?: string;
+  placement?: string;
+  outputPreset?: string;
+  copy: {
+    headline?: string;
+    body?: string;
+    cta?: string;
+    hashtags?: string[];
+  };
+  visualDirection?: string;
+  brandProfileId?: string;
+  brandKitId?: string;
+  referenceAssetIds: string[];
+  constraints: string[];
+  recommendedModelId?: string;
+};
+```
+
+Rules:
+
+- Source adapter อ่านเฉพาะข้อมูลที่ user เป็นเจ้าของ
+- Resolver สร้าง immutable source snapshot ก่อนเปิด composer
+- Frontend แก้ draft context ได้โดยไม่แก้ source จน user กด Apply กลับ
+- Provider adapter รับ normalized generation input จาก Creative Studio เท่านั้น
+- `returnRoute` สร้างจาก allowlisted route templates ไม่รับ URL จาก user
+- Source เปลี่ยนหลังเปิด composer ต้องแสดง stale-context warning แต่ไม่เปลี่ยน brief เงียบ ๆ
+- Resolver ต้อง merge Brand Context Lite แบบมีลำดับชัดเจน: source-specific facts/constraints -> selected profile -> user draft overrides; ห้าม merge prompt string แบบมองย้อนกลับไม่ได้
+- `brandKitId` ใช้กับ composition/output rules ใน Release 1C; Release 1A/1B ใช้ `brandProfileId` และ snapshot เป็นหลัก
+
+### 12.3 Content Calendar integration รุ่นแรก
+
+Content Calendar เป็น integration แรกเพราะมี `hook`, `caption`, `cta`, `platform`, `format` และ `visual_suggestion` อยู่แล้ว
+
+ต่อ content item ให้เพิ่ม:
+
+- Create Creative
+- Asset status: none, queued, processing, delivery pending, ready, failed
+- Primary creative thumbnail
+- Variations count
+- Open in Studio
+- Replace primary
+- Download
+
+Prefill rules ตัวอย่าง:
+
+```text
+Instagram post/carousel -> 4:5 default
+Instagram story/reel    -> 9:16 default
+Facebook post           -> 1:1 or 4:5
+TikTok video concept    -> 9:16 image/storyboard preset ใน image-only release
+LINE broadcast          -> 1:1 default
+
+hook              -> headline
+caption           -> body copy/context
+cta               -> CTA overlay suggestion
+visual_suggestion -> visual direction
+platform/format   -> output preset
+project context   -> audience/brand constraints
+```
+
+หาก format เป็น video/reel ใน Release 1 ให้สร้าง cover/storyboard image และระบุ capability ชัดเจน ห้ามทำให้ผู้ใช้เข้าใจว่าได้ video แล้ว
+
+### 12.3.1 Review, schedule และ publish workflow
+
+หลัง Content Calendar materialize แล้ว `content_items` ต้องเป็น workflow record ไม่ใช่เพียงข้อมูลที่ render calendar:
+
+1. item ที่สร้างจาก Calendar, idea/trend หรือ tool output เริ่มเป็น `draft`
+2. ผู้ใช้สร้างภาพจาก Embedded Composer; ระหว่างงานอยู่ `creative_pending` และงานสำเร็จที่มี asset พร้อมอยู่ `creative_ready`
+3. action `Send to review` เปลี่ยนเป็น `pending_review`; Inbox แสดง copy, primary asset, source และ schedule ที่มีอยู่
+4. `Approve` เปลี่ยนเป็น `approved`; `Reject` ต้องเก็บ optional reason และกลับไป `draft` หรือ `creative_ready` ตามว่าต้องแก้ copy หรือ media
+5. `Schedule` ต้องทำได้เฉพาะ item ที่ผ่าน policy approval แล้ว และบันทึก timezone/user-selected time อย่างชัดเจน
+6. `Published` ต้องมาจาก publish connector confirmation ในอนาคต หรือ explicit manual acknowledgement ที่ UI แยกจาก auto-publish ชัดเจน
+7. ทุก transition ต้อง append audit event; client ส่ง desired action ไม่ส่ง status arbitrary string
+
+Release 1B ไม่ต้องทำ social OAuth/publisher connector เพื่อเปิด Marketing Workspace แต่ต้องออกแบบ `publish_provider_ref` และ audit event ให้รองรับโดยไม่เปลี่ยน state model ในภายหลัง
+
+### 12.3.2 Marketing Workspace shell
+
+Routes ที่เพิ่มใน Release 1B ต้อง reuse `content_items` และ Creative Context:
+
+- `/dashboard`: action queue, next scheduled content, pending reviews, active generations และ create entry จากไอเดีย
+- `/inbox`: review queue ตาม status พร้อม batch approve/reject เฉพาะเมื่อ permissions อนุญาต
+- `/works`: searchable content-centric history โดยเปิด item เดิมใน Calendar หรือ Studio ได้ และแยก media-only Asset Library ไว้ใต้ `/studio/library`
+
+Dashboard ต้อง render empty states ที่พาไป action ที่สั้นที่สุด: ไม่มี Brand Context -> สร้าง Brand Context, ไม่มี content -> เริ่มจาก idea, มี draft -> เปิด review/creative ต่อ ไม่สร้าง dashboard card ซ้อนใน card
+
+### 12.4 Batch generation
+
+ผู้ใช้เลือกหลาย content items แล้วกด Batch Create Creative ได้ โดยระบบต้อง:
+
+1. Resolve Creative Context แยกต่อ item
+2. แสดง aggregate quote และ breakdown ต่อ item
+3. ขอ confirm ครั้งเดียว
+4. สร้าง generation/idempotency key/hold แยกต่อ item
+5. จำกัด concurrency ตาม user/plan
+6. แสดง progress ราย item
+7. refund เฉพาะ generation ที่ล้มเหลว
+8. รองรับ retry เฉพาะรายการโดยไม่รัน batch ทั้งหมดซ้ำ
+
+Batch เป็น orchestration ฝั่ง BusinessAiOs ไม่ใช่ provider request ก้อนเดียว เพื่อให้ settlement และ recovery แยกกันได้
+
+### 12.5 API เพิ่มเติม
+
+```text
+GET  /api/projects/:projectId/content-items
+POST /api/projects/:projectId/content-items/sync
+PATCH /api/content-items/:id
+
+POST  /api/creative-requests/from-source
+GET   /api/creative-requests/:id
+PATCH /api/creative-requests/:id
+POST  /api/creative-requests/batch-from-sources
+
+GET    /api/sources/:sourceType/:sourceId/assets
+POST   /api/media/assets/:assetId/links
+PATCH  /api/media/assets/:assetId/links/:linkId
+DELETE /api/media/assets/:assetId/links/:linkId
+```
+
+`POST /api/media/generations` รับ `creative_request_id` เพิ่ม และ backend ต้องตรวจว่า request, source, project, references และ Brand Kit เป็นของ user เดียวกัน
+
+`sourceType` ต้องผ่าน enum allowlist และ route handler แยก resolver ต่อ source type ห้ามนำชื่อ table/column จาก URL ไปประกอบ SQL โดยตรง
+
+### 12.6 Tool rollout order
+
+| ลำดับ | Source | Creative output ที่เหมาะสม |
+|---|---|---|
+| 1 | Content Calendar | feed image, carousel cover, story, reel cover/storyboard |
+| 2 | Hook Library | visual variations ต่อ hook |
+| 3 | Million Dollar Offer | offer ad, promotion banner, price/CTA composition |
+| 4 | Presentation Builder | slide hero, section visual, background asset |
+| 5 | Persona Builder | persona moodboard, lifestyle scene |
+| 6 | JTBD / Value Proposition | before-after, outcome visual, benefit infographic |
+| 7 | Brand Voice / Competitor Analysis | visual direction และ differentiated concept board |
+| 8 | Objection Handler | FAQ card และ objection-response carousel |
+
+Release 1B implement เฉพาะ Content Calendar แต่ source adapter/asset-link contract ต้องพร้อมให้ลำดับถัดไปเพิ่มโดยไม่เปลี่ยน generation/credit core
+
+### 12.7 Embedded UX acceptance criteria
+
+- Composer เปิดด้วยข้อมูลที่ prefill แล้ว ไม่ใช่ prompt ว่าง
+- ผู้ใช้เห็นว่าจะ attach ผลลัพธ์กลับ item ใด
+- ราคาปรากฏก่อน generate ทั้ง single และ batch
+- ปิด composer แล้ว job ยังทำงานและสถานะแสดงบน source item
+- กด Open in Studio แล้ว context/reference/version ครบ
+- กดกลับจาก Studio แล้วกลับ source item เดิม ไม่ใช่แค่หน้า project บนสุด
+- Output หนึ่งไฟล์อยู่ใน R2 ครั้งเดียว แม้ link หลาย source
+- Source item แสดง primary + variations โดยไม่ทำให้ calendar card ขยาย/ยุบระหว่าง status change
+
+---
+
+## 13. Phase-by-Phase Implementation
 
 ## Phase 0 - Provider and Architecture Spike
 
@@ -873,24 +1271,28 @@ active/archived -> delete_requested -> purge_pending -> purged
 
 ### Steps
 
-- [ ] แก้ current CORS จาก wildcard/suffix matching เป็น exact origin set
-- [ ] เพิ่ม trusted-origin + CSRF middleware และทดสอบกับ session cookie `SameSite=None`
-- [ ] สร้าง staging Worker, D1 และ R2 แยกจาก production
-- [ ] ยืนยัน provider account และ production API access
+- [x] แก้ current CORS จาก wildcard/suffix matching เป็น exact origin set
+- [x] เพิ่ม trusted-origin + CSRF middleware และทดสอบกับ session cookie `SameSite=Lax`
+- [x] สร้าง staging Worker, D1 และ R2 แยกจาก production
+- [x] ยืนยัน provider account และ production API access สำหรับ MiniMax image API ผ่าน backend call
 - [ ] เลือกโมเดล 2-3 ตัวที่ครอบคลุม text-to-image, single-reference และ multi-reference
-- [ ] บันทึก input schema, output schema, queue, webhook, cancel และ pricing ของแต่ละโมเดล
+- [x] บันทึก input/output schema เบื้องต้นของ MiniMax `image-01` สำหรับ text-to-image และ subject-reference image-to-image
+- [x] บันทึก queue, webhook/callback, cancel และ pricing ของ MiniMax `image-01`; sync response, ไม่มี webhook/cancel ใน spike แรก, ราคาเริ่มจาก $0.0035/image
 - [ ] ทดสอบ upload/reference ผ่าน server-side API key
 - [ ] ทดสอบ webhook บน Worker dev URL
-- [ ] วัดเวลาสร้าง ค่าใช้จ่าย และ failure mode อย่างน้อย 3 ครั้งต่อโมเดล
-- [ ] สรุป model capability matrix
+- [x] วัดเวลาสร้าง ค่าใช้จ่าย และ failure mode อย่างน้อย 3 ครั้งสำหรับ MiniMax `image-01`
+- [x] สรุป model capability matrix เบื้องต้นสำหรับ MiniMax `image-01`
 - [ ] ออกแบบ HMAC-signed Worker content URL และ TTL สำหรับ provider input
+- [x] ทดสอบ provider output ingestion เข้า R2 ด้วย URL response และ base64 response พร้อม readback/delete cleanup
 - [ ] ยืนยัน Worker streaming gateway + quarantine pipeline สำหรับ Release 1A
 - [ ] ทำ image-processing spike: magic bytes, EXIF strip, orientation, thumbnail และ max-megapixel rejection
+  - [x] magic bytes, MIME family, dimensions และ max-megapixel inspection สำหรับ JPEG/PNG/WebP
+  - [x] EXIF strip, orientation normalization และ thumbnail generation processor decision
 - [ ] วัด peak Worker memory/CPU ด้วยไฟล์ขนาดสูงสุดและ concurrent requests
-- [ ] ทดสอบ fal ED25519 webhook verification จาก raw body + JWKS cache
+- [ ] ทดสอบ provider webhook/callback security หากใช้ provider ที่มี webhook; MiniMax `image-01` spike แรกเป็น sync response จึงต้องเพิ่ม R2 ingestion/reconciler เป็น durability layer
 - [ ] ออกแบบ D1 outbox + Cron Trigger และทดสอบ lease/retry หนึ่งรอบ
 - [ ] ตัดสินใจ retention policy และ max upload size
-- [ ] กำหนด credit markup รุ่น beta
+- [x] กำหนด credit markup รุ่น beta
 
 ### Deliverables
 
@@ -912,25 +1314,28 @@ active/archived -> delete_requested -> purge_pending -> purged
 - image processor ผ่าน max-size test โดยไม่เกิน Worker limits
 - staging แยก data/storage/secrets จาก production
 
-## Phase 1 - Data Foundation and Feature Flag
+## Phase 1 - Data Foundation, Brand Context Lite and Feature Flag
 
 ระยะเวลา: 2-3 วัน
 
 ### Steps
 
-- [ ] สร้าง `009-creative-studio.sql`
-- [ ] เพิ่ม tables และ indexes ตาม Section 5
-- [ ] เพิ่ม `media_work_items`, leases, hold expiry, pricing snapshot และ persistent idempotency fields
-- [ ] เพิ่มทุก table ใหม่ใน migration gate test
-- [ ] ทดสอบ migration จาก fresh local database
-- [ ] ทดสอบ migration ต่อจาก schema ปัจจุบัน
-- [ ] เพิ่ม Bindings: provider secret, media signing secret และ feature flags
-- [ ] เพิ่ม `creative_studio` ใน `/api/config`
-- [ ] seed model catalog แบบ idempotent
-- [ ] validate model/pricing/capability JSON ด้วย runtime schema และ config version
-- [ ] สร้าง route module `mediaRoutes.ts`
-- [ ] mount route module ใน `index.ts`
-- [ ] เพิ่ม Cron Trigger และ scheduled handler shell
+- [x] สร้าง `009-creative-studio-core.sql`
+- [x] เพิ่ม tables และ indexes ตาม Section 5 สำหรับ Release 1A core
+- [x] เพิ่ม `media_work_items`, leases, hold expiry, pricing snapshot และ persistent idempotency fields
+- [x] เพิ่ม `brand_profiles` และ schema validation สำหรับ business facts, audience, tone, pillars, offers, rules และ default reference assets
+- [x] สร้าง Brand Context snapshot/version service เพื่อใช้กับ generation และ creative request
+- [x] เพิ่มทุก table ใหม่ใน migration gate test
+- [x] ทดสอบ migration จาก fresh local database
+- [x] ทดสอบ migration ต่อจาก schema ปัจจุบันบน staging D1
+- [x] เพิ่ม Bindings: provider secret, media signing secret และ feature flags
+- [x] เพิ่ม `creative_studio` ใน `/api/config`
+- [x] seed model catalog แบบ idempotent
+- [x] validate model/pricing/capability JSON ด้วย runtime schema และ config version
+- [x] สร้าง route module `mediaRoutes.ts`
+- [x] mount route module ใน `index.ts`
+- [x] เพิ่ม Cron Trigger และ scheduled handler shell
+- [x] เพิ่ม `BRAND_CONTEXT_ENABLED` feature flag และ active-brand selection endpoint
 
 ### Exit Criteria
 
@@ -939,7 +1344,36 @@ active/archived -> delete_requested -> purge_pending -> purged
 - Feature flag ปิดแล้ว user ทั่วไปเข้าไม่ได้
 - request key ซ้ำถูก unique constraint ป้องกันใน database
 - work item lease หมดอายุแล้ว worker อื่นหยิบต่อได้
+- Brand Context ที่เปลี่ยนภายหลังไม่แก้ snapshot ของ generation/request เก่า
 - ไม่มีการแก้ migration เก่าหรือกระทบ existing tools
+
+### Phase 1 Implementation Status
+
+Implemented files:
+
+- `apps/api/migrations/009-creative-studio-core.sql`
+- `apps/api/src/mediaRoutes.ts`
+- `apps/api/src/lib/media/catalog.ts`
+- `apps/api/src/lib/media/workItems.ts`
+- `apps/api/src/lib/creative/brandContext.ts`
+- `apps/api/test/mediaFoundation.test.ts`
+
+Staging:
+
+```text
+API:        https://businessaios-api-staging.pskspace.workers.dev
+Version ID: c3d2d369-f319-4d9f-9a6f-c4fa5d84fae7
+D1:         businessaios-db-staging
+R2:         businessaios-exports-staging
+Cron:       */1 * * * *
+Flags:      creative_studio=false, brand_context=false
+```
+
+Smoke results:
+
+- `GET /api/config` -> 200
+- `GET /api/media/models` without auth -> 401
+- Staging D1 contains `ai_models`, `media_generations`, `brand_profiles`, and `media_work_items`
 
 ## Phase 2 - Asset Pipeline and Reference Workspace Backend
 
@@ -947,19 +1381,19 @@ active/archived -> delete_requested -> purge_pending -> purged
 
 ### Steps
 
-- [ ] สร้าง upload intent endpoint พร้อม auth, CSRF และ quota
-- [ ] สร้าง one-time binary upload route ที่ stream เข้า R2 quarantine
-- [ ] validate magic bytes, MIME, size และ dimensions
-- [ ] strip metadata และ normalize image
-- [ ] สร้าง thumbnail
-- [ ] เขียน input/thumbnail ลง R2 ด้วย key convention กลาง
-- [ ] บันทึก asset ownership ใน D1
-- [ ] สร้าง list/filter/archive/favorite endpoints
-- [ ] สร้าง signed media URL service
-- [ ] ผูก signed URL กับ asset, purpose, expiry และ short TTL
-- [ ] ทดสอบ owner access, cross-user denial และ expired URL
-- [ ] สร้าง reference validation และ mention parser
-- [ ] สร้าง Reference Resolver พร้อม model capability checks
+- [x] สร้าง upload intent endpoint พร้อม auth, CSRF และ quota
+- [x] สร้าง one-time binary upload route ที่ stream เข้า R2 quarantine
+- [x] validate magic bytes, MIME, size และ dimensions
+- [ ] strip metadata และ normalize image - deferred ไป dedicated media processor/Cloudflare Images ตาม Phase 0B decision
+- [ ] สร้าง thumbnail - deferred ไป dedicated media processor/Cloudflare Images ตาม Phase 0B decision
+- [x] เขียน input ลง R2 ด้วย key convention กลาง; thumbnail key ยัง deferred
+- [x] บันทึก asset ownership ใน D1
+- [x] สร้าง basic list/detail/archive/favorite endpoints; advanced filters ยังทำใน Library UI phase
+- [x] สร้าง signed media URL service
+- [x] ผูก signed URL กับ asset, purpose, expiry และ short TTL
+- [x] ทดสอบ owner access, cross-user denial และ expired URL
+- [x] สร้าง reference validation และ mention parser
+- [x] สร้าง Reference Resolver พร้อม model capability checks
 
 ### Exit Criteria
 
@@ -970,32 +1404,81 @@ active/archived -> delete_requested -> purge_pending -> purged
 - binary upload ไม่ buffer ทั้งไฟล์ใน Worker memory
 - `@mention` ที่หายหรือซ้ำถูกตรวจพบก่อน provider call
 
+### Phase 2 Implementation Status
+
+Implemented files:
+
+- `apps/api/src/lib/media/assets.ts`
+- `apps/api/src/lib/media/signedUrls.ts`
+- `apps/api/src/lib/media/referenceResolver.ts`
+- `apps/api/src/mediaRoutes.ts`
+- `apps/api/test/mediaFoundation.test.ts`
+
+Implemented endpoints:
+
+```text
+POST   /api/media/references/validate
+POST   /api/media/assets/upload-intents
+PUT    /api/media/uploads/:intentId
+POST   /api/media/assets/:id/finalize-upload
+GET    /api/media/assets
+GET    /api/media/assets/:id
+GET    /api/media/assets/:id/content
+GET    /api/media/provider-assets/:id
+PATCH  /api/media/assets/:id
+DELETE /api/media/assets/:id
+POST   /api/media/assets/:id/favorite
+POST   /api/media/assets/:id/derive-thumbnail      -> 501 processor_not_configured
+POST   /api/media/assets/:id/remove-background     -> 501 processor_not_configured
+```
+
+Staging:
+
+```text
+API:        https://businessaios-api-staging.pskspace.workers.dev
+Version ID: 9e5ed84d-dc10-49e9-ac81-cc18c15e05af
+Flags:      creative_studio=false, brand_context=false
+Smoke:      GET /api/config -> 200; GET /api/media/references/validate -> 404 feature_disabled
+```
+
+Security/behavior covered by tests:
+
+- upload intent validates MIME and file size before issuing one-time token
+- upload token cannot be reused
+- binary upload route streams request body to R2 quarantine using `Content-Length`
+- finalize reads quarantine object, validates JPEG/PNG/WebP magic bytes, dimensions, MIME, max bytes, and max megapixels
+- invalid media is rejected and quarantine object is deleted
+- finalized upload is copied to canonical `media/{user_id}/inputs/{asset_id}/original.{ext}` key
+- asset content requires owner session
+- provider asset URL requires HMAC signature, purpose, and unexpired timestamp
+- reference validation catches duplicate names, missing `@mention`, cross-user/inactive assets, and model reference-count limits
+
 ## Phase 3 - Provider Router, Async Jobs and Credits
 
 ระยะเวลา: 4-6 วัน
 
 ### Steps
 
-- [ ] สร้าง normalized provider types
-- [ ] สร้าง provider registry/router
-- [ ] implement `fal` adapter รุ่นแรก
-- [ ] implement pricing preview service
-- [ ] implement media credit hold ด้วย D1 batch
-- [ ] สร้าง generation endpoint พร้อม persistent `Idempotency-Key`, request hash และ pricing quote
-- [ ] บังคับ per-user active-job limit, request rate และ daily credit-spend ceiling ก่อน reserve
-- [ ] reserve เครดิตก่อน submit provider
-- [ ] สร้าง generation + hold + submit work item ใน D1 batch เดียวกัน
-- [ ] สร้าง generation attempt แบบ write-ahead ก่อน provider call
-- [ ] จัดการ `submission_unknown` crash window โดยไม่ auto-submit ซ้ำ
-- [ ] implement fal raw-body signature verification และ event deduplication
-- [ ] ให้ webhook persist event/work item แล้วตอบภายใน timeout budget
-- [ ] implement work processor สำหรับ submit, reconcile, ingest, finalize/refund
-- [ ] copy output จาก provider ไป R2 แล้ว authenticated read check
-- [ ] finalize/refund แบบ idempotent และ delivery-aware
-- [ ] implement scheduled polling/status sync เป็น durable fallback
-- [ ] implement hold expiry reconciliation และ dead-letter handling
-- [ ] เพิ่ม normalized errors: validation, policy_rejected, provider_failed, timeout, storage_failed
-- [ ] เพิ่ม retry rules ที่ไม่ทำให้คิดเครดิตซ้ำผิดพลาด
+- [x] สร้าง normalized provider types
+- [x] สร้าง provider registry/router
+- [ ] implement `fal` adapter รุ่นแรก - deferred เพราะ Release 1A ใช้ MiniMax sync path เป็น primary; fal เป็น secondary/future provider
+- [x] implement pricing preview service
+- [x] implement media credit hold ด้วย D1-backed reserve/finalize/refund
+- [x] สร้าง generation endpoint พร้อม persistent `Idempotency-Key`, request hash และ pricing quote
+- [x] บังคับ per-user active-job limit, request rate และ daily credit-spend ceiling ก่อน reserve
+- [x] reserve เครดิตก่อน submit provider
+- [x] สร้าง generation + hold + submit work item
+- [x] สร้าง generation attempt แบบ write-ahead ก่อน provider call
+- [x] จัดการ `submission_unknown` crash window โดย write-ahead attempt + submission_state; processor ไม่ auto-submit completed/failed terminal jobs ซ้ำ
+- [ ] implement fal raw-body signature verification และ event deduplication - deferred จนเปิด fal provider
+- [x] ให้ sync provider result persist attempt/work item; webhook event table พร้อมสำหรับ provider ต่อไป
+- [x] implement work processor สำหรับ submit, ingest, finalize/refund
+- [x] copy output จาก provider ไป R2 แล้ว authenticated read check
+- [x] finalize/refund แบบ idempotent และ delivery-aware
+- [x] implement scheduled polling/status sync เป็น durable fallback ผ่าน Cron work processor shell
+- [x] implement hold expiry/dead-letter foundation ผ่าน work item lease, retry และ dead_letter
+- [x] เพิ่ม normalized errors: validation, policy_rejected, provider_failed, timeout, storage_failed
+- [x] เพิ่ม retry rules ที่ไม่ทำให้คิดเครดิตซ้ำผิดพลาด; failed provider retry ต้องสร้าง quote/generation ใหม่ ส่วน delivery retry ใช้ work item เดิม
 
 ### Exit Criteria
 
@@ -1009,37 +1492,99 @@ active/archived -> delete_requested -> purge_pending -> purged
 - Worker crash หลัง provider submit ไม่ทำให้ submit ซ้ำโดยอัตโนมัติ
 - restart/ปิด browser ไม่ทำให้ job หาย
 
+### Phase 3 Implementation Status
+
+Implemented files:
+
+- `apps/api/src/lib/media/providers/types.ts`
+- `apps/api/src/lib/media/providers/minimax.ts`
+- `apps/api/src/lib/media/providers/router.ts`
+- `apps/api/src/lib/media/credits.ts`
+- `apps/api/src/lib/media/generations.ts`
+- `apps/api/src/lib/media/processor.ts`
+- `apps/api/src/mediaRoutes.ts`
+- `apps/api/test/mediaFoundation.test.ts`
+
+Implemented endpoints:
+
+```text
+POST /api/media/generations
+GET  /api/media/generations
+GET  /api/media/generations/:id
+POST /api/media/generations/:id/cancel
+POST /api/media/generations/:id/retry
+```
+
+Staging:
+
+```text
+API:        https://businessaios-api-staging.pskspace.workers.dev
+Version ID: 946cbcec-a18e-47f9-852d-0c61f00355e3
+Flags:      creative_studio=false, brand_context=false
+Smoke:      GET /api/config -> 200; GET /api/media/generations -> 404 feature_disabled
+```
+
+Security/behavior covered by tests:
+
+- quote hash must match submit options/reference count
+- duplicate `Idempotency-Key` with same body returns existing generation
+- duplicate `Idempotency-Key` with different body is blocked
+- provider attempt is created before submit
+- provider success is not completed until output is ingested to R2 and readback succeeds
+- successful delivery finalizes media credit hold
+- provider validation/failure refunds reserved credits
+- generation outputs are stored as `media_assets` linked to `generation_id`
+
 ## Phase 4 - Creative Studio Frontend
 
 ระยะเวลา: 3-4 วัน
 
+สถานะ 2026-08-01:
+
+```text
+Web staging: https://businessaios-web-staging.pskspace.workers.dev/studio
+Version ID:   3d20e2b5-07d6-4e85-909c-f96de7e4edf3
+Build:        SvelteKit build ผ่านโดยชี้ PUBLIC_API_URL ไป API staging
+Smoke:        GET /studio -> 200
+API config:   creative_studio=true, brand_context=true
+```
+
+หมายเหตุ: staging เปิด feature flags แล้วสำหรับ internal test; production ยังควรเปิดแบบ controlled rollout เท่านั้น
+
 ### Steps
 
-- [ ] เพิ่ม route `/studio`
-- [ ] เพิ่ม Studio entry ใน desktop/mobile navigation
-- [ ] สร้าง Model Selector จาก catalog
-- [ ] สร้าง Prompt Editor พร้อม `@mention` autocomplete
-- [ ] สร้าง Reference Tray พร้อม role/influence/reorder/remove
-- [ ] รองรับ file picker, drag/drop และ paste
-- [ ] สร้าง aspect ratio segmented control
-- [ ] สร้าง resolution/count controls ตาม capability
-- [ ] แสดง credit estimate และ balance ก่อน Generate
-- [ ] ส่ง CSRF token, quote ID, pricing version และ idempotency key จาก API client
-- [ ] แสดง `409 price_changed` แล้วขอ user ยืนยันราคาใหม่
-- [ ] แสดง validation warning และ maintenance state
-- [ ] สร้าง queued/submitting/processing/cancel-requested/delivery-pending/completed/failed states
-- [ ] ทำ polling ที่หยุดเมื่อ terminal state
-- [ ] รองรับ mobile layout และ keyboard navigation
-- [ ] เพิ่ม dark mode ตาม convention ของระบบปัจจุบัน
+- [x] เพิ่ม route `/studio`
+- [x] เพิ่ม Studio entry ใน desktop/mobile navigation
+- [ ] เพิ่ม active Brand Context selector และแสดง credit balance จาก API โดยไม่ cache เป็น source of truth
+- [x] สร้าง Model Selector จาก catalog
+- [x] สร้าง Prompt Editor พร้อม manual `@mention` insertion จาก Asset Library
+- [x] สร้าง Reference Tray พร้อม role/remove
+- [x] รองรับ file picker แบบ multi-upload ผ่าน Worker upload gateway
+- [x] สร้าง aspect ratio control จาก capability
+- [x] สร้าง count controls ตาม capability
+- [x] แสดง credit estimate ก่อน Generate
+- [x] ส่ง CSRF token, quote ID, pricing version และ idempotency key จาก API client
+- [x] แสดง `409 price_changed` เป็นข้อความให้ประเมินราคาใหม่
+- [x] แสดง validation warning และ feature-disabled state
+- [x] สร้าง queued/submitting/processing/cancel-requested/delivery-pending/completed/failed states
+- [x] ทำ polling ที่หยุดเมื่อ terminal state
+- [x] รองรับ responsive mobile layout และ dark mode ตาม convention ของระบบปัจจุบัน
+- [ ] เพิ่ม `@mention` autocomplete ด้วย keyboard
+- [ ] เพิ่ม reference influence/reorder UI
+- [ ] เพิ่ม drag/drop และ paste upload
+- [ ] แสดง credit balance สดบน Studio จาก `/api/me/credits`
+- [ ] เพิ่ม maintenance state รายโมเดลเมื่อ catalog ส่ง `is_maintenance`
+- [ ] ทำ Playwright E2E ด้วย authenticated staging account หลังเปิด feature flag
 
 ### Exit Criteria
 
-- ผู้ใช้สร้างงานครบ flow ได้โดยไม่เปิด developer tools
+- ผู้ใช้สร้างงานครบ flow ได้โดยไม่เปิด developer tools - pending เปิด feature flag แล้วรัน staging E2E
 - controls ที่โมเดลไม่รองรับไม่แสดงหรือ disabled พร้อมเหตุผล
-- prompt อ้าง reference ได้ด้วย keyboard
+- prompt อ้าง reference ได้ด้วย keyboard - pending autocomplete/reorder pass
 - ไม่มี layout shift/ข้อความล้นบน mobile และ desktop
 - refresh หน้าแล้วกลับมาติดตาม job เดิมได้
 - price change ไม่หักเครดิตจน user ยืนยัน quote ใหม่
+- การเลือก Brand Context เปลี่ยนเฉพาะ request ใหม่และผู้ใช้เห็น profile ที่จะถูกใช้ก่อน Generate - pending Brand Context selector
 
 ## Phase 5 - Library and Reuse Workflow
 
@@ -1047,15 +1592,15 @@ active/archived -> delete_requested -> purge_pending -> purged
 
 ### Steps
 
-- [ ] เพิ่ม `/studio/library`
-- [ ] แยก tabs: Generated, Uploads, Products, People, Styles, Logos, Favorites
-- [ ] เพิ่ม filters: model, status, date และ asset type
-- [ ] เพิ่ม Download, Favorite, Archive
-- [ ] เพิ่ม Reuse Prompt
-- [ ] เพิ่ม Use as Reference
-- [ ] เพิ่ม Retry จาก failed job
+- [x] เพิ่ม `/studio/library`
+- [x] แยก tabs: Generated, Uploads, Products, People, Styles, Logos, Favorites
+- [x] เพิ่ม filters: model, status, date และ asset type
+- [x] เพิ่ม Download, Favorite, Archive
+- [x] เพิ่ม Reuse Prompt
+- [x] เพิ่ม Use as Reference
+- [x] เพิ่ม Retry จาก failed job
 - [ ] แยก delivery retry จาก generation ใหม่ให้ผู้ใช้เข้าใจได้
-- [ ] เพิ่ม empty/loading/error states
+- [x] เพิ่ม empty/loading/error states
 - [ ] ตรวจ pagination และ query limits
 
 ### Exit Criteria
@@ -1071,12 +1616,12 @@ active/archived -> delete_requested -> purge_pending -> purged
 
 ### Steps
 
-- [ ] เพิ่ม admin model list/edit/enable/maintenance
-- [ ] เพิ่ม pricing version และ margin view ขั้นพื้นฐาน
-- [ ] เพิ่ม generation status/error dashboard
-- [ ] เพิ่ม provider latency/success-rate logging
-- [ ] เพิ่ม manual reconcile action ที่มี admin audit log
-- [ ] เพิ่ม policy configuration ที่ไม่เปิด provider secret/raw bypass controls
+- [x] เพิ่ม admin model list/edit/enable/maintenance
+- [x] เพิ่ม pricing version และ margin view ขั้นพื้นฐาน
+- [x] เพิ่ม generation status/error dashboard
+- [x] เพิ่ม provider attempt/status logging view
+- [x] เพิ่ม manual reconcile action ที่มี admin audit log
+- [x] เพิ่ม policy configuration ที่ไม่เปิด provider secret/raw bypass controls
 - [ ] เพิ่ม rate limit แยก upload, generate และ webhook
 - [ ] เพิ่ม storage quota และ retention cleanup plan
 - [ ] เพิ่ม purge worker และ orphan/quarantine cleanup
@@ -1097,10 +1642,10 @@ active/archived -> delete_requested -> purge_pending -> purged
 
 ### Steps
 
-- [ ] deploy/test บน staging resources ก่อน production ทุกครั้ง
-- [ ] รัน API unit/integration tests
-- [ ] รัน migration gate
-- [ ] รัน web build และตรวจ typecheck baseline ไม่เพิ่ม
+- [x] deploy/test บน staging resources ก่อน production ทุกครั้ง
+- [x] รัน API unit/integration tests
+- [x] รัน migration gate
+- [x] รัน web build และตรวจ typecheck baseline ไม่เพิ่ม
 - [ ] ทดสอบ E2E desktop/mobile และ light/dark
 - [ ] ทดสอบ insufficient credit, duplicate submit, webhook duplicate และ provider timeout
 - [ ] ทดสอบ untrusted origin, missing/invalid CSRF และ one-time upload token reuse
@@ -1114,7 +1659,7 @@ active/archived -> delete_requested -> purge_pending -> purged
 - [ ] ทดสอบ R2 output และ download
 - [ ] สำรอง/export D1 ก่อน production migration
 - [ ] ตั้ง Worker secrets
-- [ ] deploy/apply migration บน staging และรัน smoke/E2E
+- [x] deploy/apply migration บน staging และรัน smoke
 - [ ] deploy production API โดย feature flag ยังปิด
 - [ ] apply production migration และ verify schema
 - [ ] seed/verify model catalog
@@ -1132,19 +1677,66 @@ active/archived -> delete_requested -> purge_pending -> purged
 - success/failure rate และ provider cost ถูกบันทึก
 - rollback plan และ maintenance switch ใช้งานได้
 
-## Phase 8 - Brand Kit and Composition (Release 1B)
+## Phase 8 - Marketing Workspace และ Content Calendar Creative Integration (Release 1B)
 
 ระยะเวลา: 7-10 วัน
 
 ### Steps
 
-- [ ] สร้าง Brand Kit CRUD
-- [ ] เพิ่ม logo/product/style asset roles
-- [ ] เพิ่ม color palette editor แบบ swatches
+- [x] สร้าง `010-cross-tool-creative.sql` สำหรับ `content_items`, `creative_batches`, `creative_requests`, `asset_links` และ indexes
+- [x] เพิ่ม `CREATIVE_EMBEDDED_ENABLED` และ beta gating แยกจาก Core Studio
+- [x] เพิ่ม ownership/unique constraints และ migration gate tests
+- [x] สร้าง Content Calendar materializer หลัง Step 5 generation
+- [ ] ทำ lazy/backfill job สำหรับ project เดิมที่มี `step5.output.calendar`
+- [x] กำหนด matching/hash strategy เพื่อ preserve stable item ID เมื่อ regenerate
+- [ ] แยก Content Calendar renderer ออกจาก generic `OutputRenderer`
+- [ ] เปลี่ยน Content Calendar UI/export ให้อ่าน `content_items` ก่อนและ fallback JSON snapshot
+- [x] เพิ่ม lifecycle state, transition guard, approval audit event และ server-side action endpoints สำหรับ review/schedule/publish acknowledgement
+- [x] สร้าง source adapter ที่ map hook/caption/CTA/visual suggestion/platform/format เป็น Creative Context
+- [ ] สร้าง Idea/Trend-to-Content adapter ที่รับ source metadata, proposed angles และ return route โดยไม่ผูกกับ trend crawler ใหม่
+- [ ] สร้าง `EmbeddedCreativeComposer.svelte`
+- [x] เพิ่ม Create Creative, status, thumbnail และ Open in Studio ต่อ content item
+- [ ] เพิ่ม return-to-source behavior ที่ scroll/focus กลับ item เดิม
+- [x] เพิ่ม attach/set-primary asset APIs
+- [ ] เพิ่ม batch selection, aggregate quote, confirm และ per-item progress/refund
+- [x] สร้าง `/dashboard`, `/inbox` และ `/works` โดยอ่าน `content_items`/asset links ชุดเดียวกัน
+- [ ] เพิ่ม action queue: pending review, active generation, next scheduled และ calendar empty slot
+- [x] เพิ่ม review preview, approve/reject reason, schedule และ manual-publish acknowledgement ที่ audit ได้
+- [ ] ทำ active Brand Context prefill ใน Calendar, Idea entry และ Composer พร้อม snapshot ต่อ request
+- [x] ออกแบบ service interface/publish audit สำหรับ social connector ในอนาคต แต่ยังไม่เชื่อม OAuth หรือ auto-publish ใน release นี้
+- [ ] ทดสอบ regenerate calendar โดยไม่ทำ asset links หาย
+- [ ] ทดสอบ ownership chain และ cross-project/cross-user denial
+- [ ] รัน full integration บน staging ก่อนเปิด beta
+
+### Exit Criteria
+
+- Content item ทุกตัวมี stable server-generated ID
+- Existing project ที่มี Step 5 output ถูก materialize โดยไม่ต้อง regenerate
+- Composer เปิดพร้อม brief/copy/preset ที่ prefill แล้ว
+- Dashboard, Inbox, Calendar และ Works อ่าน content lifecycle record เดียวกันโดยไม่สร้าง status แยก
+- item ที่ยังไม่ approve ไม่สามารถถูก scheduled/published ผ่าน API ได้ เว้นแต่ workspace policy อนุญาตและมี audit reason
+- Single และ batch generation attach output กลับ item ถูกต้อง
+- Batch failure คืนเครดิตและ retry แยก item ได้
+- Open in Studio และ return กลับ content item เดิมได้
+- Calendar regenerate ไม่ลบหรือย้าย asset link ผิด item
+- `step_assets` behavior เดิมไม่ regression
+- Idea/Trend entry เปิด Composer พร้อม source snapshot และกลับมาที่ content item ใหม่ได้
+
+## Phase 9 - Brand Kit and Composition (Release 1C)
+
+ระยะเวลา: 7-10 วัน
+
+### Steps
+
+- [x] สร้าง `011-brand-kit-compositions.sql`
+- [x] เพิ่ม `BRAND_COMPOSITION_ENABLED` แยกจาก generation core
+- [x] สร้าง Brand Kit CRUD
+- [x] เพิ่ม logo/product/style asset roles
+- [x] เพิ่ม color palette editor แบบ swatches
 - [ ] เพิ่ม font upload และ license confirmation
 - [ ] parse font metadata และสร้าง preview
 - [ ] ทำ renderer spike และเลือก production approach
-- [ ] สร้าง composition document schema
+- [x] สร้าง composition document schema
 - [ ] สร้าง text/logo overlay editor รุ่นแรก
 - [ ] render/export PNG/JPEG
 - [ ] ตรวจภาษาไทย custom font และ high-resolution output
@@ -1159,15 +1751,76 @@ active/archived -> delete_requested -> purge_pending -> purged
 - font/logo ของผู้ใช้หนึ่งไม่รั่วไปอีกผู้ใช้หนึ่ง
 - Release 1A generation/credit flow ไม่ regression
 
+## Phase 10 - Direct Publishing Connectors (Post-1C)
+
+ระยะเวลา: 10-16 วันสำหรับ Meta รุ่นแรก; TikTok และ LINE ประเมินแยกหลังผ่าน partner/app review
+
+### Product boundary
+
+Direct publishing คือการส่ง content item ที่ผ่าน approval ไปยัง account ที่ผู้ใช้เชื่อมด้วย OAuth แล้ว และรอผลยืนยันจาก platform ก่อน mark ว่า `published` ไม่ใช่การ copy caption ไป clipboard หรือเปิด share URL
+
+เริ่มจาก **Instagram Professional + Facebook Page** เพราะตรงกับ output ภาพของ Release 1A-1C มากที่สุด จากนั้นจึงเพิ่ม TikTok Direct Post สำหรับ photo/video และ LINE Official Account Messaging สำหรับการส่งข้อความถึง audience ของ OA โดย LINE ไม่ใช่ feed post แบบ Instagram/Facebook
+
+### Data model และ state machine
+
+เพิ่ม migration additive ใหม่ `012-social-publishing.sql`:
+
+- `social_accounts`: user/project owner, provider, provider account/page ID, display metadata, encrypted refresh/access token, scopes, token expiry, connection status, last verification time
+- `social_publications`: content_item ID, social_account ID, platform-specific payload snapshot, idempotency key, scheduled time/timezone, status, remote post ID/URL, error code, retry count, timestamps
+- `social_publish_events`: provider webhook/poll event payload hash, verification state, normalized outcome และ audit linkage
+
+หนึ่ง `content_item` มี publication ได้หลายรายการ เช่น Instagram สำเร็จแต่ Facebook ล้มเหลว จึงห้ามใช้ `content_items.status = 'published'` เพียงตัวเดียวเป็น source of truth ของทุก channel
+
+```text
+approved -> scheduled -> publishing -> published
+                       -> publish_failed -> retry_scheduled
+                       -> needs_reauth
+```
+
+สถานะรวมของ content item derive จาก publication ที่ผู้ใช้เลือกเท่านั้น และต้องแสดงผลราย account/channel อย่างชัดเจน
+
+### Steps
+
+- [x] สร้าง provider-agnostic capability catalog และ manual publication scaffold
+- [ ] สร้าง OAuth connect/callback/disconnect flow ที่ state/PKCE/redirect allowlist ปลอดภัย
+- [ ] encrypt token ก่อนเก็บ D1 ด้วย versioned encryption key ใน Worker secret หรือ managed secret store; ห้ามส่ง token กลับ browser/log
+- [ ] เก็บ scopes, expiry และ health check; token หมดอายุเปลี่ยน `needs_reauth` โดยไม่ retry แบบสุ่มเสี่ยง
+- [ ] เพิ่ม publish destination selector ใน review/schedule flow พร้อม preview format, caption, hashtags, visibility และ user confirmation ตาม platform policy
+- [x] เพิ่ม `social_publications` scaffold แยกต่อ destination พร้อม idempotency key และ immutable payload snapshot
+- [ ] ขยาย durable D1 work-item/Cron processor ให้ claim `submit_social_publish`, `poll_social_publish`, `refresh_social_token` และ `reconcile_social_publish`
+- [ ] สร้าง purpose-bound media delivery URL สำหรับ platform fetch/upload; ไม่เปิด R2 public และตั้ง TTL ให้พอสำหรับ platform pull/retry
+- [ ] implement Meta adapter: connect Facebook Page + Instagram Professional account, media container/upload, publish, remote result reconciliation และ permission/app-review handling
+- [ ] implement TikTok adapter เฉพาะหลัง app ได้ scope/audit ที่จำเป็น: query creator info, explicit creator consent, initialize Direct Post, upload/pull media และ poll/webhook final status
+- [ ] implement LINE OA adapter เป็น Messaging campaign flow แยกจาก feed post: audience selection, push/broadcast/narrowcast, message validation, quota และ delivery reporting
+- [ ] normalize platform errors เป็น `validation_failed`, `token_expired`, `permission_denied`, `remote_processing`, `remote_rejected`, `rate_limited`, `unknown_outcome`
+- [ ] เพิ่ม retry เฉพาะ error ที่ safe และใช้ idempotency key/provider reference เพื่อกัน post ซ้ำ
+- [ ] เพิ่ม audit log สำหรับ connect, disconnect, schedule, cancel, submit, retry, remote result และ manual resolution
+- [ ] ทำ app-review submission, privacy policy/data deletion callback, security review และ production-domain verification ก่อนเปิด public beta
+
+### Exit Criteria
+
+- ผู้ใช้เชื่อม/ตัดการเชื่อมต่อ account ของตัวเองได้โดยไม่เห็น token ดิบ
+- content ที่ยังไม่ approved ไม่สามารถสร้าง direct publish job ได้
+- schedule เดียวส่งได้หลาย channel และติดตามผลแยกกันได้
+- worker crash, callback ซ้ำ หรือ timeout ไม่ทำให้ post ซ้ำ
+- platform success เท่านั้นที่ทำให้ publication เป็น `published`; unknown outcome ต้อง reconcile ก่อน retry
+- asset ที่ platform ดึงได้จำกัด purpose/TTL และไม่กลายเป็น public R2 object
+- Meta ผ่าน app review/permission ที่จำเป็นก่อนเปิดกับ external users
+- TikTok external posting เปิดเมื่อผ่าน API audit เท่านั้น; ก่อนนั้นใช้ Upload-to-draft หรือ export ตาม policy
+- LINE flow แสดงชัดว่าเป็น OA message campaign พร้อม audience/quota ไม่ใช่ social feed post
+
 ---
 
-## 13. Proposed File Map
+## 14. Proposed File Map
 
 ### API
 
 ```text
 apps/api/src/mediaRoutes.ts
 apps/api/src/brandKitRoutes.ts
+apps/api/src/creativeRequestRoutes.ts
+apps/api/src/contentItemRoutes.ts
+apps/api/src/socialPublishRoutes.ts
 apps/api/src/lib/csrf.ts
 apps/api/src/lib/media/types.ts
 apps/api/src/lib/media/catalog.ts
@@ -1182,13 +1835,32 @@ apps/api/src/lib/media/providers/types.ts
 apps/api/src/lib/media/providers/router.ts
 apps/api/src/lib/media/providers/fal.ts
 apps/api/src/lib/media/webhooks.ts
-apps/api/migrations/009-creative-studio.sql
+apps/api/src/lib/creative/types.ts
+apps/api/src/lib/creative/contextResolver.ts
+apps/api/src/lib/creative/sourceAdapters/contentItem.ts
+apps/api/src/lib/creative/assetLinks.ts
+apps/api/src/lib/creative/batchOrchestrator.ts
+apps/api/src/lib/social/types.ts
+apps/api/src/lib/social/router.ts
+apps/api/src/lib/social/tokenVault.ts
+apps/api/src/lib/social/meta.ts
+apps/api/src/lib/social/tiktok.ts
+apps/api/src/lib/social/line.ts
+apps/api/migrations/009-creative-studio-core.sql
+apps/api/migrations/010-cross-tool-creative.sql
+apps/api/migrations/011-brand-kit-compositions.sql
+apps/api/migrations/012-social-publishing.sql
 apps/api/test/media-credits.test.ts
 apps/api/test/media-references.test.ts
 apps/api/test/media-routes.test.ts
 apps/api/test/media-work-items.test.ts
 apps/api/test/media-webhooks.test.ts
 apps/api/test/csrf.test.ts
+apps/api/test/creative-context.test.ts
+apps/api/test/content-items.test.ts
+apps/api/test/asset-links.test.ts
+apps/api/test/creative-batches.test.ts
+apps/api/test/social-publishing.test.ts
 apps/api/wrangler.toml                 # exact vars, Cron และ env.staging
 ```
 
@@ -1196,8 +1868,12 @@ apps/api/wrangler.toml                 # exact vars, Cron และ env.staging
 
 ```text
 apps/web/src/routes/studio/+page.svelte
+apps/web/src/routes/studio/requests/[id]/+page.svelte
 apps/web/src/routes/studio/library/+page.svelte
 apps/web/src/routes/studio/brand-kits/+page.svelte
+apps/web/src/routes/dashboard/+page.svelte
+apps/web/src/routes/inbox/+page.svelte
+apps/web/src/routes/works/+page.svelte
 apps/web/src/lib/creative/ModelSelector.svelte
 apps/web/src/lib/creative/PromptEditor.svelte
 apps/web/src/lib/creative/ReferenceTray.svelte
@@ -1206,6 +1882,15 @@ apps/web/src/lib/creative/AssetPicker.svelte
 apps/web/src/lib/creative/GenerationStatus.svelte
 apps/web/src/lib/creative/GenerationGrid.svelte
 apps/web/src/lib/creative/CompositionEditor.svelte
+apps/web/src/lib/creative/EmbeddedCreativeComposer.svelte
+apps/web/src/lib/creative/CreativeSourceStatus.svelte
+apps/web/src/lib/ContentCalendarRenderer.svelte
+apps/web/src/lib/content/ContentActionQueue.svelte
+apps/web/src/lib/content/ReviewInbox.svelte
+apps/web/src/lib/content/ContentLifecycleBadge.svelte
+apps/web/src/lib/social/SocialAccountConnect.svelte
+apps/web/src/lib/social/PublishDestinationPicker.svelte
+apps/web/src/lib/social/PublicationStatus.svelte
 apps/web/src/lib/mediaApi.ts
 apps/web/src/lib/mediaTypes.ts
 ```
@@ -1214,7 +1899,7 @@ apps/web/src/lib/mediaTypes.ts
 
 ---
 
-## 14. Test Plan
+## 15. Test Plan
 
 ### Unit tests
 
@@ -1230,6 +1915,12 @@ apps/web/src/lib/mediaTypes.ts
 - Signed URL expiry และ tamper detection
 - MIME/file validation
 - exact-origin และ CSRF session binding
+- Creative Context mapping ต่อ platform/format
+- Content item matching/hash และ stable-ID preservation
+- Asset-link primary/version transition
+- Content lifecycle transition guard, policy override และ audit event
+- Brand Context merge precedence, snapshot/version และ default-reference resolution
+- Per-destination publishing idempotency, retry classification และ aggregate content status
 
 ### Integration tests
 
@@ -1246,6 +1937,14 @@ apps/web/src/lib/mediaTypes.ts
 - Retry หลัง provider failure
 - Archive/delete/purge และ quota adjustment
 - Ownership enforcement ทุก asset/job endpoint
+- Existing Step 5 JSON materialization/backfill
+- Calendar regenerate แล้ว preserve/archive item และ asset links ถูกต้อง
+- Creative request source snapshot และ stale-context detection
+- Single/batch attach, per-item settlement และ partial batch failure
+- Cross-user/cross-project source-to-asset attach denial
+- Reject/schedule/publish transition ที่ข้าม approval policy
+- OAuth callback state/PKCE, encrypted token persistence, expired-token และ disconnect
+- Platform callback/poll reconciliation, remote unknown outcome และ duplicate publish prevention
 
 ### Frontend tests
 
@@ -1256,6 +1955,13 @@ apps/web/src/lib/mediaTypes.ts
 - Async status transitions
 - Refresh/resume job
 - Library reuse workflow
+- Embedded Composer prefill/open/close/resume
+- Return-to-source route และ focus item เดิม
+- Content item status/primary thumbnail/variations
+- Batch quote/progress/retry ราย item
+- Dashboard action queue และ Inbox/Calendar/Works state consistency
+- Brand Context selection/prefill และไม่มี silent mutation ของงานเก่า
+- Connect account, schedule per destination, re-auth และ partial multi-channel publish state
 
 ### Manual/E2E matrix
 
@@ -1265,6 +1971,9 @@ apps/web/src/lib/mediaTypes.ts
 | Multi-reference | Yes | Yes | Yes | Yes |
 | Failed/refund | Yes | Yes | Yes | Yes |
 | Library/reuse | Yes | Yes | Yes | Yes |
+| Content Calendar embedded composer | Yes | Yes | Yes | Yes |
+| Batch creative generation | Yes | Yes | Yes | Yes |
+| Open Studio / return to source | Yes | Yes | Yes | Yes |
 | Brand composition | Yes | Yes | Yes | Yes |
 
 มาตรฐาน verification ของ repository:
@@ -1276,7 +1985,7 @@ apps/web/src/lib/mediaTypes.ts
 
 ---
 
-## 15. Deployment Checklist
+## 16. Deployment Checklist
 
 ### Secrets/variables ที่คาดว่าจะเพิ่ม
 
@@ -1285,6 +1994,17 @@ FAL_KEY
 MEDIA_SIGNING_SECRET
 CSRF_SIGNING_SECRET
 CREATIVE_STUDIO_ENABLED
+CREATIVE_EMBEDDED_ENABLED
+BRAND_CONTEXT_ENABLED
+BRAND_COMPOSITION_ENABLED
+SOCIAL_PUBLISHING_ENABLED
+SOCIAL_TOKEN_ENCRYPTION_KEY_VERSION
+META_APP_ID
+META_APP_SECRET
+TIKTOK_CLIENT_KEY
+TIKTOK_CLIENT_SECRET
+LINE_CHANNEL_SECRET
+LINE_CHANNEL_ACCESS_TOKEN
 CREATIVE_STUDIO_BETA_USER_IDS (optional)
 ALLOWED_ORIGIN (exact comma-separated origins only)
 ```
@@ -1301,6 +2021,52 @@ Web:    businessaios-web-staging หรือ preview URL ที่ exact allowl
 ```
 
 เพิ่ม `[env.staging]` ใน Wrangler และห้ามอ้าง production database/bucket IDs staging provider key ต้องมี spending cap และ webhook URL คนละ endpoint/environment
+
+สถานะ Phase 0B: สร้าง `businessaios-db-staging` แล้วด้วย D1 ID `5a895ec0-3a30-494c-b478-e8f84496303a`, สร้าง `businessaios-exports-staging` แล้ว และ deploy staging Worker สำเร็จที่ `https://businessaios-api-staging.pskspace.workers.dev`
+
+สถานะ Phase 5-10 ล่าสุด 2026-08-02:
+
+- Apply staging migrations ถึง `012-social-publishing.sql` แล้ว
+- API staging deployed: `https://businessaios-api-staging.pskspace.workers.dev`, Version ID `dc6d5742-38ac-4994-b47b-ada4dc9910e2`
+- Web staging deployed: `https://businessaios-web-staging.pskspace.workers.dev`, Version ID `3d20e2b5-07d6-4e85-909c-f96de7e4edf3`
+- Staging feature flags เปิดแล้ว: `CREATIVE_STUDIO_ENABLED`, `BRAND_CONTEXT_ENABLED`, `CREATIVE_EMBEDDED_ENABLED`, `BRAND_COMPOSITION_ENABLED`, `SOCIAL_PUBLISHING_ENABLED`
+- Smoke ผ่าน: `GET /api/config`, `GET /studio`, `GET /inbox`, `GET /settings/social`
+- Direct publishing ยังเป็น scaffold/manual workflow; OAuth, provider adapters และ app review ยังไม่เปิดใช้งานจริง
+
+สถานะจริง 2026-08-02 (ตรวจสอบและแก้ไขโดย Claude หลังพบว่าเอกสารรุ่นก่อนหน้าไม่ตรงกับของจริง):
+
+- **Migration 009-014 ทั้งหมด apply บน production D1 แล้ว** (ไม่ใช่แค่ staging) — ยืนยันจาก `wrangler d1 migrations list businessaios-db --remote` และตรวจตาราง `ai_models`, `media_generations`, `content_items`, `brand_kits`, `social_accounts` มีอยู่จริงใน production
+- **API และ Web deploy ขึ้น production แล้ว** ที่ `businessaios-api.pskspace.workers.dev` และ `businessaios-web.pskspace.workers.dev` — `/studio`, `/inbox` ตอบ 200 จริงบน production, **ไม่มี beta-user gating** (`CREATIVE_STUDIO_BETA_USER_IDS` ไม่ได้ใช้ในโค้ดเลย) แปลว่า user ที่ล็อกอินทุกคนเข้าถึงได้ ไม่ใช่แค่ admin/internal ตามที่ Phase 7 ตั้งใจ
+- Production feature flags ปัจจุบัน (แก้ไข 2026-08-02): `CREATIVE_STUDIO_ENABLED=true`, `BRAND_CONTEXT_ENABLED=true`, `CREATIVE_EMBEDDED_ENABLED=true`, **`BRAND_COMPOSITION_ENABLED=false`, `SOCIAL_PUBLISHING_ENABLED=false`** (ปิดสองตัวหลังนี้เพราะ Phase 9 font/renderer และ Phase 10 OAuth ยังไม่เสร็จ — ปิดที่ backend middleware จริง ไม่ใช่แค่ซ่อน UI: `/api/brand-kits*`, `/api/compositions*`, `/api/social/*` ตอบ `404 feature_disabled` ทั้งหมดตอนนี้)
+- Staging ยังเปิดทุก flag ไว้เหมือนเดิมสำหรับทดสอบภายใน
+- **Phase 7 (QA/Security) ส่วนใหญ่ยังไม่ได้ทำ** ตาม checklist ด้านบน แม้ระบบจะ deploy ขึ้น production ไปแล้วก็ตาม — งานที่เหลือค้างอยู่จริง ไม่ใช่แค่เอกสารพิมพ์ผิด
+
+#### สรุปงานค้างแบบเข้าใจง่าย (ไม่เทคนิค)
+
+**1. QA/Security ที่ยังไม่ทำ (Phase 7)** — คือการทดสอบว่าระบบจะไม่พังหรือถูกโกงในสถานการณ์แปลกๆ เช่น:
+
+- คนนึงเห็น/ลบรูปของอีกคนได้ไหม (ควรตอบ: ไม่ได้)
+- มีคนปลอมข้อความหลอกระบบว่า "งานเสร็จแล้ว" ทั้งที่ไม่ได้สร้างจริง แล้วได้ของฟรีไหม
+- กดปุ่ม "สร้างภาพ" รัวๆ หลายที จะโดนหักเครดิตซ้ำกี่รอบไหม
+- ถ้าราคาขึ้นกลางทาง ระบบจะหักเกินที่ user เห็นตอนกดยืนยันไหม
+- ถ้าสร้างภาพไม่สำเร็จภายในเวลาที่กำหนด เครดิตจะคืนให้ user จริงไหม
+
+พวกนี้คือ "เทสความปลอดภัย/เงิน" ที่ยังไม่มีใครลองยิงจริงเลย ทั้งที่ตอนนี้เปิดให้ user ทุกคนใช้ฟีเจอร์นี้อยู่แล้ว — ความเสี่ยงคือถ้ามีบั๊กจริงในเคสพวกนี้ อาจมีคนโกงเครดิตหรือเห็นข้อมูลคนอื่นได้โดยเราไม่รู้ตัว
+
+**2. Brand Kit (font/composition) — ที่ปิดไปแล้ว** — ของที่ตั้งใจทำคือ: อัปโหลดโลโก้/สี/ฟอนต์ของแบรนด์ตัวเอง แล้วเอาไปแปะข้อความ ราคา หรือโลโก้ลงบนรูปที่ AI สร้าง โดยใช้โลโก้ไฟล์จริง ไม่ให้ AI วาดโลโก้ใหม่เอง (เพราะ AI วาดโลโก้มักเพี้ยน) ตอนนี้ส่วน "อัปโหลดฟอนต์" กับ "เครื่องมือวางข้อความ/โลโก้ลงรูป" ยังไม่มีเลยสักตัว มีแค่หน้าตา CRUD (สร้าง/แก้/ลบ Brand Kit) เฉยๆ เลยปิดไว้ก่อนเพราะของยังไม่ครบ
+
+**3. Social publishing OAuth — ที่ปิดไปแล้ว** — ของที่ตั้งใจทำคือ: กดปุ่มเดียวในระบบแล้วโพสต์ลง Facebook/Instagram/TikTok/LINE ได้เลย ตอนนี้มีแค่ "ที่เก็บข้อมูล" ว่าจะโพสต์อะไร ไปช่องไหน แต่ยังไม่ได้ต่อสายจริงกับ Facebook/TikTok/LINE เลยสักตัว เหมือนมีปลั๊กเสียบรอไว้แต่สายไฟยังไม่ได้ต่อ — ถ้าเปิดตอนนี้ user กดโพสต์ จะไม่มีอะไรเกิดขึ้นจริงบนโซเชียลมีเดีย
+
+### Migration rollout ต่อ release
+
+```text
+Release 1A -> 009-creative-studio-core.sql
+Release 1B -> 010-cross-tool-creative.sql + content-item backfill/materialization
+Release 1C -> 011-brand-kit-compositions.sql
+Post-1C  -> 012-social-publishing.sql + OAuth credentials/app-review approval
+```
+
+แต่ละ migration ต้องผ่าน local + staging migration gate และ smoke test แยก ห้ามรวมการแก้ migration เก่าหรือแก้ไฟล์ migration ที่ production บันทึกว่า applied แล้ว
 
 ### ลำดับ deploy
 
@@ -1322,6 +2088,10 @@ Web:    businessaios-web-staging หรือ preview URL ที่ exact allowl
 ### Rollback
 
 - ปิด `CREATIVE_STUDIO_ENABLED`
+- ปิด `CREATIVE_EMBEDDED_ENABLED` แยกได้โดยให้ Content Calendar กลับไป render/read เดิมโดยไม่ลบ `content_items` หรือ `asset_links`
+- ปิด `BRAND_CONTEXT_ENABLED` ได้โดยใช้ explicit empty profile; ห้ามลบ snapshot ที่งานเก่าอ้างถึง
+- ปิด `BRAND_COMPOSITION_ENABLED` แยกจาก generation core
+- ปิด `SOCIAL_PUBLISHING_ENABLED` เพื่อหยุด submit งานใหม่ แต่คง polling/reconciliation สำหรับงานที่ provider รับไปแล้ว
 - ตั้งทุก model เป็น maintenance
 - หยุดรับ generation ใหม่ แต่ยังเปิด status/history/download
 - ปล่อย work processor ทำเฉพาะ ingest/refund/purge ที่ปลอดภัย ห้าม submit provider job ใหม่
@@ -1331,7 +2101,7 @@ Web:    businessaios-web-staging หรือ preview URL ที่ exact allowl
 
 ---
 
-## 16. Definition of Done
+## 17. Definition of Done
 
 Release 1A ถือว่าเสร็จเมื่อ:
 
@@ -1348,6 +2118,7 @@ Release 1A ถือว่าเสร็จเมื่อ:
 - [ ] output ถูก copy เข้า R2 และเปิดผ่าน ownership-controlled URL
 - [ ] ผู้ใช้ refresh/ปิดหน้าแล้วกลับมาติดตามงานได้
 - [ ] History, Download, Favorite, Reuse Prompt และ Use as Reference ใช้งานได้
+- [ ] Brand Context Lite ถูกใช้ใน generation ใหม่และมี immutable snapshot ที่ตรวจสอบได้
 - [ ] Admin เปิด/ปิดโมเดลและ maintenance mode ได้
 - [ ] exact-origin, CSRF, fal signature และ replay tests ผ่าน
 - [ ] archive/delete/purge lifecycle ทำงานและไม่ทิ้ง R2 orphan
@@ -1357,6 +2128,20 @@ Release 1A ถือว่าเสร็จเมื่อ:
 
 Release 1B ถือว่าเสร็จเมื่อ:
 
+- [ ] Existing Content Calendar output ถูก materialize เป็น stable `content_items`
+- [ ] แต่ละ content item เปิด Embedded Composer พร้อม prefilled context ได้
+- [ ] Dashboard, Inbox, Calendar และ Works แสดง `content_items` เดียวกันอย่างสอดคล้อง
+- [ ] Approval/schedule/publish acknowledgement เปลี่ยนผ่าน server-side transition พร้อม audit event
+- [ ] Single generation attach output กลับ item พร้อม primary/version ถูกต้อง
+- [ ] Batch แสดง aggregate quote แต่ reserve/finalize/refund แยกต่อ item
+- [ ] Job ทำต่อได้หลังปิด composer และ source item แสดงสถานะล่าสุด
+- [ ] Open in Studio และ return ไป content item เดิมได้
+- [ ] Calendar regenerate ไม่ทำ asset links หายหรือย้ายผิด item
+- [ ] Cross-user/cross-project attach ถูกปฏิเสธ
+- [ ] Contract พร้อมเพิ่ม Hook/Offer/Presentation source adapter โดยไม่เปลี่ยน media core
+
+Release 1C ถือว่าเสร็จเมื่อ:
+
 - [ ] ผู้ใช้สร้าง Brand Kit ได้
 - [ ] อัปโหลด logo, product, colors และ font ได้
 - [ ] มี license confirmation สำหรับ font/brand asset
@@ -1364,9 +2149,17 @@ Release 1B ถือว่าเสร็จเมื่อ:
 - [ ] ระบบวาง logo ต้นฉบับโดยไม่ให้ AI วาดใหม่
 - [ ] แก้ text overlay และ export ใหม่โดยไม่ generate base image
 
+Phase 10 ถือว่าเสร็จเมื่อ:
+
+- [ ] เชื่อม Meta account ผ่าน OAuth และเลือก Instagram Professional/Facebook Page ที่มีสิทธิ์ได้
+- [ ] งาน scheduled สร้าง publication แยก per destination และ reconcile ผลจริงได้
+- [ ] callback/poll ซ้ำหรือ worker retry ไม่ทำให้ post ซ้ำ
+- [ ] token หมดอายุหยุดงานเป็น `needs_reauth` พร้อม action ที่ปลอดภัย
+- [ ] direct publish เปิดเฉพาะ platform/app permission ที่ผ่าน review แล้ว
+
 ---
 
-## 17. Metrics หลังเปิด Beta
+## 18. Metrics หลังเปิด Beta
 
 ### Product
 
@@ -1376,7 +2169,14 @@ Release 1B ถือว่าเสร็จเมื่อ:
 - Average references per job
 - Reuse Prompt / Use as Reference rate
 - Download rate
+- Embedded Composer open-to-generate conversion
+- Percentage of content items ที่มี attached creative
+- Batch generation completion/partial-failure rate
+- Open in Studio และ return-to-source completion rate
 - 7-day return rate ของ Creative Studio users
+- Approval-to-schedule rate และ median time to approval
+- Scheduled-to-published success rate แยก per platform
+- Direct-publish adoption, re-auth rate และ manual-resolution rate
 
 ### Reliability
 
@@ -1400,7 +2200,7 @@ Release 1B ถือว่าเสร็จเมื่อ:
 
 ---
 
-## 18. Risks และ Cut Lines
+## 19. Risks และ Cut Lines
 
 | Risk | ผลกระทบ | Mitigation / Cut line |
 |---|---|---|
@@ -1411,7 +2211,16 @@ Release 1B ถือว่าเสร็จเมื่อ:
 | Provider รับ job แต่ response หาย | submit ซ้ำและต้นทุนสองครั้ง | write-ahead attempt + `submission_unknown` + manual/reconciler path |
 | Provider URL หมดอายุ | งานเก่าหาย | copy output เข้า R2 ก่อน completed |
 | Provider สำเร็จแต่ R2 ล้มเหลว | user จ่ายแต่ไม่มีไฟล์ | delivery pending + retry + refund หลัง deadline |
-| Font renderer บน Worker ไม่พร้อม | Release ช้า | ส่ง Brand Kit composition ไป Release 1B |
+| Content Calendar JSON ไม่มี stable ID | asset ผูกผิด post หลัง regenerate | materialize content_items + hash reconciliation + archive unmatched |
+| Batch ถูกทำเป็น provider call ก้อนเดียว | refund/retry แยกรายการไม่ได้ | orchestrate แยก generation/hold ต่อ item |
+| Polymorphic asset link ข้าม owner | asset leakage | validate source/asset/request ownership chain ทุก mutation |
+| สถานะ Dashboard/Calendar/Inbox แยกกัน | ผู้ใช้ทำงานผิด item หรือ publish ผิด | ใช้ `content_items` และ transition service เดียว; ห้ามมี client-derived status เป็น source of truth |
+| Brand rules เปลี่ยนงานเก่าเงียบ ๆ | audit/reuse ผิดและผู้ใช้สับสน | เก็บ immutable profile snapshot/version ต่อ creative request/generation |
+| Auto-publish ก่อน approval | brand/reputational risk | Release 1B เป็น workflow + manual acknowledgement; direct publish ต้องผ่าน policy gate และ remote confirmation |
+| OAuth token รั่วหรือหมดอายุ | publish ไม่ได้/บัญชีเสี่ยง | token vault encryption, short-lived access token, re-auth state, secret rotation และไม่ log token |
+| Platform timeout แล้วผลไม่ชัด | retry ซ้ำจนโพสต์ซ้ำ | per-destination idempotency, remote reference, poll/webhook reconcile และ manual resolution |
+| TikTok/Meta app review ไม่ผ่านหรือใช้เวลานาน | เปิด external direct post ไม่ได้ | ส่ง review ตั้งแต่ spike; release manual/export และ Meta-first โดยไม่ block core |
+| Font renderer บน Worker ไม่พร้อม | Release ช้า | ส่ง Brand Kit composition ไป Release 1C |
 | Image decode เกิน Worker memory | request ล้ม/กระทบ isolate | quarantine + stream + max megapixels + Phase 0 processor spike |
 | Remove background เพิ่ม cost/latency | margin ลด | แสดงราคาแยกและทำ on-demand |
 | Asset storage โตเร็ว | ค่าใช้จ่ายเพิ่ม | quota, soft delete และ retention policy |
@@ -1419,87 +2228,111 @@ Release 1B ถือว่าเสร็จเมื่อ:
 | Safety policy ต่างกัน | fallback ผิด policy | policy-compatible routing เท่านั้น |
 | Scope ใหญ่เกินไป | deploy ไม่ทัน | Release 1A ตัด Brand Kit renderer ออกได้โดยไม่กระทบ core |
 
-Critical cut line คือ **Release 1A ต้องเสร็จก่อน** ส่วน Brand Kit/font composition เป็น Release 1B ที่ต่อบน asset schema เดียวกันได้ โดยไม่บล็อกการเปิด beta ของ generation core
+Critical cut line คือ **Release 1A Core Studio + Brand Context Lite ต้องเสร็จก่อน** จากนั้น Release 1B เปิด Marketing Workspace และ Content Calendar integration โดยยังไม่ทำ social auto-publish ส่วน Brand Kit/font composition อยู่ Release 1C และ direct publishing อยู่ Phase 10 หลัง core workflow เสถียร จึงไม่บล็อก beta ของ generation, review หรือ Calendar
 
 ---
 
-## 19. Decisions ที่ต้องยืนยันก่อนเริ่ม Code
+## 20. Decisions ที่ต้องยืนยันก่อนเริ่ม Code
 
 มีค่าแนะนำเพื่อให้เริ่มงานได้โดยไม่ค้าง:
 
 | Decision | ค่าแนะนำเริ่มต้น |
 |---|---|
-| Primary provider | fal.ai |
-| Initial models | 1 text-to-image + 1 single-reference + 1 multi-reference |
+| Primary provider | MiniMax `image-01` สำหรับ Phase 0B/Release 1A spike; `fal.ai` เป็น secondary/future option |
+| Initial models | MiniMax `image-01` text-to-image + character-reference image-to-image; product-reference และ multi-reference ต้องหา provider/adapter เพิ่ม |
 | Max upload | 10 MB ต่อไฟล์ |
-| Max decoded size | กำหนดจาก Phase 0 memory test และบังคับ max megapixels |
-| Reference UI limit | 3 ภาพรุ่นแรก แต่ catalog รองรับ limit ต่างกันได้ |
+| Max decoded size | เริ่ม reject ที่ 16MP ใน first-pass inspector แล้ววัด memory เพิ่มด้วย max-file/concurrent tests |
+| Reference UI limit | UI รองรับหลายภาพได้ แต่ MiniMax `image-01` adapter เปิดใช้ reference เดียวแบบ character ก่อน |
 | Upload transport | Worker streaming gateway -> R2 quarantine ใน Release 1A |
 | Provider asset URL | HMAC Worker URL แบบ purpose-bound และ short TTL |
 | Asset retention | Archive เก็บต่อ; Delete เข้า scheduled purge ตาม retention policy |
-| R2 strategy | bucket เดิม แยก `media/` prefix |
+| R2 strategy | production ใช้ bucket เดิมแยก `media/` prefix; staging ใช้ `businessaios-exports-staging` |
 | Async durability | D1 work-item outbox + Cron Trigger; `waitUntil` เป็น optimization เท่านั้น |
 | Beta rollout | admin/internal ก่อน แล้ว invited users |
-| User price | lock ตาม quote; ห้าม upward true-up |
+| User price | lock ตาม quote; ห้าม upward true-up; MiniMax `image-01` beta starting point 2 credits/output จาก provider cost $0.0035/image |
 | Credit failure policy | finalize เมื่อ R2 delivery พร้อม; refund หากไม่มี output ส่งมอบได้ |
-| Webhook security | fal ED25519 signature + timestamp + JWKS cache |
+| Webhook security | Provider-specific; MiniMax `image-01` sync response ไม่มี webhook ใน spike แรก, หากเพิ่ม fal ใช้ ED25519 signature + timestamp + JWKS cache |
 | Browser security | exact origin + session-bound CSRF token |
-| Environments | local -> staging resources -> production |
-| Font/Logo | post-composition ใน Release 1B |
+| Environments | local -> `businessaios-api-staging` + `businessaios-db-staging` + `businessaios-exports-staging` -> production |
+| Brand context รุ่นแรก | structured Brand Context Lite + immutable snapshot; composition/rendering อยู่ Release 1C |
+| First embedded integration | Content Calendar |
+| Marketing Workspace รุ่นแรก | dashboard action queue + approval inbox + content-centric works library; ไม่ทำ social auto-publish |
+| Approval policy | schedule/publish ผ่าน server-side transition และ audit event เท่านั้น |
+| Direct publish order | Meta (Instagram Professional/Facebook Page) ก่อน; TikTok หลัง audit; LINE เป็น OA messaging flow แยก |
+| Existing Step 5 storage | materialize JSON output เป็น stable `content_items`; ไม่ overload `step_assets` |
+| Cross-tool relation | generic `creative_requests` + `asset_links` |
+| Batch billing | aggregate quote แต่ generation/hold/refund แยกต่อ item |
+| Font/Logo | post-composition ใน Release 1C |
 | URL import | เลื่อนไปจนมี SSRF-safe proxy |
 
 ---
 
-## 20. Estimated Schedule
+## 21. Estimated Schedule
 
 | Phase | ระยะเวลาโดยประมาณ |
 |---|---:|
 | Phase 0 - Security/provider/processor spike + staging | 3-4 วัน |
-| Phase 1 - Data foundation | 2-3 วัน |
+| Phase 1 - Data foundation + Brand Context Lite | 3-4 วัน |
 | Phase 2 - Asset/reference backend | 3-4 วัน |
 | Phase 3 - Provider/jobs/credits/durable worker | 4-6 วัน |
 | Phase 4 - Studio frontend | 3-4 วัน |
 | Phase 5 - Library/reuse | 2-3 วัน |
 | Phase 6 - Admin/observability | 2-3 วัน |
 | Phase 7 - QA/staging/production rollout | 3-4 วัน |
-| Phase 8 - Brand Kit/composition | 7-10 วัน |
+| Phase 8 - Marketing Workspace + Content Calendar creative integration | 7-10 วัน |
+| Phase 9 - Brand Kit/composition | 7-10 วัน |
+| Phase 10 - Meta direct publishing | 10-16 วัน + app-review lead time |
 
 ประมาณการ:
 
-- Release 1A Core Image Studio internal beta: 22-31 วันทำการ
-- Release 1B Brand Kit + Font Composition: เพิ่ม 7-10 วันทำการ
-- รวม production-ready โดยประมาณ: 29-41 วันทำการ ขึ้นกับ provider integration, image processor และ renderer spike
+- Release 1A Core Image Studio + Brand Context Lite internal beta: 23-33 วันทำการ
+- Release 1B Marketing Workspace + Content Calendar Integration: เพิ่ม 7-10 วันทำการ
+- Release 1C Brand Kit + Font Composition: เพิ่ม 7-10 วันทำการ
+- Phase 10 Meta direct publishing: เพิ่ม 10-16 วันทำการ ไม่รวม lead time ของ Meta app review
+- รวมถึง Release 1C โดยประมาณ: 37-53 วันทำการ ขึ้นกับ provider integration, content-item backfill, review workflow, image processor และ renderer spike
 
 ตัวเลขนี้เป็น implementation estimate ไม่รวมเวลารอเปิด provider account, เติมเครดิต provider, review policy หรือการตัดสินใจด้านราคา
 
 ---
 
-## 21. Recommended Execution Order
+## 22. Recommended Execution Order
 
 ลำดับที่แนะนำให้เริ่มจริง:
 
-1. แก้ exact-origin/CSRF และสร้าง staging resources
-2. ทำ provider, webhook-signature และ image-processor spike ให้ผ่าน
+1. ตั้ง staging secrets ให้แยกจาก production
+2. ทำ HMAC content URL, upload quarantine และ deployed Worker/R2 smoke บน staging
 3. Freeze model capability/pricing matrix และ upload strategy
-4. ทำ migration, persistent idempotency, work-item outbox และ feature flag
+4. ทำ migration, Brand Context Lite, persistent idempotency, work-item outbox และ feature flag
 5. ทำ asset ownership/quarantine/R2 pipeline
 6. ทำ reference resolver และ provider adapter
 7. ทำ credit hold + durable async lifecycle + reconciler ให้ทดสอบผ่านก่อนสร้าง UI เต็ม
-8. ทำ Creative Studio UI
+8. ทำ Creative Studio UI พร้อม active Brand Context และ credit surface
 9. ทำ Library/reuse/delete-purge lifecycle
 10. ผ่าน staging full-flow แล้วเปิด internal beta ของ Release 1A
 11. เก็บ latency, delivery failure, refund และ margin data
-12. ทำ Brand Kit/font composition เป็น Phase 8 / Release 1B
+12. ทำ Content Calendar materialization + lifecycle transition service + Embedded Composer เป็น Phase 8 / Release 1B
+13. ทำ Dashboard action queue, Approval Inbox และ Works Library จาก `content_items` เดียวกัน
+14. เก็บ embedded-to-generate, attach, review-to-schedule และ batch metrics
+15. ทำ Brand Kit/font composition เป็น Phase 9 / Release 1C
+16. ทำ Meta direct publishing เป็น Phase 10 เมื่อ review workflow เสถียรและ app-review ผ่าน
+17. หลัง Phase 10 ค่อยเพิ่ม Hook Library/Million Dollar Offer adapters, TikTok และ LINE ตาม metrics โดยไม่แก้ media core
 
 หลักสำคัญคือไม่เริ่มจากหน้าตาที่คล้าย ZenityX ก่อน job lifecycle และ credit correctness เสร็จ เพราะสองส่วนนี้เป็นฐานของการ deploy และการคิดเงินจริงทั้งหมด
 
 ---
 
-## 22. Technical References
+## 23. Technical References
 
 - [fal Asynchronous Inference](https://fal.ai/docs/documentation/model-apis/inference/queue) - queue lifecycle, polling, result และ cancellation
 - [fal Webhooks](https://fal.ai/docs/documentation/model-apis/inference/webhooks) - delivery retries, timeout, ED25519 signature และ JWKS verification
+- [MiniMax Text to Image](https://platform.minimax.io/docs/api-reference/image-generation-t2i) - `image-01` text-to-image endpoint, request schema และ response formats
+- [MiniMax Image to Image](https://platform.minimax.io/docs/api-reference/image-generation-i2i) - `subject_reference` สำหรับ character/product reference
 - [Cloudflare D1 batch API](https://developers.cloudflare.com/d1/worker-api/d1-database/) - transactional batch และ rollback behavior
 - [Cloudflare R2 Workers API](https://developers.cloudflare.com/r2/api/workers/workers-api-reference/) - private bucket access ผ่าน Worker binding
 - [Cloudflare R2 presigned URLs](https://developers.cloudflare.com/r2/api/s3/presigned-urls/) - future direct upload/download path ที่ต้องใช้ S3 API credentials
 - [Cloudflare Workers limits](https://developers.cloudflare.com/workers/platform/limits/) - CPU, memory, request size และ `waitUntil()` constraints
+- [Meta Instagram Content Publishing](https://developers.facebook.com/docs/instagram-platform/content-publishing/) - professional-account publishing flow และ app permissions
+- [Meta Pages API Posts](https://developers.facebook.com/docs/pages-api/posts/) - Facebook Page publishing capabilities
+- [TikTok Direct Post](https://developers.tiktok.com/doc/content-posting-api-reference-direct-post) - creator authorization, upload/pull media, publish ID และ status reconciliation
+- [TikTok Content Sharing Guidelines](https://developers.tiktok.com/doc/content-sharing-guidelines/) - app audit, visibility และ posting caps
+- [LINE Messaging API](https://developers.line.biz/en/docs/messaging-api/sending-messages/) - OA push/broadcast/narrowcast message model
