@@ -1728,3 +1728,107 @@ export async function devMockSuccess(packageId: string): Promise<{ success: bool
     body: JSON.stringify({ package_id: packageId }),
   });
 }
+
+// =====================================================
+// Brand Profiles (Creative Studio brand context)
+// =====================================================
+
+export type BrandProfile = {
+  id: string;
+  name: string;
+  business_summary: string;
+  audience: any[];
+  tone_of_voice: any[];
+  content_pillars: any[];
+  offers: any[];
+  rules: Record<string, any>;
+  is_default: boolean;
+  created_at: number;
+  updated_at: number;
+};
+
+export async function listBrandProfiles(): Promise<{ profiles: BrandProfile[]; active_profile: BrandProfile | null }> {
+  return fetchAPI('/api/brand-profiles');
+}
+
+// =====================================================
+// Content Series Generator
+// =====================================================
+
+export type ContentSeriesTemplate = {
+  id: string;
+  owner_type: 'admin' | 'user';
+  owner_user_id: string | null;
+  name: string;
+  description: string;
+  slots: Array<{ pillar?: string; hook_style?: string; cta_style?: string; notes?: string }>;
+  default_platforms: string[];
+  is_active: boolean;
+  created_at: number;
+  updated_at: number;
+};
+
+export type ContentSeries = {
+  id: string;
+  user_id: string;
+  template_id: string | null;
+  brand_profile_id: string | null;
+  brand_snapshot_id: string | null;
+  topic: string;
+  requested_count: number;
+  cadence_days: number;
+  start_date: number | null;
+  platforms: string[];
+  status: 'queued' | 'generating' | 'completed' | 'partial' | 'failed';
+  generated_count: number;
+  credits_used: number;
+  error_message: string | null;
+  created_at: number;
+  updated_at: number;
+};
+
+export async function listContentSeriesTemplates(): Promise<ContentSeriesTemplate[]> {
+  const res = await fetchAPI<{ templates: ContentSeriesTemplate[] }>('/api/content-series/templates');
+  return res.templates;
+}
+
+export async function createContentSeriesTemplate(data: {
+  name: string;
+  description?: string;
+  slots?: Array<{ pillar?: string; hook_style?: string; cta_style?: string; notes?: string }>;
+  default_platforms?: string[];
+  owner_type?: 'admin' | 'user';
+}): Promise<ContentSeriesTemplate> {
+  return fetchAPI('/api/content-series/templates', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteContentSeriesTemplate(id: string) {
+  return fetchAPI<{ ok: boolean }>(`/api/content-series/templates/${id}`, { method: 'DELETE' });
+}
+
+export async function listContentSeries(limit = 30): Promise<ContentSeries[]> {
+  const res = await fetchAPI<{ series: ContentSeries[] }>(`/api/content-series?limit=${limit}`);
+  return res.series;
+}
+
+export async function getContentSeries(id: string): Promise<{ series: ContentSeries; items: ContentItem[] }> {
+  return fetchAPI(`/api/content-series/${id}`);
+}
+
+export async function generateContentSeries(data: {
+  topic: string;
+  requested_count: number;
+  cadence_days?: number;
+  start_date?: number;
+  template_id?: string | null;
+  brand_profile_id?: string | null;
+  platforms?: string[];
+}): Promise<{ series: ContentSeries; items: ContentItem[] }> {
+  return fetchAPI('/api/content-series', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}

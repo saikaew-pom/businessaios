@@ -28,6 +28,7 @@ export type Bindings = {
   BRAND_CONTEXT_ENABLED?: string;
   BRAND_COMPOSITION_ENABLED?: string;
   SOCIAL_PUBLISHING_ENABLED?: string;
+  CONTENT_SERIES_ENABLED?: string;
   SOCIAL_TOKEN_ENCRYPTION_KEY_VERSION?: string;
   META_APP_ID?: string;
   META_APP_SECRET?: string;

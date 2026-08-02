@@ -2042,7 +2042,7 @@ Web:    businessaios-web-staging หรือ preview URL ที่ exact allowl
 
 - **Migration 009-014 ทั้งหมด apply บน production D1 แล้ว** (ไม่ใช่แค่ staging) — ยืนยันจาก `wrangler d1 migrations list businessaios-db --remote` และตรวจตาราง `ai_models`, `media_generations`, `content_items`, `brand_kits`, `social_accounts` มีอยู่จริงใน production
 - **API และ Web deploy ขึ้น production แล้ว** ที่ `businessaios-api.pskspace.workers.dev` และ `businessaios-web.pskspace.workers.dev` — `/studio`, `/inbox` ตอบ 200 จริงบน production, **ไม่มี beta-user gating** (`CREATIVE_STUDIO_BETA_USER_IDS` ไม่ได้ใช้ในโค้ดเลย) แปลว่า user ที่ล็อกอินทุกคนเข้าถึงได้ ไม่ใช่แค่ admin/internal ตามที่ Phase 7 ตั้งใจ
-- Production feature flags ปัจจุบัน (แก้ไข 2026-08-02): `CREATIVE_STUDIO_ENABLED=true`, `BRAND_CONTEXT_ENABLED=true`, `CREATIVE_EMBEDDED_ENABLED=true`, **`BRAND_COMPOSITION_ENABLED=false`, `SOCIAL_PUBLISHING_ENABLED=false`** (ปิดสองตัวหลังนี้เพราะ Phase 9 font/renderer และ Phase 10 OAuth ยังไม่เสร็จ — ปิดที่ backend middleware จริง ไม่ใช่แค่ซ่อน UI: `/api/brand-kits*`, `/api/compositions*`, `/api/social/*` ตอบ `404 feature_disabled` ทั้งหมดตอนนี้)
+- Production feature flags ปัจจุบัน (แก้ไข 2026-08-02): `CREATIVE_STUDIO_ENABLED=true`, `BRAND_CONTEXT_ENABLED=true`, `CREATIVE_EMBEDDED_ENABLED=true`, **`BRAND_COMPOSITION_ENABLED=false`, `SOCIAL_PUBLISHING_ENABLED=false`, `CONTENT_SERIES_ENABLED=false`** (ปิดสามตัวหลังนี้เพราะ Phase 9 font/renderer, Phase 10 OAuth และ Content Series Generator (ดูหัวข้อใหม่ด้านล่าง) ยังไม่ผ่าน QA จริง — ปิดที่ backend middleware จริง ไม่ใช่แค่ซ่อน UI: `/api/brand-kits*`, `/api/compositions*`, `/api/social/*`, `/api/content-series*` ตอบ `404 feature_disabled` ทั้งหมดตอนนี้)
 - Staging ยังเปิดทุก flag ไว้เหมือนเดิมสำหรับทดสอบภายใน
 - **Phase 7 (QA/Security) ส่วนใหญ่ยังไม่ได้ทำ** ตาม checklist ด้านบน แม้ระบบจะ deploy ขึ้น production ไปแล้วก็ตาม — งานที่เหลือค้างอยู่จริง ไม่ใช่แค่เอกสารพิมพ์ผิด
 
@@ -2061,6 +2061,17 @@ Web:    businessaios-web-staging หรือ preview URL ที่ exact allowl
 **2. Brand Kit (font/composition) — ที่ปิดไปแล้ว** — ของที่ตั้งใจทำคือ: อัปโหลดโลโก้/สี/ฟอนต์ของแบรนด์ตัวเอง แล้วเอาไปแปะข้อความ ราคา หรือโลโก้ลงบนรูปที่ AI สร้าง โดยใช้โลโก้ไฟล์จริง ไม่ให้ AI วาดโลโก้ใหม่เอง (เพราะ AI วาดโลโก้มักเพี้ยน) ตอนนี้ส่วน "อัปโหลดฟอนต์" กับ "เครื่องมือวางข้อความ/โลโก้ลงรูป" ยังไม่มีเลยสักตัว มีแค่หน้าตา CRUD (สร้าง/แก้/ลบ Brand Kit) เฉยๆ เลยปิดไว้ก่อนเพราะของยังไม่ครบ
 
 **3. Social publishing OAuth — ที่ปิดไปแล้ว** — ของที่ตั้งใจทำคือ: กดปุ่มเดียวในระบบแล้วโพสต์ลง Facebook/Instagram/TikTok/LINE ได้เลย ตอนนี้มีแค่ "ที่เก็บข้อมูล" ว่าจะโพสต์อะไร ไปช่องไหน แต่ยังไม่ได้ต่อสายจริงกับ Facebook/TikTok/LINE เลยสักตัว เหมือนมีปลั๊กเสียบรอไว้แต่สายไฟยังไม่ได้ต่อ — ถ้าเปิดตอนนี้ user กดโพสต์ จะไม่มีอะไรเกิดขึ้นจริงบนโซเชียลมีเดีย
+
+### Content Series Generator (เพิ่มใหม่ 2026-08-02, นอกแผน Phase เดิม)
+
+ฟีเจอร์ใหม่ที่เพิ่มนอกเหนือจาก Phase 1-10 เดิม — แรงบันดาลใจจากการดูคู่แข่ง (Hero AI Engine) ที่ gen content ได้ทีละชิ้นเท่านั้น ไม่รองรับการ gen เป็นชุดจากหัวข้อเดียว
+
+- **ทำอะไร**: ใส่หัวข้อเดียว (เช่น "เปิดร้านกาแฟใหม่ย่านทองหล่อ") + จำนวน content ที่ต้องการ (1-30 ชิ้น) + ความถี่โพสต์ → ระบบเรียก MiniMax ครั้งเดียวสร้าง content ครบชุด มุมมองต่างกัน (awareness/education/social_proof/conversion) ไม่ซ้ำกัน แล้ววางลง `content_items` พร้อม `scheduled_at` ตาม cadence โดยอัตโนมัติ
+- **Template**: ผู้ใช้เลือก template กำหนด slot rotation (ลำดับมุมมอง/สไตล์ hook/สไตล์ CTA) และผูก Brand Book/Profile เข้ามาได้ — template แบ่งเป็นของ user เอง (private) กับของ admin (global, `owner_user_id IS NULL`, ทุก user เห็นหมด) แยกด้วยคอลัมน์ `owner_type`
+- **Schema**: migration `016-content-series.sql` เพิ่ม `content_series_templates`, `content_series`, และคอลัมน์ `series_id`/`series_slot_index` บน `content_items` เดิม (ไม่แตะ `creative_batches`/`creative_requests` ที่มีอยู่แล้วแต่ยังไม่ได้ใช้งานจริง — เป็นแนวคิดคนละอันกัน)
+- **เครดิต**: reserve-then-reconcile pattern เดียวกับ wizard เดิม — จองเครดิตประมาณการก่อนเรียก AI แล้วคืนส่วนต่าง/เก็บเพิ่มตามการใช้จริงหลังเรียกเสร็จ, refund เต็มจำนวนถ้า AI call ล้มเหลว
+- **สถานะ**: build + test เสร็จแล้ว (`apps/api/test/contentSeries.test.ts`, 12 tests ผ่านหมด รวม migration gate test), ตรวจสอบ manual ผ่าน local dev แล้ว (gen จริงผ่าน MiniMax, credit true-up ถูกต้อง, template visibility split ถูกต้อง) — **ยังไม่เปิด production** (`CONTENT_SERIES_ENABLED=false`) ตามหลักการเดียวกับ Brand Composition/Social Publishing คือฟีเจอร์ใหม่ต้องผ่าน QA/ใช้งานจริงบน staging ก่อน จึงเปิด production; เปิดไว้แล้วบน staging (`CONTENT_SERIES_ENABLED=true`)
+- **ยังไม่ทำ**: หน้า admin สำหรับจัดการ global template แบบเฉพาะ (ตอนนี้ admin สร้าง/แก้/ลบ template กลางผ่านหน้า `/studio/series` เดียวกับ user ปกติ โดยเช็ค role ฝั่ง backend — ยังไม่มี dashboard แยกสำหรับดู usage/stats ของ series), การเชื่อมต่อ direct publish ไปโซเชียลจริง (รอ Phase 10)
 
 ### Migration rollout ต่อ release
 

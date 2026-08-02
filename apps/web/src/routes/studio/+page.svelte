@@ -577,6 +577,7 @@
       <div class="flex items-center gap-2">
         <a href="/studio/library" class="btn-secondary py-2 px-4 text-sm">Library</a>
         <a href="/studio/brand-kits" class="btn-secondary py-2 px-4 text-sm">Brand Kits</a>
+        <a href="/studio/series" class="btn-secondary py-2 px-4 text-sm">Series</a>
         <a href="/inbox" class="btn-secondary py-2 px-4 text-sm">Inbox</a>
         <a href="/works" class="btn-secondary py-2 px-4 text-sm">Works</a>
         <a href="/settings/social" class="btn-secondary py-2 px-4 text-sm">Social</a>

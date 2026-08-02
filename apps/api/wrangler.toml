@@ -35,6 +35,7 @@ BRAND_CONTEXT_ENABLED = "true"
 CREATIVE_EMBEDDED_ENABLED = "true"
 BRAND_COMPOSITION_ENABLED = "false"
 SOCIAL_PUBLISHING_ENABLED = "false"
+CONTENT_SERIES_ENABLED = "false"
 
 [env.staging]
 name = "businessaios-api-staging"
@@ -67,6 +68,7 @@ BRAND_CONTEXT_ENABLED = "true"
 CREATIVE_EMBEDDED_ENABLED = "true"
 BRAND_COMPOSITION_ENABLED = "true"
 SOCIAL_PUBLISHING_ENABLED = "true"
+CONTENT_SERIES_ENABLED = "true"
 
 # Secrets (set via `wrangler secret put NAME`)
 # BREVO_API_KEY - email sending (transactional emails via Brevo — code reads this, NOT Resend)

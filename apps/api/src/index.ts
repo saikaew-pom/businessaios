@@ -38,6 +38,7 @@ import { createAdminRoutes } from './adminRoutes';
 import { createMcpRoutes } from './mcpRoutes';
 import mediaRoutes, { runMediaScheduled } from './mediaRoutes';
 import contentRoutes from './contentRoutes';
+import contentSeriesRoutes from './contentSeriesRoutes';
 import brandKitRoutes from './brandKitRoutes';
 import socialRoutes from './socialRoutes';
 
@@ -99,6 +100,7 @@ app.get('/api/config', async (c) => {
       creative_embedded: env.CREATIVE_EMBEDDED_ENABLED === 'true',
       brand_composition: env.BRAND_COMPOSITION_ENABLED === 'true',
       social_publishing: env.SOCIAL_PUBLISHING_ENABLED === 'true',
+      content_series: env.CONTENT_SERIES_ENABLED === 'true',
     },
     security: {
       csrf_token: await getCsrfTokenForRequest(c),
@@ -3334,6 +3336,7 @@ createAdminRoutes(app);
 // =====================================================
 app.route('/', mediaRoutes);
 app.route('/', contentRoutes);
+app.route('/', contentSeriesRoutes);
 app.route('/', brandKitRoutes);
 app.route('/', socialRoutes);
 

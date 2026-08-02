@@ -18,6 +18,7 @@ export type PublicConfig = {
     creative_embedded: boolean;
     brand_composition: boolean;
     social_publishing: boolean;
+    content_series: boolean;
   };
   security: {
     csrf_token: string | null;
@@ -50,6 +51,7 @@ export async function fetchConfig(refresh = false): Promise<PublicConfig> {
           creative_embedded: false,
           brand_composition: false,
           social_publishing: false,
+          content_series: false,
         },
         security: { csrf_token: null },
       };
