@@ -224,138 +224,138 @@
 </script>
 
 {#if item}
-  <!-- Backdrop -->
   <!--
+    Full-screen editor (not a side drawer) — there is no visible backdrop to
+    click through, so closing goes only through the header's × button.
     Guarded by `busy`: closing mid-save/mid-transition doesn't cancel the
     in-flight request, and onUpdated(...) unconditionally re-sets the
     parent's selectedItem when it resolves — so closing while busy would
-    make the drawer visibly pop back open once the request finishes.
+    make the editor visibly pop back open once the request finishes.
     Blocking the close until the request settles avoids that.
   -->
-  <button
-    type="button"
-    aria-label="ปิด"
-    onclick={() => { if (!busy) onClose(); }}
-    class="fixed inset-0 z-30 bg-black/40 backdrop-blur-sm"
-  ></button>
-
-  <aside class="fixed inset-y-0 right-0 z-40 w-full max-w-lg overflow-y-auto bg-white dark:bg-dark-900 shadow-2xl">
-    <div class="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-dark-100 dark:border-dark-700 bg-white dark:bg-dark-900 px-5 py-4">
+  <div class="fixed inset-0 z-40 flex flex-col bg-white dark:bg-dark-900">
+    <div class="flex shrink-0 items-center justify-between gap-3 border-b border-dark-100 dark:border-dark-700 px-6 py-4">
       <div class="min-w-0">
         <span class="rounded-full bg-dark-100 dark:bg-dark-700 px-2 py-0.5 text-xs font-semibold text-dark-900 dark:text-dark-50">{item.status}</span>
-        <h2 class="mt-1 truncate text-lg font-bold text-dark-900 dark:text-dark-50">{item.title || 'Content item'}</h2>
+        <h2 class="mt-1 truncate text-xl font-bold text-dark-900 dark:text-dark-50">{item.title || 'Content item'}</h2>
       </div>
-      <button type="button" onclick={() => { if (!busy) onClose(); }} disabled={busy} class="shrink-0 text-2xl leading-none text-dark-900/50 dark:text-dark-100/50 hover:text-dark-900 dark:hover:text-dark-50 disabled:opacity-30">&times;</button>
+      <button type="button" onclick={() => { if (!busy) onClose(); }} disabled={busy} class="shrink-0 text-3xl leading-none text-dark-900/50 dark:text-dark-100/50 hover:text-dark-900 dark:hover:text-dark-50 disabled:opacity-30">&times;</button>
     </div>
 
-    <div class="space-y-5 p-5">
-      {#if error}
-        <div class="rounded-lg border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/40 p-3 text-sm text-red-700 dark:text-red-300">{error}</div>
-      {/if}
-      {#if notice}
-        <div class="rounded-lg border border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-950/40 p-3 text-sm text-green-700 dark:text-green-300">{notice}</div>
-      {/if}
-
-      <div>
-        {#if assetUrl(item)}
-          <img src={assetUrl(item)} alt={item.title} class="w-full aspect-video rounded-lg object-cover bg-dark-100 dark:bg-dark-700" />
-        {:else}
-          <div class="flex aspect-video w-full items-center justify-center rounded-lg bg-dark-50 dark:bg-dark-800 text-sm text-dark-900/40 dark:text-dark-100/40">
-            ยังไม่มี creative
-          </div>
+    <div class="flex-1 overflow-y-auto">
+      <div class="mx-auto max-w-5xl space-y-5 p-6">
+        {#if error}
+          <div class="rounded-lg border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/40 p-3 text-sm text-red-700 dark:text-red-300">{error}</div>
         {/if}
-        <button type="button" onclick={openStudio} disabled={busy} class="btn-secondary mt-2 w-full">
-          {isActionBusy === 'studio' ? 'กำลังเปิด...' : item.primary_asset_id ? '🎨 เปลี่ยน Creative' : '🎨 สร้าง Creative'}
-        </button>
-      </div>
+        {#if notice}
+          <div class="rounded-lg border border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-950/40 p-3 text-sm text-green-700 dark:text-green-300">{notice}</div>
+        {/if}
 
-      <div class="space-y-3">
-        <div>
-          <label class="mb-1 block text-sm font-medium text-dark-700 dark:text-dark-200" for="title">หัวข้อ</label>
-          <input id="title" bind:value={title} class="input" />
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="mb-1 block text-sm font-medium text-dark-700 dark:text-dark-200" for="platform">Platform</label>
-            <input id="platform" bind:value={platform} class="input" />
-          </div>
-          <div>
-            <label class="mb-1 block text-sm font-medium text-dark-700 dark:text-dark-200" for="format">Format</label>
-            <input id="format" bind:value={format} class="input" />
-          </div>
-        </div>
-        <div>
-          <label class="mb-1 block text-sm font-medium text-dark-700 dark:text-dark-200" for="pillar">Pillar</label>
-          <input id="pillar" bind:value={pillar} class="input" />
-        </div>
-        <div>
-          <label class="mb-1 block text-sm font-medium text-dark-700 dark:text-dark-200" for="hook">Hook</label>
-          <textarea id="hook" bind:value={hook} rows="2" class="input"></textarea>
-        </div>
-        <div>
-          <label class="mb-1 block text-sm font-medium text-dark-700 dark:text-dark-200" for="caption">Caption</label>
-          <textarea id="caption" bind:value={caption} rows="4" class="input"></textarea>
-        </div>
-        <div>
-          <label class="mb-1 block text-sm font-medium text-dark-700 dark:text-dark-200" for="cta">CTA</label>
-          <input id="cta" bind:value={cta} class="input" />
-        </div>
-        <div>
-          <label class="mb-1 block text-sm font-medium text-dark-700 dark:text-dark-200" for="hashtags">Hashtags (คั่นด้วยจุลภาค)</label>
-          <input id="hashtags" bind:value={hashtagsText} class="input" placeholder="#promo, #newlaunch" />
-        </div>
-        <div>
-          <label class="mb-1 block text-sm font-medium text-dark-700 dark:text-dark-200" for="visual">Visual suggestion</label>
-          <textarea id="visual" bind:value={visualSuggestion} rows="2" class="input"></textarea>
-        </div>
-        <div>
-          <label class="mb-1 block text-sm font-medium text-dark-700 dark:text-dark-200" for="engagement">Expected engagement</label>
-          <input id="engagement" bind:value={expectedEngagement} class="input" />
-        </div>
-      </div>
-
-      <button type="button" onclick={handleSave} disabled={busy} class="btn-primary w-full">
-        {isSaving ? 'กำลังบันทึก...' : '💾 บันทึกเนื้อหา'}
-      </button>
-
-      <div class="border-t border-dark-100 dark:border-dark-700 pt-4">
-        <div class="mb-2 text-sm font-semibold text-dark-900 dark:text-dark-50">สถานะ</div>
-        <div class="flex flex-wrap gap-2">
-          {#if ['draft', 'pending_review', 'rejected'].includes(item.status)}
-            <button type="button" onclick={() => runTransition('approve')} disabled={busy} class="btn-primary">
-              {isActionBusy === 'approve' ? '...' : 'Approve'}
+        <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
+          <div class="space-y-3">
+            {#if assetUrl(item)}
+              <img src={assetUrl(item)} alt={item.title} class="w-full aspect-video rounded-lg object-cover bg-dark-100 dark:bg-dark-700" />
+            {:else}
+              <div class="flex aspect-video w-full items-center justify-center rounded-lg bg-dark-50 dark:bg-dark-800 text-sm text-dark-900/40 dark:text-dark-100/40">
+                ยังไม่มี creative
+              </div>
+            {/if}
+            <button type="button" onclick={openStudio} disabled={busy} class="btn-secondary w-full">
+              {isActionBusy === 'studio' ? 'กำลังเปิด...' : item.primary_asset_id ? '🎨 เปลี่ยน Creative' : '🎨 สร้าง Creative'}
             </button>
-          {/if}
-          {#if ['pending_review', 'approved'].includes(item.status)}
-            <button type="button" onclick={handleReject} disabled={busy} class="btn-ghost">Reject</button>
-          {/if}
-          {#if item.status === 'approved'}
-            <button type="button" onclick={() => (showScheduleInput = !showScheduleInput)} disabled={busy} class="btn-secondary">Schedule</button>
-            <button type="button" onclick={handleMarkPublished} disabled={busy} class="btn-secondary">Mark Published</button>
-          {/if}
-          {#if item.status === 'scheduled'}
-            <button type="button" onclick={() => (showScheduleInput = !showScheduleInput)} disabled={busy} class="btn-secondary">เปลี่ยนวัน</button>
-            <button type="button" onclick={() => runTransition('unschedule')} disabled={busy} class="btn-ghost">Unschedule</button>
-            <button type="button" onclick={handleMarkPublished} disabled={busy} class="btn-secondary">Mark Published</button>
-          {/if}
-          {#if ['pending_review', 'approved', 'scheduled', 'rejected'].includes(item.status)}
-            <button type="button" onclick={() => runTransition('revert_to_draft')} disabled={busy} class="btn-ghost">↩ ดึงกลับเป็น Draft</button>
-          {/if}
-          {#if !['published', 'archived'].includes(item.status)}
-            <button type="button" onclick={() => runTransition('archive')} disabled={busy} class="btn-ghost">Archive</button>
-          {/if}
-        </div>
-
-        {#if showScheduleInput}
-          <div class="mt-3 flex items-end gap-2 rounded-lg border border-dark-100 dark:border-dark-700 p-3">
-            <div class="flex-1">
-              <label class="mb-1 block text-xs font-medium text-dark-700 dark:text-dark-200" for="schedule-at">วันเวลาโพสต์</label>
-              <input id="schedule-at" type="datetime-local" bind:value={scheduleValue} class="input" />
-            </div>
-            <button type="button" onclick={confirmSchedule} disabled={busy} class="btn-primary">ยืนยัน</button>
           </div>
-        {/if}
+
+          <div class="space-y-5">
+            <div class="space-y-3">
+              <div>
+                <label class="mb-1 block text-sm font-medium text-dark-700 dark:text-dark-200" for="title">หัวข้อ</label>
+                <input id="title" bind:value={title} class="input" />
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="mb-1 block text-sm font-medium text-dark-700 dark:text-dark-200" for="platform">Platform</label>
+                  <input id="platform" bind:value={platform} class="input" />
+                </div>
+                <div>
+                  <label class="mb-1 block text-sm font-medium text-dark-700 dark:text-dark-200" for="format">Format</label>
+                  <input id="format" bind:value={format} class="input" />
+                </div>
+              </div>
+              <div>
+                <label class="mb-1 block text-sm font-medium text-dark-700 dark:text-dark-200" for="pillar">Pillar</label>
+                <input id="pillar" bind:value={pillar} class="input" />
+              </div>
+              <div>
+                <label class="mb-1 block text-sm font-medium text-dark-700 dark:text-dark-200" for="hook">Hook</label>
+                <textarea id="hook" bind:value={hook} rows="2" class="input"></textarea>
+              </div>
+              <div>
+                <label class="mb-1 block text-sm font-medium text-dark-700 dark:text-dark-200" for="caption">Caption</label>
+                <textarea id="caption" bind:value={caption} rows="4" class="input"></textarea>
+              </div>
+              <div>
+                <label class="mb-1 block text-sm font-medium text-dark-700 dark:text-dark-200" for="cta">CTA</label>
+                <input id="cta" bind:value={cta} class="input" />
+              </div>
+              <div>
+                <label class="mb-1 block text-sm font-medium text-dark-700 dark:text-dark-200" for="hashtags">Hashtags (คั่นด้วยจุลภาค)</label>
+                <input id="hashtags" bind:value={hashtagsText} class="input" placeholder="#promo, #newlaunch" />
+              </div>
+              <div>
+                <label class="mb-1 block text-sm font-medium text-dark-700 dark:text-dark-200" for="visual">Visual suggestion</label>
+                <textarea id="visual" bind:value={visualSuggestion} rows="2" class="input"></textarea>
+              </div>
+              <div>
+                <label class="mb-1 block text-sm font-medium text-dark-700 dark:text-dark-200" for="engagement">Expected engagement</label>
+                <input id="engagement" bind:value={expectedEngagement} class="input" />
+              </div>
+            </div>
+
+            <button type="button" onclick={handleSave} disabled={busy} class="btn-primary w-full">
+              {isSaving ? 'กำลังบันทึก...' : '💾 บันทึกเนื้อหา'}
+            </button>
+
+            <div class="border-t border-dark-100 dark:border-dark-700 pt-4">
+              <div class="mb-2 text-sm font-semibold text-dark-900 dark:text-dark-50">สถานะ</div>
+              <div class="flex flex-wrap gap-2">
+                {#if ['draft', 'pending_review', 'rejected'].includes(item.status)}
+                  <button type="button" onclick={() => runTransition('approve')} disabled={busy} class="btn-primary">
+                    {isActionBusy === 'approve' ? '...' : 'Approve'}
+                  </button>
+                {/if}
+                {#if ['pending_review', 'approved'].includes(item.status)}
+                  <button type="button" onclick={handleReject} disabled={busy} class="btn-ghost">Reject</button>
+                {/if}
+                {#if item.status === 'approved'}
+                  <button type="button" onclick={() => (showScheduleInput = !showScheduleInput)} disabled={busy} class="btn-secondary">Schedule</button>
+                  <button type="button" onclick={handleMarkPublished} disabled={busy} class="btn-secondary">Mark Published</button>
+                {/if}
+                {#if item.status === 'scheduled'}
+                  <button type="button" onclick={() => (showScheduleInput = !showScheduleInput)} disabled={busy} class="btn-secondary">เปลี่ยนวัน</button>
+                  <button type="button" onclick={() => runTransition('unschedule')} disabled={busy} class="btn-ghost">Unschedule</button>
+                  <button type="button" onclick={handleMarkPublished} disabled={busy} class="btn-secondary">Mark Published</button>
+                {/if}
+                {#if ['pending_review', 'approved', 'scheduled', 'rejected'].includes(item.status)}
+                  <button type="button" onclick={() => runTransition('revert_to_draft')} disabled={busy} class="btn-ghost">↩ ดึงกลับเป็น Draft</button>
+                {/if}
+                {#if !['published', 'archived'].includes(item.status)}
+                  <button type="button" onclick={() => runTransition('archive')} disabled={busy} class="btn-ghost">Archive</button>
+                {/if}
+              </div>
+
+              {#if showScheduleInput}
+                <div class="mt-3 flex items-end gap-2 rounded-lg border border-dark-100 dark:border-dark-700 p-3">
+                  <div class="flex-1">
+                    <label class="mb-1 block text-xs font-medium text-dark-700 dark:text-dark-200" for="schedule-at">วันเวลาโพสต์</label>
+                    <input id="schedule-at" type="datetime-local" bind:value={scheduleValue} class="input" />
+                  </div>
+                  <button type="button" onclick={confirmSchedule} disabled={busy} class="btn-primary">ยืนยัน</button>
+                </div>
+              {/if}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-  </aside>
+  </div>
 {/if}
