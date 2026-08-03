@@ -14,6 +14,12 @@ contentRoutes.get('/api/content-items', async (c) => {
   const user = getUser(c)!;
   const status = c.req.query('status') || '';
   const projectId = c.req.query('project_id') || '';
+  // scheduled_from/scheduled_to (ms epoch, inclusive/exclusive) let the
+  // content calendar ask for exactly one visible month at a time instead of
+  // relying on the 100-row cap, which would silently drop items once a user
+  // has more than 100 scheduled items in their history.
+  const scheduledFrom = Number(c.req.query('scheduled_from') || 0);
+  const scheduledTo = Number(c.req.query('scheduled_to') || 0);
   const limit = Math.max(1, Math.min(100, Number(c.req.query('limit') || 50)));
   const conditions = ['ci.user_id = ?'];
   const values: unknown[] = [user.id];
@@ -24,6 +30,14 @@ contentRoutes.get('/api/content-items', async (c) => {
   if (projectId) {
     conditions.push('ci.project_id = ?');
     values.push(projectId);
+  }
+  if (Number.isFinite(scheduledFrom) && scheduledFrom > 0) {
+    conditions.push('ci.scheduled_at >= ?');
+    values.push(scheduledFrom);
+  }
+  if (Number.isFinite(scheduledTo) && scheduledTo > 0) {
+    conditions.push('ci.scheduled_at < ?');
+    values.push(scheduledTo);
   }
   values.push(limit);
 
@@ -42,6 +56,29 @@ contentRoutes.get('/api/content-items', async (c) => {
   `).bind(...values).all<any>();
 
   return c.json({ items: (rows.results || []).map(serializeContentItem) });
+});
+
+// Single-item lookup, ownership-scoped. Needed because a "focus" deep link
+// (e.g. Works' "ส่งไป Calendar" button linking to /calendar?focus=<id>) can
+// point at an item scheduled outside whatever month-range the calendar's
+// list query currently covers, so the calendar can't rely on finding it in
+// an already-fetched list the way /works and /inbox do.
+contentRoutes.get('/api/content-items/:id', async (c) => {
+  const user = getUser(c)!;
+  const id = c.req.param('id');
+  const row = await c.env.DB.prepare(`
+    SELECT ci.*, p.name as project_name,
+      (
+        SELECT al.asset_id FROM asset_links al
+        WHERE al.content_item_id = ci.id AND al.is_primary = 1
+        ORDER BY al.version DESC LIMIT 1
+      ) as primary_asset_id
+    FROM content_items ci
+    LEFT JOIN projects p ON p.id = ci.project_id
+    WHERE ci.id = ? AND ci.user_id = ?
+  `).bind(id, user.id).first<any>();
+  if (!row) return c.json({ error: 'content_item_not_found' }, 404);
+  return c.json({ item: serializeContentItem(row) });
 });
 
 contentRoutes.post('/api/projects/:id/content-items/materialize-step5', async (c) => {

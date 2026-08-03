@@ -504,7 +504,13 @@ export function getMediaAssetContentUrl(assetId: string): string {
 // Creative Content Workspace API
 // =====================================================
 
-export async function listContentItems(opts: { status?: string; project_id?: string; limit?: number } = {}): Promise<ContentItem[]> {
+export async function listContentItems(opts: {
+  status?: string;
+  project_id?: string;
+  limit?: number;
+  scheduled_from?: number;
+  scheduled_to?: number;
+} = {}): Promise<ContentItem[]> {
   const params = new URLSearchParams();
   Object.entries(opts).forEach(([key, value]) => {
     if (value !== undefined && value !== null && value !== '') params.set(key, String(value));
@@ -512,6 +518,11 @@ export async function listContentItems(opts: { status?: string; project_id?: str
   const qs = params.toString();
   const res = await fetchAPI<{ items: ContentItem[] }>(`/api/content-items${qs ? `?${qs}` : ''}`);
   return res.items;
+}
+
+export async function getContentItem(id: string): Promise<ContentItem> {
+  const res = await fetchAPI<{ item: ContentItem }>(`/api/content-items/${id}`);
+  return res.item;
 }
 
 export async function materializeStep5ContentItems(projectId: string): Promise<{ materialized: number; items: ContentItem[] }> {

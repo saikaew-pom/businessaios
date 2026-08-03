@@ -11,6 +11,7 @@
   } from '$lib/api';
   import { initAuth, isAuthed } from '$lib/auth';
   import { fetchConfig } from '$lib/config';
+  import ContentItemDrawer from '$lib/ContentItemDrawer.svelte';
 
   const statuses = [
     { value: '', label: 'ทั้งหมด' },
@@ -29,6 +30,7 @@
   let error = '';
   let notice = '';
   let actionBusy = '';
+  let selectedItem: ContentItem | null = null;
 
   $: filteredItems = items.filter((item) => {
     const haystack = `${item.title} ${item.caption} ${item.platform} ${item.format} ${item.project_name || ''}`.toLowerCase();
@@ -50,7 +52,11 @@
       await loadItems();
       await tick();
       const focus = $page.url.searchParams.get('focus');
-      if (focus) document.getElementById(`work-${focus}`)?.scrollIntoView({ block: 'center' });
+      if (focus) {
+        const focused = items.find((item) => item.id === focus);
+        if (focused) selectedItem = focused;
+        else document.getElementById(`work-${focus}`)?.scrollIntoView({ block: 'center' });
+      }
     } catch (err) {
       error = humanizeError(err);
     } finally {
@@ -71,6 +77,28 @@
       error = humanizeError(err);
     } finally {
       isLoading = false;
+    }
+  }
+
+  function openItem(item: ContentItem) {
+    selectedItem = item;
+  }
+
+  async function handleDrawerUpdated(updated: ContentItem) {
+    // Show the freshest copy in the still-open drawer immediately, then
+    // refetch the list — a status transition can move the item out of the
+    // current filter (e.g. approving while filtered to "รอรีวิว"), and only
+    // a real refetch (not a local splice) reflects that correctly.
+    selectedItem = updated;
+    try {
+      await loadItems();
+      selectedItem = items.find((existing) => existing.id === updated.id) || null;
+    } catch (err) {
+      // The transition/save itself already succeeded — only the background
+      // refetch failed. Report it on the page (same pattern as the other
+      // handlers below) rather than letting it surface inside the drawer as
+      // a false "action failed", since the drawer now awaits this call.
+      error = humanizeError(err);
     }
   }
 
@@ -171,6 +199,7 @@
       </div>
       <div class="flex gap-2">
         <a href="/inbox" class="btn-secondary">Inbox</a>
+        <a href="/calendar" class="btn-secondary">Calendar</a>
         <a href="/studio/library" class="btn-primary">Asset Library</a>
       </div>
     </div>
@@ -221,9 +250,10 @@
                   <span>{item.format || 'post'}</span>
                   {#if item.scheduled_at}<span>โพสต์ {formatDate(item.scheduled_at)}</span>{/if}
                 </div>
-                <h2 class="mt-2 text-lg font-bold text-dark-900 dark:text-dark-50">{item.title}</h2>
+                <button type="button" onclick={() => openItem(item)} class="mt-2 block text-left text-lg font-bold text-dark-900 dark:text-dark-50 hover:underline">{item.title}</button>
                 <p class="mt-2 line-clamp-3 text-sm text-dark-900/70 dark:text-dark-100/70">{item.caption || item.visual_suggestion || '-'}</p>
                 <div class="mt-4 flex flex-wrap gap-2">
+                  <button onclick={() => openItem(item)} class="btn-secondary">แก้ไข</button>
                   {#if !['approved', 'scheduled', 'published'].includes(item.status)}
                     <button onclick={() => approve(item)} disabled={!!actionBusy} class="btn-primary">
                       {actionBusy === `approve:${item.id}` ? 'กำลังอนุมัติ...' : 'Approve'}
@@ -233,6 +263,7 @@
                     {actionBusy === `studio:${item.id}` ? 'กำลังเปิด...' : 'Create Creative'}
                   </button>
                   {#if ['approved', 'scheduled'].includes(item.status)}
+                    <a href={`/calendar?focus=${item.id}`} class="btn-secondary">📅 Calendar</a>
                     <button onclick={() => markPublished(item)} disabled={!!actionBusy} class="btn-secondary">Mark Published</button>
                   {/if}
                 </div>
@@ -244,3 +275,5 @@
     {/if}
   </main>
 </div>
+
+<ContentItemDrawer item={selectedItem} onClose={() => (selectedItem = null)} onUpdated={handleDrawerUpdated} />

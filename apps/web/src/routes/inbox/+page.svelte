@@ -9,6 +9,7 @@
   } from '$lib/api';
   import { initAuth, isAuthed } from '$lib/auth';
   import { fetchConfig } from '$lib/config';
+  import ContentItemDrawer from '$lib/ContentItemDrawer.svelte';
 
   const statusOptions = [
     { value: 'pending_review', label: 'รอรีวิว' },
@@ -24,6 +25,7 @@
   let items: ContentItem[] = [];
   let statusFilter = 'pending_review';
   let actionBusy = '';
+  let selectedItem: ContentItem | null = null;
 
   onMount(async () => {
     await initAuth();
@@ -57,6 +59,26 @@
       error = humanizeError(err);
     } finally {
       isLoading = false;
+    }
+  }
+
+  function openItem(item: ContentItem) {
+    selectedItem = item;
+  }
+
+  async function handleDrawerUpdated(updated: ContentItem) {
+    // Show the freshest copy immediately, then refetch since a transition
+    // can move the item out of the current status filter.
+    selectedItem = updated;
+    try {
+      await loadItems();
+      selectedItem = items.find((existing) => existing.id === updated.id) || null;
+    } catch (err) {
+      // The transition/save itself already succeeded — only the background
+      // refetch failed. Report it on the page rather than letting it surface
+      // inside the drawer as a false "action failed" (the drawer now awaits
+      // this call so its busy state covers the refetch too).
+      error = humanizeError(err);
     }
   }
 
@@ -183,6 +205,7 @@
       </div>
       <div class="flex gap-2">
         <a href="/works" class="btn-secondary">Works</a>
+        <a href="/calendar" class="btn-secondary">Calendar</a>
         <a href="/studio" class="btn-primary">Studio</a>
       </div>
     </div>
@@ -231,7 +254,7 @@
                     <span>{item.format || 'post'}</span>
                     <span>{item.project_name || 'No project'}</span>
                   </div>
-                  <h2 class="mt-2 text-lg font-bold text-dark-900 dark:text-dark-50">{item.title}</h2>
+                  <button type="button" onclick={() => openItem(item)} class="mt-2 block text-left text-lg font-bold text-dark-900 dark:text-dark-50 hover:underline">{item.title}</button>
                   {#if item.caption}
                     <p class="mt-2 text-sm text-dark-900/70 dark:text-dark-100/70 whitespace-pre-line">{item.caption}</p>
                   {/if}
@@ -250,6 +273,7 @@
               </div>
 
               <div class="mt-4 flex flex-wrap gap-2">
+                <button onclick={() => openItem(item)} class="btn-secondary">แก้ไข</button>
                 {#if item.status !== 'approved'}
                   <button onclick={() => transition(item, 'approve')} disabled={!!actionBusy} class="btn-primary">
                     {actionBusy === `approve:${item.id}` ? 'กำลังอนุมัติ...' : 'Approve'}
@@ -274,3 +298,5 @@
     {/if}
   </main>
 </div>
+
+<ContentItemDrawer item={selectedItem} onClose={() => (selectedItem = null)} onUpdated={handleDrawerUpdated} />

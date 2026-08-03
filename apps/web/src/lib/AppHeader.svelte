@@ -41,6 +41,7 @@
         <a href="/studio" class="shrink-0 text-sm text-dark-900/70 dark:text-dark-100/70 hover:text-dark-900 dark:hover:text-dark-50 font-semibold">🎨 Studio</a>
         <a href="/inbox" class="shrink-0 text-sm text-dark-900/70 dark:text-dark-100/70 hover:text-dark-900 dark:hover:text-dark-50 font-semibold">Inbox</a>
         <a href="/works" class="shrink-0 text-sm text-dark-900/70 dark:text-dark-100/70 hover:text-dark-900 dark:hover:text-dark-50 font-semibold">Works</a>
+        <a href="/calendar" class="shrink-0 text-sm text-dark-900/70 dark:text-dark-100/70 hover:text-dark-900 dark:hover:text-dark-50 font-semibold">Calendar</a>
         <a href="/billing" class="shrink-0 text-sm text-dark-900/70 dark:text-dark-100/70 hover:text-dark-900 dark:hover:text-dark-50 font-semibold">💰 เติมเงิน</a>
         <a href="/profile" class="shrink-0 text-sm text-dark-900/70 dark:text-dark-100/70 hover:text-dark-900 dark:hover:text-dark-50">โปรไฟล์</a>
         <a href="/tools/saved" class="shrink-0 text-sm text-dark-900/70 dark:text-dark-100/70 hover:text-dark-900 dark:hover:text-dark-50">📂 บันทึก</a>

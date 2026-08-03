@@ -282,6 +282,116 @@ describe('Content item — PATCH edit', () => {
   });
 });
 
+describe('Content item — single-item GET (calendar focus deep link)', () => {
+  let ctx: ReturnType<typeof makeEnv>;
+  beforeEach(() => { ctx = makeEnv(); });
+
+  function getItem(id: string, session = 'session-u1') {
+    return app.request(`/api/content-items/${id}`, { headers: H(session) }, ctx.env);
+  }
+
+  it('returns the item by id', async () => {
+    const id = seedItem(ctx.db, { title: 'Focused item' });
+    const res = await getItem(id);
+    expect(res.status).toBe(200);
+    const body = await res.json() as any;
+    expect(body.item.id).toBe(id);
+    expect(body.item.title).toBe('Focused item');
+  });
+
+  it('includes the primary asset id, same as the list endpoint', async () => {
+    const id = seedItem(ctx.db, { status: 'approved' });
+    const assetId = seedAsset(ctx.db);
+    const now = Date.now();
+    ctx.db.prepare(`
+      INSERT INTO asset_links (id, user_id, project_id, content_item_id, creative_request_id, generation_id, asset_id, link_role, is_primary, version, metadata_json, created_at, updated_at)
+      VALUES ('link1', 'u1', NULL, ?, NULL, NULL, ?, 'primary', 1, 1, '{}', ?, ?)
+    `).run(id, assetId, now, now);
+    const body = await (await getItem(id)).json() as any;
+    expect(body.item.primary_asset_id).toBe(assetId);
+  });
+
+  it('404s for a nonexistent item', async () => {
+    const res = await getItem('ci_does_not_exist');
+    expect(res.status).toBe(404);
+  });
+
+  it('does not let a different user fetch someone else\'s item', async () => {
+    const id = seedItem(ctx.db);
+    const res = await getItem(id, 'session-u2');
+    expect(res.status).toBe(404);
+  });
+
+  it('rejects a call with no auth header at all', async () => {
+    const id = seedItem(ctx.db);
+    const res = await app.request(`/api/content-items/${id}`, {}, ctx.env);
+    expect(res.status).toBe(401);
+  });
+
+  it('is unreachable when the embedded feature flag is off (route matches /api/content-items/* middleware, not just the exact list path)', async () => {
+    const id = seedItem(ctx.db);
+    const res = await getItem(id);
+    // sanity check the flag is on by default in this suite
+    expect(res.status).toBe(200);
+    const disabled = await app.request(`/api/content-items/${id}`, { headers: H() }, { ...ctx.env, CREATIVE_EMBEDDED_ENABLED: 'false' });
+    expect(disabled.status).toBe(404);
+    expect(await disabled.json()).toMatchObject({ error: 'feature_disabled' });
+  });
+
+  it('does not 500 on a malformed/adversarial id — 404s instead', async () => {
+    for (const badId of ["'; DROP TABLE content_items; --", 'a'.repeat(5000), '..%2F..%2Fetc%2Fpasswd']) {
+      const res = await app.request(`/api/content-items/${encodeURIComponent(badId)}`, { headers: H() }, ctx.env);
+      expect(res.status).toBe(404);
+    }
+  });
+});
+
+describe('Content item — list filtered by scheduled_from/scheduled_to (calendar month range)', () => {
+  let ctx: ReturnType<typeof makeEnv>;
+  beforeEach(() => { ctx = makeEnv(); });
+
+  function list(query: string, session = 'session-u1') {
+    return app.request(`/api/content-items?${query}`, { headers: H(session) }, ctx.env);
+  }
+
+  it('only returns items whose scheduled_at falls within the given range', async () => {
+    const monthStart = Date.parse('2026-08-01T00:00:00Z');
+    const monthEnd = Date.parse('2026-09-01T00:00:00Z');
+    const inRange = seedItem(ctx.db, { status: 'scheduled', scheduled_at: Date.parse('2026-08-15T09:00:00Z') });
+    const beforeRange = seedItem(ctx.db, { status: 'scheduled', scheduled_at: Date.parse('2026-07-30T09:00:00Z') });
+    const afterRange = seedItem(ctx.db, { status: 'scheduled', scheduled_at: Date.parse('2026-09-02T09:00:00Z') });
+    const res = await list(`status=scheduled&scheduled_from=${monthStart}&scheduled_to=${monthEnd}`);
+    const body = await res.json() as any;
+    const ids = body.items.map((i: any) => i.id);
+    expect(ids).toContain(inRange);
+    expect(ids).not.toContain(beforeRange);
+    expect(ids).not.toContain(afterRange);
+  });
+
+  it('does not filter by schedule range when the params are omitted', async () => {
+    const id = seedItem(ctx.db, { status: 'approved', scheduled_at: null });
+    const body = await (await list('status=approved')).json() as any;
+    expect(body.items.map((i: any) => i.id)).toContain(id);
+  });
+
+  it('scheduled_from is inclusive and scheduled_to is exclusive at the exact boundary', async () => {
+    // The calendar queries [gridStart, gridEnd) — a 42-cell window — so an
+    // item landing exactly on the first visible instant must be included,
+    // and one landing exactly on the instant just past the last visible
+    // cell (the start of the following, not-shown, day) must be excluded.
+    const from = Date.parse('2026-08-01T00:00:00Z');
+    const to = Date.parse('2026-09-01T00:00:00Z');
+    const atFrom = seedItem(ctx.db, { status: 'scheduled', scheduled_at: from });
+    const atTo = seedItem(ctx.db, { status: 'scheduled', scheduled_at: to });
+    const justBeforeTo = seedItem(ctx.db, { status: 'scheduled', scheduled_at: to - 1 });
+    const body = await (await list(`status=scheduled&scheduled_from=${from}&scheduled_to=${to}`)).json() as any;
+    const ids = body.items.map((i: any) => i.id);
+    expect(ids).toContain(atFrom); // inclusive lower bound
+    expect(ids).toContain(justBeforeTo); // last included instant
+    expect(ids).not.toContain(atTo); // exclusive upper bound
+  });
+});
+
 describe('Creative request — fulfill (Studio → content item link)', () => {
   let ctx: ReturnType<typeof makeEnv>;
   beforeEach(() => { ctx = makeEnv(); });
