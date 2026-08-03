@@ -8,6 +8,7 @@ const contentRoutes = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 contentRoutes.use('/api/content-items', requireAuth, requireEmbeddedFeature);
 contentRoutes.use('/api/content-items/*', requireAuth, requireEmbeddedFeature);
 contentRoutes.use('/api/projects/:id/content-items/*', requireAuth, requireEmbeddedFeature);
+contentRoutes.use('/api/creative-requests/*', requireAuth, requireEmbeddedFeature);
 
 contentRoutes.get('/api/content-items', async (c) => {
   const user = getUser(c)!;
@@ -264,35 +265,88 @@ contentRoutes.post('/api/content-items/:id/assets', async (c) => {
   const item = await getContentItem(c.env, user.id, id);
   if (!item) return c.json({ error: 'content_item_not_found' }, 404);
   if (!body.asset_id) return c.json({ error: 'asset_id_required' }, 400);
-  const asset = await c.env.DB.prepare('SELECT id, generation_id FROM media_assets WHERE id = ? AND user_id = ? AND lifecycle_status = "active"')
+  const asset = await c.env.DB.prepare("SELECT id, generation_id FROM media_assets WHERE id = ? AND user_id = ? AND lifecycle_status = 'active'")
     .bind(body.asset_id, user.id).first<{ id: string; generation_id: string | null }>();
   if (!asset) return c.json({ error: 'asset_not_found' }, 404);
-  const now = Date.now();
-  if (body.is_primary !== false) {
-    await c.env.DB.prepare('UPDATE asset_links SET is_primary = 0, updated_at = ? WHERE content_item_id = ? AND user_id = ?')
-      .bind(now, id, user.id).run();
-  }
-  const linkId = generateId();
-  await c.env.DB.prepare(`
-    INSERT INTO asset_links (
-      id, user_id, project_id, content_item_id, generation_id, asset_id,
-      link_role, is_primary, metadata_json, created_at, updated_at
-    )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, '{}', ?, ?)
-  `).bind(
-    linkId,
-    user.id,
-    item.project_id,
-    id,
-    asset.generation_id,
-    body.asset_id,
-    body.link_role || 'primary',
-    body.is_primary === false ? 0 : 1,
-    now,
-    now,
-  ).run();
+  const linkId = await attachAssetToContentItem(c.env, {
+    userId: user.id,
+    projectId: item.project_id,
+    contentItemId: id,
+    assetId: body.asset_id,
+    generationId: asset.generation_id,
+    linkRole: body.link_role || 'primary',
+    isPrimary: body.is_primary !== false,
+  });
   await logContentEvent(c.env, user.id, item.project_id, id, user.id, 'asset_attached', item.status, item.status, null, { asset_id: body.asset_id });
   return c.json({ ok: true, link_id: linkId });
+});
+
+// Fulfill a creative request: link the just-generated asset back to the
+// content item that requested it, and mark the request completed. This is the
+// connective tissue between Creative Studio and the Works pipeline — a request
+// is created when the user clicks "Create Creative" on a content item, then
+// Studio calls this once its generation lands so the asset shows up on the
+// content card. Keyed by the request (not the content item) so Studio only has
+// to remember the one id it was handed.
+contentRoutes.post('/api/creative-requests/:id/fulfill', async (c) => {
+  const user = getUser(c)!;
+  const requestId = c.req.param('id');
+  const body = await c.req.json<{ asset_id?: string }>().catch(() => ({} as { asset_id?: string }));
+  if (!body.asset_id) return c.json({ error: 'asset_id_required' }, 400);
+
+  const request = await c.env.DB.prepare('SELECT * FROM creative_requests WHERE id = ? AND user_id = ?')
+    .bind(requestId, user.id).first<any>();
+  if (!request) return c.json({ error: 'creative_request_not_found' }, 404);
+  if (!request.content_item_id) return c.json({ error: 'request_has_no_content_item' }, 400);
+
+  const item = await getContentItem(c.env, user.id, request.content_item_id);
+  if (!item) return c.json({ error: 'content_item_not_found' }, 404);
+
+  // Idempotency guard: a request can be fulfilled twice in practice — e.g. two
+  // overlapping Studio poll ticks (the pending flag only clears after the
+  // first call's promise resolves) or two browser tabs racing on the same
+  // generation. Once completed, replaying the call must not insert another
+  // asset_link or bump the version again; return the existing link instead of
+  // silently duplicating it.
+  if (request.status === 'completed') {
+    const existingLink = await c.env.DB.prepare(`
+      SELECT id FROM asset_links WHERE creative_request_id = ? AND user_id = ?
+      ORDER BY version DESC LIMIT 1
+    `).bind(requestId, user.id).first<{ id: string }>();
+    return c.json({
+      ok: true,
+      link_id: existingLink?.id || null,
+      content_item: serializeContentItem(item),
+      return_route: request.return_route || `/works?focus=${item.id}`,
+    });
+  }
+
+  const asset = await c.env.DB.prepare("SELECT id, generation_id FROM media_assets WHERE id = ? AND user_id = ? AND lifecycle_status = 'active'")
+    .bind(body.asset_id, user.id).first<{ id: string; generation_id: string | null }>();
+  if (!asset) return c.json({ error: 'asset_not_found' }, 404);
+
+  const now = Date.now();
+  const linkId = await attachAssetToContentItem(c.env, {
+    userId: user.id,
+    projectId: item.project_id,
+    contentItemId: item.id,
+    assetId: body.asset_id,
+    generationId: asset.generation_id,
+    creativeRequestId: requestId,
+    linkRole: 'primary',
+    isPrimary: true,
+  });
+  await c.env.DB.prepare('UPDATE creative_requests SET status = ?, generation_id = ?, updated_at = ? WHERE id = ? AND user_id = ?')
+    .bind('completed', asset.generation_id, now, requestId, user.id).run();
+  await logContentEvent(c.env, user.id, item.project_id, item.id, user.id, 'creative_fulfilled', item.status, item.status, null, {
+    creative_request_id: requestId, asset_id: body.asset_id,
+  });
+  return c.json({
+    ok: true,
+    link_id: linkId,
+    content_item: serializeContentItem((await getContentItem(c.env, user.id, item.id))!),
+    return_route: request.return_route || `/works?focus=${item.id}`,
+  });
 });
 
 contentRoutes.post('/api/content-items/:id/creative-requests', async (c) => {
@@ -341,6 +395,54 @@ async function requireEmbeddedFeature(c: any, next: any) {
 function extractCalendar(stepData: any): any[] {
   const output = stepData?.step5?.output || stepData?.step5;
   return Array.isArray(output?.calendar) ? output.calendar : [];
+}
+
+/**
+ * Link an asset to a content item, demoting the current primary (if any) and
+ * bumping `version` so the newest attach always sorts first — both
+ * `/assets` (manual attach) and `/creative-requests/:id/fulfill` (Studio
+ * auto-attach on generation completion) go through this so "swap the
+ * creative and save" behaves the same regardless of which path created it.
+ */
+async function attachAssetToContentItem(env: Pick<Bindings, 'DB'>, args: {
+  userId: string;
+  projectId: string | null;
+  contentItemId: string;
+  assetId: string;
+  generationId: string | null;
+  creativeRequestId?: string;
+  linkRole: string;
+  isPrimary: boolean;
+}) {
+  const now = Date.now();
+  if (args.isPrimary) {
+    await env.DB.prepare('UPDATE asset_links SET is_primary = 0, updated_at = ? WHERE content_item_id = ? AND user_id = ?')
+      .bind(now, args.contentItemId, args.userId).run();
+  }
+  const maxVersion = await env.DB.prepare('SELECT COALESCE(MAX(version), 0) as v FROM asset_links WHERE content_item_id = ? AND user_id = ?')
+    .bind(args.contentItemId, args.userId).first<{ v: number }>();
+  const linkId = generateId();
+  await env.DB.prepare(`
+    INSERT INTO asset_links (
+      id, user_id, project_id, content_item_id, creative_request_id, generation_id, asset_id,
+      link_role, is_primary, version, metadata_json, created_at, updated_at
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '{}', ?, ?)
+  `).bind(
+    linkId,
+    args.userId,
+    args.projectId,
+    args.contentItemId,
+    args.creativeRequestId || null,
+    args.generationId,
+    args.assetId,
+    args.linkRole,
+    args.isPrimary ? 1 : 0,
+    (maxVersion?.v || 0) + 1,
+    now,
+    now,
+  ).run();
+  return linkId;
 }
 
 async function getContentItem(env: Pick<Bindings, 'DB'>, userId: string, id: string) {

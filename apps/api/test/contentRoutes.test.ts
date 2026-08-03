@@ -84,6 +84,48 @@ function transition(env: any, id: string, action: string, extra: Record<string, 
   }, env);
 }
 
+/** Insert a media_asset directly and return its id. */
+function seedAsset(db: DatabaseSync, overrides: Record<string, any> = {}) {
+  const id = 'asset_' + Math.random().toString(36).slice(2);
+  const row = {
+    user_id: 'u1', generation_id: null, asset_type: 'image', source: 'generation',
+    r2_key: `media/${id}.png`, mime_type: 'image/png', file_size: 1024,
+    metadata_json: '{}', lifecycle_status: 'active', created_at: 0, updated_at: 0, ...overrides,
+  };
+  db.prepare(`
+    INSERT INTO media_assets (
+      id, user_id, generation_id, asset_type, source, r2_key, mime_type, file_size,
+      metadata_json, lifecycle_status, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(id, row.user_id, row.generation_id, row.asset_type, row.source, row.r2_key, row.mime_type,
+    row.file_size, row.metadata_json, row.lifecycle_status, row.created_at, row.updated_at);
+  return id;
+}
+
+/** Insert a creative_requests row directly and return its id. */
+function seedCreativeRequest(db: DatabaseSync, overrides: Record<string, any> = {}) {
+  const id = 'creq_' + Math.random().toString(36).slice(2);
+  const row = {
+    user_id: 'u1', project_id: null, content_item_id: null, source_type: 'content_item',
+    source_snapshot_json: '{}', brief_json: '{}', status: 'draft',
+    return_route: null, created_at: 0, updated_at: 0, ...overrides,
+  };
+  db.prepare(`
+    INSERT INTO creative_requests (
+      id, user_id, project_id, content_item_id, source_type, source_snapshot_json,
+      brief_json, status, return_route, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(id, row.user_id, row.project_id, row.content_item_id, row.source_type, row.source_snapshot_json,
+    row.brief_json, row.status, row.return_route, row.created_at, row.updated_at);
+  return id;
+}
+
+function fulfill(env: any, requestId: string, assetId: string, session = 'session-u1') {
+  return app.request(`/api/creative-requests/${requestId}/fulfill`, {
+    method: 'POST', headers: H(session), body: JSON.stringify({ asset_id: assetId }),
+  }, env);
+}
+
 describe('Content item — revert_to_draft transition', () => {
   let ctx: ReturnType<typeof makeEnv>;
   beforeEach(() => { ctx = makeEnv(); });
@@ -237,5 +279,134 @@ describe('Content item — PATCH edit', () => {
       expect(res.status).toBe(400); // coerced to empty payload → no_editable_fields, not a crash
       expect(await res.json()).toMatchObject({ error: 'no_editable_fields' });
     }
+  });
+});
+
+describe('Creative request — fulfill (Studio → content item link)', () => {
+  let ctx: ReturnType<typeof makeEnv>;
+  beforeEach(() => { ctx = makeEnv(); });
+
+  it('links the asset to the content item, sets it primary, and completes the request', async () => {
+    const itemId = seedItem(ctx.db);
+    const reqId = seedCreativeRequest(ctx.db, { content_item_id: itemId, return_route: `/works?focus=${itemId}` });
+    const assetId = seedAsset(ctx.db);
+
+    const res = await fulfill(ctx.env, reqId, assetId);
+    expect(res.status).toBe(200);
+    const body = await res.json() as any;
+    expect(body.ok).toBe(true);
+    expect(body.return_route).toBe(`/works?focus=${itemId}`);
+
+    const link = ctx.db.prepare('SELECT * FROM asset_links WHERE content_item_id = ?').get(itemId) as any;
+    expect(link.asset_id).toBe(assetId);
+    expect(link.is_primary).toBe(1);
+    expect(link.creative_request_id).toBe(reqId);
+
+    const req = ctx.db.prepare('SELECT status FROM creative_requests WHERE id = ?').get(reqId) as any;
+    expect(req.status).toBe('completed');
+
+    // primary_asset_id now resolves via the list endpoint's subquery
+    const list = await app.request('/api/content-items', { headers: H() }, ctx.env);
+    const items = (await list.json() as any).items;
+    expect(items.find((i: any) => i.id === itemId).primary_asset_id).toBe(assetId);
+  });
+
+  it('demotes the previous primary and bumps version when a second asset is attached', async () => {
+    const itemId = seedItem(ctx.db);
+    const req1 = seedCreativeRequest(ctx.db, { content_item_id: itemId });
+    const asset1 = seedAsset(ctx.db);
+    await fulfill(ctx.env, req1, asset1);
+
+    const req2 = seedCreativeRequest(ctx.db, { content_item_id: itemId });
+    const asset2 = seedAsset(ctx.db);
+    await fulfill(ctx.env, req2, asset2);
+
+    const links = ctx.db.prepare('SELECT asset_id, is_primary, version FROM asset_links WHERE content_item_id = ? ORDER BY version ASC').all(itemId) as any[];
+    expect(links).toHaveLength(2);
+    expect(links[0]).toMatchObject({ asset_id: asset1, is_primary: 0, version: 1 });
+    expect(links[1]).toMatchObject({ asset_id: asset2, is_primary: 1, version: 2 });
+  });
+
+  it('404s when the request belongs to a different user', async () => {
+    const itemId = seedItem(ctx.db);
+    const reqId = seedCreativeRequest(ctx.db, { content_item_id: itemId });
+    const assetId = seedAsset(ctx.db);
+    const res = await fulfill(ctx.env, reqId, assetId, 'session-u2');
+    expect(res.status).toBe(404);
+  });
+
+  it('404s when the asset belongs to a different user (cannot attach someone else\'s asset)', async () => {
+    const itemId = seedItem(ctx.db);
+    const reqId = seedCreativeRequest(ctx.db, { content_item_id: itemId });
+    const foreignAsset = seedAsset(ctx.db, { user_id: 'u2' });
+    const res = await fulfill(ctx.env, reqId, foreignAsset);
+    expect(res.status).toBe(404);
+    expect(await res.json()).toMatchObject({ error: 'asset_not_found' });
+  });
+
+  it('400s when the creative request has no content_item_id', async () => {
+    const reqId = seedCreativeRequest(ctx.db, { content_item_id: null });
+    const assetId = seedAsset(ctx.db);
+    const res = await fulfill(ctx.env, reqId, assetId);
+    expect(res.status).toBe(400);
+    expect(await res.json()).toMatchObject({ error: 'request_has_no_content_item' });
+  });
+
+  it('400s when asset_id is missing', async () => {
+    const itemId = seedItem(ctx.db);
+    const reqId = seedCreativeRequest(ctx.db, { content_item_id: itemId });
+    const res = await app.request(`/api/creative-requests/${reqId}/fulfill`, { method: 'POST', headers: H(), body: JSON.stringify({}) }, ctx.env);
+    expect(res.status).toBe(400);
+    expect(await res.json()).toMatchObject({ error: 'asset_id_required' });
+  });
+
+  it('404s for a nonexistent creative request', async () => {
+    const assetId = seedAsset(ctx.db);
+    const res = await fulfill(ctx.env, 'creq_does_not_exist', assetId);
+    expect(res.status).toBe(404);
+  });
+
+  it('rejects a fulfill call with no auth header at all (not just wrong-owner)', async () => {
+    const itemId = seedItem(ctx.db);
+    const reqId = seedCreativeRequest(ctx.db, { content_item_id: itemId });
+    const assetId = seedAsset(ctx.db);
+    const res = await app.request(`/api/creative-requests/${reqId}/fulfill`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }, // no Authorization
+      body: JSON.stringify({ asset_id: assetId }),
+    }, ctx.env);
+    expect(res.status).toBe(401);
+  });
+
+  it('rejects a fulfill call when the embedded feature flag is off', async () => {
+    const itemId = seedItem(ctx.db);
+    const reqId = seedCreativeRequest(ctx.db, { content_item_id: itemId });
+    const assetId = seedAsset(ctx.db);
+    const res = await fulfill({ ...ctx.env, CREATIVE_EMBEDDED_ENABLED: 'false' }, reqId, assetId);
+    expect(res.status).toBe(404);
+    expect(await res.json()).toMatchObject({ error: 'feature_disabled' });
+  });
+
+  it('is idempotent when the same request is fulfilled twice (e.g. a stale concurrent poll tick) — does not double-attach', async () => {
+    const itemId = seedItem(ctx.db);
+    const reqId = seedCreativeRequest(ctx.db, { content_item_id: itemId, return_route: `/works?focus=${itemId}` });
+    const assetId = seedAsset(ctx.db);
+
+    const first = await fulfill(ctx.env, reqId, assetId);
+    expect(first.status).toBe(200);
+    const second = await fulfill(ctx.env, reqId, assetId);
+    expect(second.status).toBe(200);
+    const secondBody = await second.json() as any;
+    expect(secondBody.ok).toBe(true);
+    expect(secondBody.return_route).toBe(`/works?focus=${itemId}`);
+
+    // Only one asset_link should have been created — the second call must not
+    // insert a duplicate row or bump the version again.
+    const links = ctx.db.prepare('SELECT asset_id, is_primary, version FROM asset_links WHERE content_item_id = ?').all(itemId) as any[];
+    expect(links).toHaveLength(1);
+    expect(links[0]).toMatchObject({ asset_id: assetId, is_primary: 1, version: 1 });
+
+    const req = ctx.db.prepare('SELECT status FROM creative_requests WHERE id = ?').get(reqId) as any;
+    expect(req.status).toBe('completed');
   });
 });

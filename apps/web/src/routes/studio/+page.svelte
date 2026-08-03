@@ -5,6 +5,7 @@
     cancelMediaGeneration,
     createMediaGeneration,
     favoriteMediaAsset,
+    fulfillCreativeRequest,
     getMediaAssetContentUrl,
     getMediaGeneration,
     listMediaAssets,
@@ -55,6 +56,13 @@
   let mentionQuery: string | null = null;
   let mentionMatches: MediaAsset[] = [];
   let mentionActiveIndex = 0;
+  // Set when this generation was launched from a content item's "Create
+  // Creative" button (Works/Inbox) — on completion, the first output gets
+  // auto-attached back to that content item so the user never has to
+  // manually re-link it. Cleared once fulfilled so a later regeneration in
+  // the same Studio session doesn't re-attach to a stale content item.
+  let pendingCreativeRequestId: string | null = null;
+  let fulfilledReturnRoute: string | null = null;
 
   $: selectedModel = models.find((model) => model.id === selectedModelId) || null;
   $: aspectRatios = selectedModel?.capabilities.aspectRatios || ['1:1'];
@@ -119,6 +127,7 @@
         prompt?: string;
         options?: Record<string, any>;
         references?: MediaReferenceInput[];
+        creative_request_id?: string;
       };
       if (draft.model_id && models.some((model) => model.id === draft.model_id)) {
         selectedModelId = draft.model_id;
@@ -128,6 +137,7 @@
       if (draft.options?.aspect_ratio) aspectRatio = String(draft.options.aspect_ratio);
       if (draft.options?.response_format) responseFormat = String(draft.options.response_format);
       if (draft.options?.num_images) numImages = Number(draft.options.num_images);
+      if (draft.creative_request_id) pendingCreativeRequestId = draft.creative_request_id;
       const availableAssetIds = new Set(assets.map((asset) => asset.id));
       references = (draft.references || [])
         .filter((reference) => availableAssetIds.has(reference.asset_id))
@@ -248,11 +258,44 @@
           assets = await listMediaAssets().then((rows) => rows.filter((asset) => asset.lifecycle_status === 'active'));
           rememberSessionAssets(next.outputs.map((output) => output.id));
           notice = `เสร็จแล้ว ${next.delivered_output_count} output`;
+          await attachToContentItemIfPending(next);
         }
       }
     } catch (err) {
       error = humanizeError(err);
       stopPolling();
+    }
+  }
+
+  /**
+   * If this generation was launched from a content item's "Create Creative"
+   * button, attach the first output back to that content item automatically
+   * — the whole point of carrying `creative_request_id` through is that the
+   * user never has to manually re-link the image afterward. A failure here
+   * doesn't touch `error` (the generation itself still succeeded and its
+   * asset is safely in the library either way) — it surfaces as a distinct
+   * notice so it's visible without masking the generation-succeeded state.
+   *
+   * `pendingCreativeRequestId` is captured and cleared up front (before the
+   * await), not after the fulfill call resolves. Clearing it only on success
+   * left it dangling on failure, so a later, completely unrelated generation
+   * completing in the same Studio session would replay this function against
+   * the stale request id and auto-attach the wrong asset to it. There's no
+   * retry UI for a failed attach anyway, so once an attempt has been made
+   * (pass or fail) the pending state is done being pending.
+   */
+  async function attachToContentItemIfPending(generation: MediaGeneration) {
+    if (!pendingCreativeRequestId) return;
+    const requestId = pendingCreativeRequestId;
+    pendingCreativeRequestId = null;
+    const output = generation.outputs[0];
+    if (!output) return;
+    try {
+      const result = await fulfillCreativeRequest(requestId, output.id);
+      fulfilledReturnRoute = result.return_route;
+      notice = `${notice} · แนบเข้า content แล้ว`;
+    } catch (err) {
+      notice = `${notice} · แนบเข้า content ไม่สำเร็จ: ${humanizeError(err)}`;
     }
   }
 
@@ -613,8 +656,11 @@
         </div>
       {/if}
       {#if notice}
-        <div class="mb-4 rounded-lg border border-success-100 bg-success-50 px-4 py-3 text-sm text-success-700 dark:border-green-900 dark:bg-green-950/30 dark:text-green-300">
-          {notice}
+        <div class="mb-4 rounded-lg border border-success-100 bg-success-50 px-4 py-3 text-sm text-success-700 dark:border-green-900 dark:bg-green-950/30 dark:text-green-300 flex items-center justify-between gap-3">
+          <span>{notice}</span>
+          {#if fulfilledReturnRoute}
+            <a href={fulfilledReturnRoute} class="shrink-0 font-semibold underline hover:no-underline">← กลับไป Content</a>
+          {/if}
         </div>
       {/if}
 

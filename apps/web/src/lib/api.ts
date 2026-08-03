@@ -568,6 +568,13 @@ export async function createContentItemCreativeRequest(id: string) {
   });
 }
 
+export async function fulfillCreativeRequest(requestId: string, assetId: string) {
+  return fetchAPI<{ ok: boolean; link_id: string; content_item: ContentItem; return_route: string }>(
+    `/api/creative-requests/${requestId}/fulfill`,
+    { method: 'POST', body: JSON.stringify({ asset_id: assetId }) },
+  );
+}
+
 // =====================================================
 // Brand Kit / Composition API
 // =====================================================
