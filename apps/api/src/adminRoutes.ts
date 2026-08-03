@@ -202,6 +202,30 @@ app.post('/api/admin/users/:id/resend-verification', requireAuth, requireAdmin, 
   return c.json({ ok: true });
 });
 
+// Mark a user's email verified without the email round-trip (support action —
+// for when the verification email never reaches the user, e.g. a deliverability
+// problem on our side; unblocks them immediately while email is being fixed)
+app.post('/api/admin/users/:id/mark-verified', requireAuth, requireAdmin, async (c) => {
+  const admin = c.get('user')!;
+  const id = c.req.param('id');
+
+  const user = await c.env.DB.prepare('SELECT id, email_verified FROM users WHERE id = ?')
+    .bind(id).first<{ id: string; email_verified: number }>();
+  if (!user) return c.json({ error: 'not_found' }, 404);
+  if (user.email_verified) return c.json({ error: 'already_verified' }, 400);
+
+  const now = Date.now();
+  await c.env.DB.prepare('UPDATE users SET email_verified = 1, email_verified_at = ?, updated_at = ? WHERE id = ?')
+    .bind(now, now, id).run();
+
+  await c.env.DB.prepare(`
+    INSERT INTO admin_actions (id, admin_id, action, target_user_id, details, created_at)
+    VALUES (?, ?, 'mark_verified', ?, '{}', ?)
+  `).bind(generateId(), admin.id, id, now).run();
+
+  return c.json({ ok: true });
+});
+
 // Send a password-reset OTP to the user's email (support action — same OTP flow as self-serve reset)
 app.post('/api/admin/users/:id/send-password-reset', requireAuth, requireAdmin, async (c) => {
   const admin = c.get('user')!;

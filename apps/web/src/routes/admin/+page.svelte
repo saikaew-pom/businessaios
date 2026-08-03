@@ -4,7 +4,7 @@
   import { fullUser, initAuth, isAuthed } from '$lib/auth';
   import {
     adminListUsers, adminUpdateUser, adminChangeCredits, adminGetStats, adminListEmails,
-    adminGetUserDetail, adminResendVerification, adminSendPasswordReset, adminAddNote,
+    adminGetUserDetail, adminResendVerification, adminMarkVerified, adminSendPasswordReset, adminAddNote,
     type AdminUser, type AdminUserDetail,
   } from '$lib/api';
 
@@ -166,6 +166,21 @@
     }
   }
 
+  async function handleMarkVerified() {
+    if (!detail) return;
+    if (!confirm(`ยืนยันอีเมล ${detail.user.email} ให้เลยโดยไม่ต้องรออีเมล? ใช้เมื่ออีเมลยืนยันส่งไม่ถึง user`)) return;
+    actionBusy = true;
+    try {
+      await adminMarkVerified(detail.user.id);
+      await Promise.all([refreshDetail(), loadUsers()]);
+      alert('ยืนยันอีเมลให้ user แล้ว ใช้งานระบบได้ทันที');
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      actionBusy = false;
+    }
+  }
+
   async function handleSendPasswordReset() {
     if (!detail) return;
     if (!confirm(`ส่งรหัส OTP รีเซ็ตรหัสผ่านไปที่ ${detail.user.email}?`)) return;
@@ -209,6 +224,7 @@
       credit_change: '💳 ปรับเครดิต',
       user_update: '⚙️ แก้ไขบัญชี',
       resend_verification: '📧 ส่งอีเมลยืนยันซ้ำ',
+      mark_verified: '✅ ยืนยันอีเมลให้โดยแอดมิน',
       send_password_reset: '🔑 ส่งรีเซ็ตรหัสผ่าน',
     };
     return labels[action] || action;
@@ -454,6 +470,9 @@
             <div class="flex flex-wrap gap-2">
               <button onclick={handleResendVerification} disabled={actionBusy || !!detail.user.email_verified} class="btn-secondary text-xs px-3 py-1.5 disabled:opacity-40">
                 📧 ส่งอีเมลยืนยันอีกครั้ง
+              </button>
+              <button onclick={handleMarkVerified} disabled={actionBusy || !!detail.user.email_verified} class="btn-secondary text-xs px-3 py-1.5 disabled:opacity-40">
+                ✅ ยืนยันอีเมลให้เลย
               </button>
               <button onclick={handleSendPasswordReset} disabled={actionBusy} class="btn-secondary text-xs px-3 py-1.5 disabled:opacity-40">
                 🔑 ส่งรหัส OTP รีเซ็ตรหัสผ่าน

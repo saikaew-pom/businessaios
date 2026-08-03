@@ -1348,6 +1348,10 @@ export async function adminResendVerification(id: string) {
   return fetchAPI<{ ok: boolean }>(`/api/admin/users/${id}/resend-verification`, { method: 'POST' });
 }
 
+export async function adminMarkVerified(id: string) {
+  return fetchAPI<{ ok: boolean }>(`/api/admin/users/${id}/mark-verified`, { method: 'POST' });
+}
+
 export async function adminSendPasswordReset(id: string) {
   return fetchAPI<{ ok: boolean }>(`/api/admin/users/${id}/send-password-reset`, { method: 'POST' });
 }
