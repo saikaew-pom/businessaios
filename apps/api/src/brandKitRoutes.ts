@@ -3,8 +3,17 @@ import { generateId } from './lib/crypto';
 import { buildBrandbookHTML } from './lib/brandbookExport';
 import { calculateCredits, deductCredits, addCredits } from './lib/credit';
 import { callMinimax, estimateCost, extractJsonFromAny } from './lib/minimax';
-import { getUser, requireAuth, rateLimit } from './lib/middleware';
+import { categoryRateLimit, getUser, requireAuth, rateLimit } from './lib/middleware';
 import type { Bindings, Variables } from './lib/types';
+import { checkStorageQuota } from './lib/media/quota';
+import { getAssetRow, serializeAsset } from './lib/media/assets';
+import { renderComposition, parseTemplateLayout } from './lib/creative/compositionRenderer';
+import {
+  getVisibleVisualTemplates,
+  getVisualTemplateForUser,
+  serializeVisualTemplate,
+  type VisualTemplateRow,
+} from './lib/creative/visualTemplates';
 
 const brandKitRoutes = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
@@ -12,6 +21,15 @@ brandKitRoutes.use('/api/brand-kits', requireAuth, requireBrandCompositionFeatur
 brandKitRoutes.use('/api/brand-kits/*', requireAuth, requireBrandCompositionFeature);
 brandKitRoutes.use('/api/compositions', requireAuth, requireBrandCompositionFeature);
 brandKitRoutes.use('/api/compositions/*', requireAuth, requireBrandCompositionFeature);
+brandKitRoutes.use('/api/visual-templates', requireAuth, requireBrandCompositionFeature);
+brandKitRoutes.use('/api/visual-templates/*', requireAuth, requireBrandCompositionFeature);
+
+// Same category-scoped rate limiting as media_generate in mediaRoutes.ts —
+// this route runs a synchronous satori+resvg render (real CPU cost) and
+// writes a new object to R2 + two DB rows per call, with no credit charge
+// to naturally cap abuse the way paid-provider routes are capped. Without
+// this, nothing stops a single user from spamming free renders.
+brandKitRoutes.use('/api/compositions/render', categoryRateLimit('composition_render', 15));
 
 brandKitRoutes.get('/api/brand-kits', async (c) => {
   const user = getUser(c)!;
@@ -430,6 +448,226 @@ brandKitRoutes.post('/api/compositions', async (c) => {
     now,
   ).run();
   return c.json({ ok: true, composition_id: id });
+});
+
+// =====================================================
+// Visual Templates — admin templates are global (owner_user_id NULL,
+// visible to everyone); user templates are private to their creator.
+// Same visibility-split pattern as content_series_templates.
+// =====================================================
+
+brandKitRoutes.get('/api/visual-templates', async (c) => {
+  const user = getUser(c)!;
+  const rows = await getVisibleVisualTemplates(c.env, user.id);
+  return c.json({ templates: rows.map(serializeVisualTemplate) });
+});
+
+brandKitRoutes.post('/api/visual-templates', async (c) => {
+  const user = getUser(c)!;
+  const body = await c.req.json<{
+    name?: string;
+    description?: string;
+    layout?: Record<string, unknown>;
+    owner_type?: string;
+  }>();
+
+  if (!body.name?.trim()) return c.json({ error: 'validation_error', errors: ['name_required'] }, 400);
+  if (!body.layout || typeof body.layout !== 'object') {
+    return c.json({ error: 'validation_error', errors: ['layout_required'] }, 400);
+  }
+  try {
+    parseTemplateLayout(JSON.stringify(body.layout));
+  } catch {
+    return c.json({ error: 'validation_error', errors: ['invalid_layout'] }, 400);
+  }
+
+  let ownerType: 'admin' | 'user' = 'user';
+  if (body.owner_type === 'admin') {
+    const full = await c.env.DB.prepare('SELECT role FROM users WHERE id = ?').bind(user.id).first<{ role: string | null }>();
+    if (full?.role !== 'admin') return c.json({ error: 'forbidden', message: 'Admin access required to create a global template' }, 403);
+    ownerType = 'admin';
+  }
+
+  const id = generateId();
+  const now = Date.now();
+  await c.env.DB.prepare(`
+    INSERT INTO visual_templates (id, owner_type, owner_user_id, name, description, layout_json, is_active, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?)
+  `).bind(
+    id,
+    ownerType,
+    ownerType === 'admin' ? null : user.id,
+    body.name.trim(),
+    body.description || '',
+    JSON.stringify(body.layout),
+    now,
+    now,
+  ).run();
+
+  const row = await c.env.DB.prepare('SELECT * FROM visual_templates WHERE id = ?').bind(id).first<VisualTemplateRow>();
+  return c.json(serializeVisualTemplate(row!), 201);
+});
+
+brandKitRoutes.delete('/api/visual-templates/:id', async (c) => {
+  const user = getUser(c)!;
+  const id = c.req.param('id');
+  const existing = await c.env.DB.prepare('SELECT * FROM visual_templates WHERE id = ?').bind(id).first<VisualTemplateRow>();
+  if (!existing) return c.json({ error: 'not_found' }, 404);
+
+  const isOwner = existing.owner_type === 'user' && existing.owner_user_id === user.id;
+  let isAdmin = false;
+  if (existing.owner_type === 'admin') {
+    const full = await c.env.DB.prepare('SELECT role FROM users WHERE id = ?').bind(user.id).first<{ role: string | null }>();
+    isAdmin = full?.role === 'admin';
+  }
+  if (!isOwner && !isAdmin) return c.json({ error: 'forbidden' }, 403);
+
+  await c.env.DB.prepare('UPDATE visual_templates SET is_active = 0, updated_at = ? WHERE id = ?').bind(Date.now(), id).run();
+  return c.json({ ok: true });
+});
+
+// =====================================================
+// Composition rendering — apply a visual template + dynamic text onto an
+// existing generated/uploaded image, producing a new derived asset. Text
+// is traced into vector glyph paths by satori (not drawn with Photon's
+// single built-in font), so Thai renders correctly with the brand font.
+// =====================================================
+
+brandKitRoutes.post('/api/compositions/render', async (c) => {
+  const user = getUser(c)!;
+  const body = await c.req.json<{
+    base_asset_id?: string;
+    template_id?: string;
+    headline?: string;
+    subheadline?: string;
+    badge?: string;
+    content_item_id?: string | null;
+    brand_kit_id?: string | null;
+    project_id?: string | null;
+  }>();
+
+  if (!body.base_asset_id) return c.json({ error: 'validation_error', errors: ['base_asset_id_required'] }, 400);
+  if (!body.template_id) return c.json({ error: 'validation_error', errors: ['template_id_required'] }, 400);
+  if (!body.headline?.trim() && !body.subheadline?.trim() && !body.badge?.trim()) {
+    return c.json({ error: 'validation_error', errors: ['at_least_one_text_field_required'] }, 400);
+  }
+
+  const sourceAsset = await getAssetRow(c.env, user.id, body.base_asset_id);
+  if (!sourceAsset || sourceAsset.lifecycle_status !== 'active') return c.json({ error: 'asset_not_found' }, 404);
+  if (!sourceAsset.mime_type?.startsWith('image/')) return c.json({ error: 'unsupported_asset_type' }, 400);
+
+  const template = await getVisualTemplateForUser(c.env, user.id, body.template_id);
+  if (!template) return c.json({ error: 'template_not_found' }, 404);
+
+  if (body.content_item_id) {
+    const item = await c.env.DB.prepare('SELECT id FROM content_items WHERE id = ? AND user_id = ?')
+      .bind(body.content_item_id, user.id).first();
+    if (!item) return c.json({ error: 'content_item_not_found' }, 404);
+  }
+  if (body.brand_kit_id) {
+    const kit = await getBrandKit(c.env, user.id, body.brand_kit_id);
+    if (!kit) return c.json({ error: 'brand_kit_not_found' }, 404);
+  }
+
+  // Cheap early-exit for a user who is already over quota, so we don't pay
+  // for a satori/resvg render we're going to reject anyway. This is NOT the
+  // authoritative check: sourceAsset.file_size is the size of the EXISTING
+  // source image, not the size of the new derived PNG this render is about
+  // to produce (those routinely differ by 100x+ — a re-encoded PNG of a
+  // gradient + baked-in glyph paths is not the same number of bytes as
+  // whatever the source happened to be). The real gate is below, against
+  // composedPng.byteLength, once we actually know what we're about to write.
+  const preCheck = await checkStorageQuota(c.env, user.id, sourceAsset.file_size);
+  if (!preCheck.ok) return c.json({ error: 'storage_quota_exceeded', used: preCheck.used, quota: preCheck.quota }, 413);
+
+  const object = await c.env.R2.get(sourceAsset.r2_key);
+  if (!object) return c.json({ error: 'asset_object_missing' }, 404);
+  const baseImageBytes = new Uint8Array(await object.arrayBuffer());
+
+  const text = { headline: body.headline?.trim(), subheadline: body.subheadline?.trim(), badge: body.badge?.trim() };
+
+  // `parseTemplateLayout` runs inside the same try/catch as the render call
+  // itself (not before it) so that ANY failure on this path — a malformed
+  // stored layout (e.g. a legacy row predating anchor validation) just as
+  // much as a satori/resvg exception — comes back as the same controlled
+  // `render_failed` response below, rather than skipping this handler's own
+  // catch and falling through to the app-wide `onError` handler as an
+  // uncaught 500. Separately, `err.message` is intentionally NOT sent back
+  // as `message`: the frontend's shared fetchAPI() helper prefers a response
+  // body's `message` field over `error` when unwrapping a failed request, so
+  // putting the raw exception text there silently shadowed the friendly,
+  // localized `render_failed` translation in ApplyTemplateModal's
+  // humanizeError() with a raw, English, implementation-detail-leaking
+  // string instead. `detail` still carries it for logs/debugging, just under
+  // a key fetchAPI doesn't special-case.
+  let layout: ReturnType<typeof parseTemplateLayout>;
+  let composedPng: Uint8Array;
+  try {
+    layout = parseTemplateLayout(template.layout_json);
+    composedPng = await renderComposition({ layout, text, baseImageBytes, baseImageMimeType: sourceAsset.mime_type });
+  } catch (err: any) {
+    console.error('Composition render failed:', err);
+    return c.json({ error: 'render_failed', detail: String(err?.message || err).slice(0, 300) }, 422);
+  }
+
+  // Authoritative check: against the actual bytes about to be written for
+  // the new derived asset, same pattern as finalizeUpload() in
+  // lib/media/assets.ts (checks `bytes.byteLength`, not some unrelated
+  // existing row's file_size).
+  const quota = await checkStorageQuota(c.env, user.id, composedPng.byteLength);
+  if (!quota.ok) return c.json({ error: 'storage_quota_exceeded', used: quota.used, quota: quota.quota }, 413);
+
+  const now = Date.now();
+  const newAssetId = generateId();
+  const r2Key = `media/${user.id}/derived/${newAssetId}.png`;
+  await c.env.R2.put(r2Key, composedPng, {
+    httpMetadata: { contentType: 'image/png' },
+    customMetadata: { user_id: user.id, source: 'derived', derived_from: sourceAsset.id },
+  });
+
+  await c.env.DB.prepare(`
+    INSERT INTO media_assets (
+      id, user_id, asset_type, source, r2_key, original_filename, mime_type,
+      file_size, width, height, metadata_json, lifecycle_status, created_at, updated_at
+    )
+    VALUES (?, ?, ?, 'derived', ?, ?, 'image/png', ?, ?, ?, ?, 'active', ?, ?)
+  `).bind(
+    newAssetId,
+    user.id,
+    sourceAsset.asset_type,
+    r2Key,
+    `composed-${newAssetId}.png`,
+    composedPng.byteLength,
+    layout.canvas.width,
+    layout.canvas.height,
+    JSON.stringify({ derived: { operation: 'apply_template', source_asset_id: sourceAsset.id, template_id: template.id } }),
+    now,
+    now,
+  ).run();
+
+  const compositionId = generateId();
+  await c.env.DB.prepare(`
+    INSERT INTO composition_documents (
+      id, user_id, project_id, content_item_id, brand_kit_id, base_asset_id,
+      title, document_json, status, exported_asset_id, renderer_version, created_at, updated_at
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'rendered', ?, 'satori-resvg-v1', ?, ?)
+  `).bind(
+    compositionId,
+    user.id,
+    body.project_id || null,
+    body.content_item_id || null,
+    body.brand_kit_id || null,
+    sourceAsset.id,
+    (body.headline || body.subheadline || 'Untitled composition').slice(0, 160),
+    JSON.stringify({ template_id: template.id, layout, text }),
+    newAssetId,
+    now,
+    now,
+  ).run();
+
+  const newRow = await getAssetRow(c.env, user.id, newAssetId);
+  return c.json({ ok: true, composition_id: compositionId, asset: serializeAsset(newRow!) }, 201);
 });
 
 async function requireBrandCompositionFeature(c: any, next: any) {

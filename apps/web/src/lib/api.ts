@@ -1839,3 +1839,80 @@ export async function generateContentSeries(data: {
     body: JSON.stringify(data),
   });
 }
+
+// =====================================================
+// Visual Templates + Composition rendering (Brand Kit Composition)
+// =====================================================
+
+export type TemplateLayoutBlock = {
+  type: 'headline' | 'subheadline' | 'badge';
+  anchor: 'top-left' | 'top-center' | 'top-right' | 'center-left' | 'center' | 'center-right' | 'bottom-left' | 'bottom-center' | 'bottom-right';
+  font_size: number;
+  font_weight?: 400 | 700;
+  color: string;
+  max_width_pct?: number;
+  text_align?: 'left' | 'center' | 'right';
+  background_color?: string;
+  card_background?: string;
+  card_padding?: number;
+  side_bar_only?: boolean;
+};
+
+export type TemplateLayout = {
+  canvas: { width: number; height: number };
+  background?: {
+    overlay_gradient?: { direction: string; stops: Array<{ offset: string; color: string }> };
+    side_bar?: { width_pct: number; color: string };
+  };
+  blocks: TemplateLayoutBlock[];
+};
+
+export type VisualTemplate = {
+  id: string;
+  owner_type: 'admin' | 'user';
+  owner_user_id: string | null;
+  name: string;
+  description: string;
+  layout: TemplateLayout;
+  preview_asset_id: string | null;
+  is_active: boolean;
+  created_at: number;
+  updated_at: number;
+};
+
+export async function listVisualTemplates(): Promise<VisualTemplate[]> {
+  const res = await fetchAPI<{ templates: VisualTemplate[] }>('/api/visual-templates');
+  return res.templates;
+}
+
+export async function createVisualTemplate(data: {
+  name: string;
+  description?: string;
+  layout: TemplateLayout;
+  owner_type?: 'admin' | 'user';
+}): Promise<VisualTemplate> {
+  return fetchAPI('/api/visual-templates', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteVisualTemplate(id: string) {
+  return fetchAPI<{ ok: boolean }>(`/api/visual-templates/${id}`, { method: 'DELETE' });
+}
+
+export async function renderCompositionFromTemplate(data: {
+  base_asset_id: string;
+  template_id: string;
+  headline?: string;
+  subheadline?: string;
+  badge?: string;
+  content_item_id?: string | null;
+  brand_kit_id?: string | null;
+  project_id?: string | null;
+}): Promise<{ ok: boolean; composition_id: string; asset: MediaAsset }> {
+  return fetchAPI('/api/compositions/render', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}

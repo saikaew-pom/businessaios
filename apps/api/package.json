@@ -16,10 +16,12 @@
   },
   "dependencies": {
     "@cf-wasm/photon": "^0.4.0",
+    "@resvg/resvg-wasm": "^2.6.2",
     "bcryptjs": "^3.0.3",
     "hono": "^4.6.10",
     "pptxgenjs": "^4.0.1",
     "resend": "^4.0.0",
+    "satori": "^0.29.0",
     "stripe": "^17.5.0"
   },
   "devDependencies": {

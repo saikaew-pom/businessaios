@@ -20,11 +20,14 @@
   } from '$lib/api';
   import { initAuth, isAuthed } from '$lib/auth';
   import { fetchConfig } from '$lib/config';
+  import ApplyTemplateModal from './ApplyTemplateModal.svelte';
 
   type UploadState = { name: string; status: 'uploading' | 'done' | 'failed'; message?: string };
 
   let isLoading = true;
   let isFeatureEnabled = false;
+  let isCompositionEnabled = false;
+  let templateModalAssetId: string | null = null;
   let error = '';
   let notice = '';
   let models: MediaModel[] = [];
@@ -73,6 +76,7 @@
     try {
       const config = await fetchConfig();
       isFeatureEnabled = Boolean(config.features.creative_studio);
+      isCompositionEnabled = Boolean(config.features.brand_composition);
       if (!isFeatureEnabled) return;
 
       const [modelRows, assetRows] = await Promise.all([
@@ -504,6 +508,13 @@
     }
   }
 
+  function handleTemplateApplied(newAsset: MediaAsset) {
+    assets = [newAsset, ...assets.filter((asset) => asset.id !== newAsset.id)];
+    sessionAssetIds = [newAsset.id, ...sessionAssetIds];
+    templateModalAssetId = null;
+    notice = 'สร้าง Composed Creative แล้ว — ดูได้ใน Asset Library';
+  }
+
   function uniqueMentionName(asset: MediaAsset) {
     const base = sanitizeMention(asset.original_filename?.replace(/\.[^.]+$/, '') || asset.asset_type || 'ref');
     const used = new Set(references.map((reference) => reference.mention_name));
@@ -800,13 +811,22 @@
             {#if activeGeneration?.outputs?.length}
               <div class="grid gap-4 sm:grid-cols-2">
                 {#each activeGeneration.outputs as output}
-                  <a href={getMediaAssetContentUrl(output.id)} target="_blank" rel="noreferrer" class="group block overflow-hidden rounded-lg border border-dark-100 bg-dark-50 dark:border-dark-700 dark:bg-dark-900">
-                    <img src={getMediaAssetContentUrl(output.id)} alt={output.original_filename || output.id} class="aspect-square w-full object-cover transition group-hover:scale-[1.02]" />
+                  <div class="group overflow-hidden rounded-lg border border-dark-100 bg-dark-50 dark:border-dark-700 dark:bg-dark-900">
+                    <a href={getMediaAssetContentUrl(output.id)} target="_blank" rel="noreferrer" class="block">
+                      <img src={getMediaAssetContentUrl(output.id)} alt={output.original_filename || output.id} class="aspect-square w-full object-cover transition group-hover:scale-[1.02]" />
+                    </a>
                     <div class="flex items-center justify-between gap-3 p-3 text-xs text-dark-900/60 dark:text-dark-100/60">
                       <span>{output.width || '-'} x {output.height || '-'}</span>
                       <span>{formatBytes(output.file_size)}</span>
                     </div>
-                  </a>
+                    {#if isCompositionEnabled}
+                      <div class="border-t border-dark-100 p-2 dark:border-dark-700">
+                        <button onclick={() => (templateModalAssetId = output.id)} class="btn-secondary w-full py-1.5 text-xs">
+                          + ใส่ Template (headline/text)
+                        </button>
+                      </div>
+                    {/if}
+                  </div>
                 {/each}
               </div>
             {:else if activeGeneration && !isTerminal(activeGeneration.status)}
@@ -892,6 +912,11 @@
                         <button onclick={() => toggleFavorite(asset)} class="rounded-md px-2 py-1 text-xs text-dark-900/60 hover:bg-dark-50 dark:text-dark-100/60 dark:hover:bg-dark-900">
                           {asset.favorite ? 'Favorited' : 'Favorite'}
                         </button>
+                        {#if isCompositionEnabled}
+                          <button onclick={() => (templateModalAssetId = asset.id)} class="rounded-md px-2 py-1 text-xs text-dark-900/60 hover:bg-dark-50 dark:text-dark-100/60 dark:hover:bg-dark-900">
+                            + Template
+                          </button>
+                        {/if}
                       </div>
                     </div>
                   </div>
@@ -932,4 +957,12 @@
       </div>
     {/if}
   </main>
+
+  {#if templateModalAssetId}
+    <ApplyTemplateModal
+      assetId={templateModalAssetId}
+      onClose={() => (templateModalAssetId = null)}
+      onApplied={handleTemplateApplied}
+    />
+  {/if}
 </div>
