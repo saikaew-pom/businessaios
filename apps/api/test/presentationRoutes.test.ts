@@ -561,6 +561,69 @@ describe('Presentation Builder — Stage C: autofill', () => {
     expect(after.credits).toBe(before.credits);
   });
 
+  it('retries Step 3 autofill when the AI returns the wrong shape (flat instead of {summary, before, after})', async () => {
+    // Real production report: MiniMax returned a flat {know, believe, feel,
+    // do} for Step 3's ATR autofill instead of the requested
+    // {summary, before:{...}, after:{...}} — syntactically valid JSON, so it
+    // wasn't a parse_error, but the frontend's `if (s.before)` guards then
+    // silently populated nothing while credits were still charged.
+    const fetchSpy = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        id: 'gen-1',
+        choices: [{ message: { role: 'assistant', content: JSON.stringify({ know: 'a', believe: 'b', feel: 'c', do: 'd' }) }, finish_reason: 'stop' }],
+        usage: { prompt_tokens: 30, completion_tokens: 20, total_tokens: 50 },
+      }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        id: 'gen-2',
+        choices: [{ message: { role: 'assistant', content: JSON.stringify({
+          summary: 'สรุป', before: { know: 'a', believe: 'b', feel: 'c', do: 'd' }, after: { know: 'a2', believe: 'b2', feel: 'c2', do: 'd2' },
+        }) }, finish_reason: 'stop' }],
+        usage: { prompt_tokens: 30, completion_tokens: 60, total_tokens: 90 },
+      }), { status: 200 }));
+    globalThis.fetch = fetchSpy as any;
+
+    const projectId = await createProject(ctx.env, (await authHeadersFor(ctx.env, 'session-u1')));
+    const res = await app.request(`/api/presentation/projects/${projectId}/autofill/3`, {
+      method: 'POST',
+      headers: { ...(await authHeadersFor(ctx.env, 'session-u1')), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ input: {} }),
+    }, ctx.env);
+    expect(res.status).toBe(200);
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+
+    const body = await res.json() as any;
+    expect(body.suggestion.summary).toBe('สรุป');
+    expect(body.suggestion.before).toEqual({ know: 'a', believe: 'b', feel: 'c', do: 'd' });
+    expect(body.suggestion.after).toEqual({ know: 'a2', believe: 'b2', feel: 'c2', do: 'd2' });
+  });
+
+  it('gives up and refunds in full when Step 3 autofill returns the wrong shape on both attempts', async () => {
+    const flatShape = () => new Response(JSON.stringify({
+      id: 'gen-x',
+      choices: [{ message: { role: 'assistant', content: JSON.stringify({ know: 'a', believe: 'b', feel: 'c', do: 'd' }) }, finish_reason: 'stop' }],
+      usage: { prompt_tokens: 30, completion_tokens: 20, total_tokens: 50 },
+    }), { status: 200 });
+    const fetchSpy = vi.fn(async () => flatShape());
+    globalThis.fetch = fetchSpy as any;
+
+    const projectId = await createProject(ctx.env, (await authHeadersFor(ctx.env, 'session-u1')));
+    const before = ctx.db.prepare("SELECT credits FROM users WHERE id='u1'").get() as any;
+
+    const res = await app.request(`/api/presentation/projects/${projectId}/autofill/3`, {
+      method: 'POST',
+      headers: { ...(await authHeadersFor(ctx.env, 'session-u1')), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ input: {} }),
+    }, ctx.env);
+    expect(res.status).toBe(500);
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+
+    const body = await res.json() as any;
+    expect(body.error).toBe('parse_error');
+
+    const after = ctx.db.prepare("SELECT credits FROM users WHERE id='u1'").get() as any;
+    expect(after.credits).toBe(before.credits); // fully refunded
+  });
+
   it('rejects when the user lacks enough credits for the reservation, without calling the AI', async () => {
     const fetchSpy = mockMinimaxSuccess(30, 40, {});
     globalThis.fetch = fetchSpy as any;
@@ -602,5 +665,39 @@ describe('Presentation Builder — PUT step ownership check', () => {
     expect(res.status).toBe(200);
     const row = ctx.db.prepare('SELECT output_json FROM presentation_steps WHERE project_id = ? AND step_number = 7').get(projectId) as any;
     expect(JSON.parse(row.output_json).slides[0].title).toBe('ok');
+  });
+});
+
+describe('Presentation Builder — GET project includes input_json for input-only steps', () => {
+  let ctx: ReturnType<typeof makeEnv>;
+  beforeEach(() => { ctx = makeEnv(); });
+
+  it('returns input_json in the steps array, not just output_json', async () => {
+    // Step 4 (Source Content) never gets an AI-generated output_json — its
+    // data lives entirely in input_json. The frontend's getStepData() falls
+    // back to input_json when output_json is null (see the comment on the
+    // GET route), so if this SELECT ever drops input_json again, Step 4's
+    // saved source content (and Step 1's description/target_slides) would
+    // silently vanish on reload with no error — exactly the production bug
+    // this test guards against (Step 5 showed "0 source items" for a
+    // project that really did have saved source text).
+    const headers = await authHeadersFor(ctx.env, 'session-u1');
+    const projectId = await createProject(ctx.env, headers);
+
+    await app.request(`/api/presentation/projects/${projectId}/step/4`, {
+      method: 'PUT',
+      headers: { ...headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ input: { source_text: 'สวัสดี', source_items: [{ title: 'Source 1', content: 'สวัสดี' }] } }),
+    }, ctx.env);
+
+    const res = await app.request(`/api/presentation/projects/${projectId}`, {
+      method: 'GET',
+      headers,
+    }, ctx.env);
+    expect(res.status).toBe(200);
+    const body = await res.json() as any;
+    const step4 = body.steps.find((s: any) => s.step_number === 4);
+    expect(step4.input_json).toBeTruthy();
+    expect(JSON.parse(step4.input_json).source_items).toHaveLength(1);
   });
 });

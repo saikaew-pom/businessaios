@@ -87,6 +87,26 @@ export async function resolveSlideImages(env: any, userId: string, blueprint: an
   return { ...blueprint, slides };
 }
 
+/**
+ * Autofill's AI response can be syntactically valid JSON (so it survives
+ * extractJsonFromAny) while still not matching the shape the frontend
+ * actually reads — e.g. Step 3 asks for `{summary, before:{...}, after:{...}}`
+ * but MiniMax has been observed to return a flat `{know, believe, feel, do}`
+ * instead. The frontend's `if (s.before) ...` guards then silently populate
+ * nothing (no error, no visible failure) while the user was still charged
+ * for the call. Only Step 3 has a nested-object shape strict enough to be
+ * worth checking here; Steps 1/2's fields are all read with individual
+ * `if (s.x)` guards already tolerant of a missing/partial response.
+ */
+function isValidAutofillShape(stepNum: number, suggestion: any): boolean {
+  if (stepNum !== 3) return true;
+  return (
+    suggestion && typeof suggestion === 'object' &&
+    suggestion.before && typeof suggestion.before === 'object' &&
+    suggestion.after && typeof suggestion.after === 'object'
+  );
+}
+
 export function createPresentationRoutes(app: any) {
   // =====================================================
   // AUTH HELPERS (lightweight — reuse pattern from main)
@@ -191,7 +211,13 @@ export function createPresentationRoutes(app: any) {
     if (!project) return c.json({ error: 'not_found' }, 404);
 
     const steps = await c.env.DB.prepare(
-      'SELECT step_number, status, framework_variant, output_json, custom_system_prompt, updated_at FROM presentation_steps WHERE project_id = ? ORDER BY step_number'
+      // input_json is required — the frontend's getStepData() falls back to
+      // it for input-only steps (1, 4, 9) that never get an output_json from
+      // an AI call. Without it, that fallback always resolves to null: Step
+      // 4's saved source content (and Step 1's description/target_slides)
+      // silently vanish on reload, e.g. Step 5 showing "0 source items" for
+      // a project that really does have saved source text.
+      'SELECT step_number, status, framework_variant, input_json, output_json, custom_system_prompt, updated_at FROM presentation_steps WHERE project_id = ? ORDER BY step_number'
     ).bind(id).all();
 
     return c.json({ project, steps: steps.results || [] });
@@ -629,7 +655,16 @@ export function createPresentationRoutes(app: any) {
 
     const genId = generateId();
     const estPromptTokens = Math.ceil((system.length + userMsg.length) / 3);
-    const reserveCredits = calculateCredits({ prompt_tokens: estPromptTokens, completion_tokens: template.maxTokens });
+    // Reserve for up to 2 worst-case attempts — see the retry loop below.
+    // Same reasoning as the main generate/:step route's fix: MiniMax can
+    // return content that's syntactically valid JSON but the wrong shape
+    // (Step 3 has been observed returning a flat {know,believe,feel,do}
+    // instead of the requested {summary, before:{...}, after:{...}}), which
+    // the frontend then silently fails to populate with no visible error —
+    // worse than a parse failure, since credits were charged for a no-op. A
+    // same-request retry is the same well-known mitigation, and both
+    // attempts cost real MiniMax usage, so the reservation must cover both.
+    const reserveCredits = calculateCredits({ prompt_tokens: estPromptTokens * 2, completion_tokens: template.maxTokens * 2 });
     const reservation = await deductCredits(env, user.id, reserveCredits, 'presentation_autofill_reserve', genId);
     if (!reservation.ok) {
       return c.json({
@@ -639,26 +674,49 @@ export function createPresentationRoutes(app: any) {
       }, 402);
     }
 
-    let result;
-    try {
-      result = await callMinimax(
-        { apiKey: env.MINIMAX_API_KEY, groupId: env.MINIMAX_GROUP_ID, model: env.MINIMAX_MODEL },
-        [
-          { role: 'system', content: system + '\n\n🚫 ห้าม reasoning — ตอบ JSON object เท่านั้นใน content field' },
-          { role: 'user', content: userMsg + '\n\n[ตอบเป็น JSON object ใน content field เท่านั้น]' },
-        ],
-        { maxTokens: template.maxTokens, temperature: 0.8, jsonMode: true }
-      );
-    } catch (err: any) {
-      const refund = await addCredits(env, user.id, reserveCredits, 'presentation_autofill_refund', { referenceId: genId, note: 'AI call failed' });
-      return c.json({ error: 'ai_error', message: err.message, credits_remaining: refund.ok ? refund.balance : undefined }, 500);
+    let suggestion: any;
+    let lastError: any = null;
+    let totalPromptTokens = 0;
+    let totalCompletionTokens = 0;
+    const MAX_ATTEMPTS = 2;
+
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+      let result;
+      try {
+        result = await callMinimax(
+          { apiKey: env.MINIMAX_API_KEY, groupId: env.MINIMAX_GROUP_ID, model: env.MINIMAX_MODEL },
+          [
+            { role: 'system', content: system + '\n\n🚫 ห้าม reasoning — ตอบ JSON object เท่านั้นใน content field' },
+            { role: 'user', content: userMsg + '\n\n[ตอบเป็น JSON object ใน content field เท่านั้น]' },
+          ],
+          { maxTokens: template.maxTokens, temperature: 0.8, jsonMode: true }
+        );
+      } catch (err: any) {
+        // Network/API-level failures are fatal immediately, same as
+        // generate/:step — retrying those wouldn't fix a rate limit or outage.
+        const refund = await addCredits(env, user.id, reserveCredits, 'presentation_autofill_refund', { referenceId: genId, note: 'AI call failed' });
+        return c.json({ error: 'ai_error', message: err.message, credits_remaining: refund.ok ? refund.balance : undefined }, 500);
+      }
+
+      totalPromptTokens += result.usage?.prompt_tokens || 0;
+      totalCompletionTokens += result.usage?.completion_tokens || 0;
+
+      try {
+        const parsed = extractJsonFromAny(result.content, result.reasoning);
+        if (!isValidAutofillShape(stepNum, parsed)) {
+          lastError = new Error('unexpected_shape');
+          continue;
+        }
+        suggestion = parsed;
+        lastError = null;
+        break;
+      } catch (err: any) {
+        lastError = err;
+      }
     }
 
-    let suggestion: any;
-    try {
-      suggestion = extractJsonFromAny(result.content, result.reasoning);
-    } catch (err: any) {
-      const refund = await addCredits(env, user.id, reserveCredits, 'presentation_autofill_refund', { referenceId: genId, note: 'AI returned unparseable output' });
+    if (lastError) {
+      const refund = await addCredits(env, user.id, reserveCredits, 'presentation_autofill_refund', { referenceId: genId, note: 'AI returned unparseable or wrongly-shaped output' });
       return c.json({
         error: 'parse_error',
         message: 'AI returned invalid JSON',
@@ -666,7 +724,8 @@ export function createPresentationRoutes(app: any) {
       }, 500);
     }
 
-    const creditsUsed = calculateCredits(result.usage);
+    const combinedUsage = { prompt_tokens: totalPromptTokens, completion_tokens: totalCompletionTokens, total_tokens: totalPromptTokens + totalCompletionTokens };
+    const creditsUsed = calculateCredits(combinedUsage);
     let finalBalance = reservation.balance;
     if (creditsUsed < reserveCredits) {
       const refund = await addCredits(env, user.id, reserveCredits - creditsUsed, 'presentation_autofill_refund', { referenceId: genId, note: 'Reserved more than actual usage' });
