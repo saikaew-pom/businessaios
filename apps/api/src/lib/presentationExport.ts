@@ -8,6 +8,58 @@
 import PptxGenJS from 'pptxgenjs';
 import { getColorTheme, ColorTheme } from './presentationPresets';
 import { EMBEDDED_THAI_FONT_CSS, EXPORT_FONT_STACK } from './exportFonts';
+import { pptxChartSpec, renderChartSvg } from './presentationCharts';
+
+// =====================================================
+// Resolved AI image helpers
+// -----------------------------------------------------
+// `resolved_image_base64` / `resolved_image_mime` arrive on a slide object
+// that was populated upstream (resolveSlideImages() in presentationRoutes.ts
+// fetches the bytes from R2). From this module's point of view they are just
+// optional strings that may be absent, empty, truncated, or outright
+// adversarial — never trust them blindly before splicing them into an HTML
+// attribute or handing them to pptxgenjs.
+// =====================================================
+
+// Base64's own alphabet (A-Z a-z 0-9 + /) plus padding contains none of
+// & < > " ' — so a string that actually matches this shape can never break
+// out of an HTML attribute or a CSS url('...') on its own. This is a cheap,
+// good-enough gate against garbage/adversarial payloads; it is not a full
+// base64 semantic validator (e.g. it won't catch a value which is
+// syntactically valid base64 but decodes to non-image bytes), so callers
+// still HTML-escape the resulting data: URI as defense in depth.
+const BASE64_RE = /^[A-Za-z0-9+/]+={0,2}$/;
+function isValidBase64Image(b64?: unknown): b64 is string {
+  return typeof b64 === 'string' && b64.length > 0 && b64.length % 4 === 0 && BASE64_RE.test(b64);
+}
+
+// Restrict the mime type to a known-safe allowlist. This closes two holes at
+// once: (1) an unexpected mime string can no longer carry characters like
+// `"` or `'` into the `data:` URI we build (the primary HTML/CSS injection
+// vector), and (2) pptxgenjs's background-image path derives its embedded
+// media file's *extension* from a hardcoded 'preencoded.png' default rather
+// than from the mime in `data` — normalizing here lets callers pick the
+// matching real extension instead of silently mislabeling e.g. a JPEG as
+// .png in the exported .pptx (verified via zip inspection: bytes were real
+// JPEG magic numbers under a `.png` name/content-type).
+const SAFE_IMAGE_MIME_RE = /^image\/(png|jpeg|jpg|webp|gif)$/;
+function normalizeImageMime(mime?: unknown): string {
+  const m = String(mime || '').toLowerCase().trim();
+  if (SAFE_IMAGE_MIME_RE.test(m)) return m === 'image/jpg' ? 'image/jpeg' : m;
+  return 'image/png';
+}
+function imageExtnFromMime(mime: string): string {
+  return mime.split('/')[1] || 'png';
+}
+// A slide's media_suggestion resolves to a usable image only when both the
+// mime normalizes cleanly (always true — normalizeImageMime never fails)
+// and the base64 payload looks well-formed. Returns null otherwise so every
+// call site falls back to its existing placeholder/flat-background behavior
+// exactly as if the image had never resolved.
+function resolvedImageOf(media?: SlideOutline['media_suggestion']): { mime: string; base64: string } | null {
+  if (!media?.resolved_image_base64 || !isValidBase64Image(media.resolved_image_base64)) return null;
+  return { mime: normalizeImageMime(media.resolved_image_mime), base64: media.resolved_image_base64 };
+}
 
 export interface SlideOutline {
   slide_number: number;
@@ -20,7 +72,14 @@ export interface SlideOutline {
   body?: string;
   data_table?: { headers: string[]; rows: string[][] };
   chart?: { type: string; data?: any; highlight?: string };
-  media_suggestion?: { kind: string; description?: string; image_prompt?: string };
+  media_suggestion?: {
+    kind: string;
+    description?: string;
+    image_prompt?: string;
+    generation_id?: string;
+    resolved_image_base64?: string;
+    resolved_image_mime?: string;
+  };
   color_emphasis?: string;
   speaker_note?: string;
   duration_seconds?: number;
@@ -100,8 +159,10 @@ export function buildPresentationHTML(data: PresentationExportData): string {
   .three-col-cell h4 { font-size: 16px; color: var(--text); margin-bottom: 8px; }
   .three-col-cell p { font-size: 13px; color: var(--muted); }
   .chart-text { display: grid; grid-template-columns: 1.4fr 1fr; gap: 32px; margin-top: 24px; }
-  .chart-area { background: #f8fafc; border-radius: 8px; padding: 20px; min-height: 280px; display: flex; align-items: center; justify-content: center; }
+  .chart-area { background: #f8fafc; border-radius: 8px; padding: 20px; min-height: 280px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text); }
   .chart-area .placeholder { color: var(--muted); font-size: 13px; text-align: center; }
+  .chart-area svg { flex: 1; width: 100%; }
+  .chart-area .chart-caption { color: var(--muted); font-size: 12px; margin-top: 8px; text-align: center; }
   .full-bleed { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; padding: 80px 64px; }
   .full-bleed .slide-title, .full-bleed .slide-subtitle { color: white; }
   .full-bleed .slide-section-label { color: rgba(255,255,255,0.8); }
@@ -129,9 +190,25 @@ ${slides.map((s, idx) => {
 
   const sectionLabel = s.section_label || s.section?.replace(/_/g, ' ');
   const bullets = s.bullet_points || s.key_points || [];
+  const resolvedMedia = resolvedImageOf(s.media_suggestion);
+  const resolvedImage = resolvedMedia ? `data:${resolvedMedia.mime};base64,${resolvedMedia.base64}` : null;
+  // A dark gradient composited under the real photo keeps the existing
+  // white title/subtitle/CTA text readable regardless of the AI image's own
+  // brightness -- same reasoning as scrimming a hero photo behind text on a
+  // landing page.
+  // The data: URI is HTML-escaped (same `escape()` used for every other
+  // interpolated field in this template) before going into the style
+  // attribute: mime/base64 are validated upstream in resolvedImageOf(), but
+  // escaping here is defense in depth against anything that slips through,
+  // since a raw `"` or `'` would otherwise break out of either the url('...')
+  // or the surrounding style="..." attribute.
+  const fullBleedStyle = isFullBleed && resolvedImage
+    ? ` style="background-image: linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url('${escape(resolvedImage)}'); background-size: cover; background-position: center;"`
+    : '';
 
   return `
-  <section class="slide ${isFullBleed ? 'full-bleed' : ''}">
+  <section class="slide ${isFullBleed ? 'full-bleed' : ''}"${fullBleedStyle}>
+
     <div class="slide-framework">${frameworkLabel}</div>
     <div class="slide-num">${s.slide_number} / ${slides.length}</div>
     ${sectionLabel && !isTitle ? `<div class="slide-section-label">${escape(sectionLabel)}</div>` : ''}
@@ -173,20 +250,30 @@ ${slides.map((s, idx) => {
       </div>
     ` : ''}
 
-    ${s.layout === 'chart_text' ? `
+    ${s.layout === 'chart_text' ? (() => {
+      const svg = renderChartSvg(s.chart, colorTheme);
+      return `
       <div class="chart-text">
-        <div class="chart-area"><div class="placeholder">📊 ${escape(s.chart?.type || 'chart')}<br><small>${escape(s.chart?.highlight || '')}</small></div></div>
+        <div class="chart-area">
+          ${svg || `<div class="placeholder">📊 ${escape(s.chart?.type || 'chart')}<br><small>${escape(s.chart?.highlight || '')}</small></div>`}
+          ${svg && s.chart?.highlight ? `<div class="chart-caption">${escape(s.chart.highlight)}</div>` : ''}
+        </div>
         <div>${bullets.map((b: string) => `<p style="font-size: 16px; margin-bottom: 12px;">• ${escape(b)}</p>`).join('')}</div>
       </div>
-    ` : ''}
+    `;
+    })() : ''}
 
     ${s.call_to_action ? `<div class="slide-cta">${escape(s.call_to_action)}</div>` : ''}
 
-    ${s.media_suggestion && s.media_suggestion.kind === 'image' ? `
+    ${s.media_suggestion && s.media_suggestion.kind === 'image' && !isFullBleed ? (
+      resolvedImage
+        ? `<img src="${escape(resolvedImage)}" alt="${escape(s.media_suggestion.description || '')}" style="width: 100%; max-height: 260px; object-fit: cover; border-radius: 8px; margin-top: 16px;" />`
+        : `
       <div style="background: rgba(0,0,0,0.04); padding: 16px; border-radius: 8px; margin-top: 16px; font-size: 13px; color: var(--muted);">
         🎨 ${escape(s.media_suggestion.description || s.media_suggestion.image_prompt || 'image')}
       </div>
-    ` : ''}
+    `
+    ) : ''}
 
     ${note ? `
       <div class="speaker-notes">
@@ -344,8 +431,32 @@ export async function buildPresentationPPTX(data: PresentationExportData): Promi
     const slide = pptx.addSlide();
 
     if (isFullBleed) {
-      // Full-bleed background
-      slide.background = { color: colorHex(colorTheme.primary) };
+      // Full-bleed background — a real generated image when Step 7's "generate
+      // image" flow resolved one, the flat theme-color gradient otherwise.
+      const resolvedMedia = resolvedImageOf(s.media_suggestion);
+      if (resolvedMedia) {
+        // pptxgenjs's addBackgroundDefinition derives the embedded media
+        // file's extension from `path` (defaulting to 'preencoded.png' when
+        // only `data` is given) rather than from the mime inside `data` --
+        // verified by unzipping a real .pptx: a JPEG background came out
+        // named/typed as .png in the package while the bytes were still
+        // genuinely JPEG. Passing an explicit `path` with the correct
+        // extension keeps the zip's media file and [Content_Types].xml entry
+        // truthful for non-PNG mimes.
+        slide.background = {
+          data: `${resolvedMedia.mime};base64,${resolvedMedia.base64}`,
+          path: `preencoded.${imageExtnFromMime(resolvedMedia.mime)}`,
+        };
+        // Same reasoning as the HTML export's gradient scrim: a semi-transparent
+        // dark rectangle over the photo keeps the white title/subtitle/body
+        // text readable regardless of the AI image's own brightness.
+        slide.addShape('rect', {
+          x: 0, y: 0, w: 13.333, h: 7.5,
+          fill: { color: '000000', transparency: 45 }, line: { type: 'none' },
+        });
+      } else {
+        slide.background = { color: colorHex(colorTheme.primary) };
+      }
       slide.addText(s.title || '', {
         x: 0.8, y: 2.2, w: 11.7, h: 1.5,
         fontSize: 40, fontFace: 'Sarabun', color: 'FFFFFF', bold: true, align: 'center', valign: 'middle',
@@ -418,20 +529,70 @@ export async function buildPresentationPPTX(data: PresentationExportData): Promi
         });
       }
 
-      // Bullets
+      // Bullets — narrowed to the right column when a chart occupies the left
+      // column (chart_text layout), full-width otherwise.
+      const isChartText = s.layout === 'chart_text' && !!s.chart;
       const bullets = s.bullet_points || s.key_points || [];
+      const contentStartY = s.key_message ? 4.0 : 2.9;
       if (bullets.length > 0) {
-        const startY = s.key_message ? 4.0 : 2.9;
         const bulletText = bullets.map((b: string) => ({ text: b, options: { bullet: { code: '25CF' } } }));
         slide.addText(bulletText as any, {
-          x: 0.8, y: startY, w: 11.9, h: 6.7 - startY,
+          x: isChartText ? 7.3 : 0.8, y: contentStartY, w: isChartText ? 5.4 : 11.9, h: 6.7 - contentStartY,
           fontSize: 16, fontFace: 'Sarabun', color: colorHex(colorTheme.text), paraSpaceAfter: 8, valign: 'top',
         });
       } else if (s.body) {
         slide.addText(s.body, {
-          x: 0.8, y: 3.0, w: 11.9, h: 3.5,
+          x: isChartText ? 7.3 : 0.8, y: 3.0, w: isChartText ? 5.4 : 11.9, h: 3.5,
           fontSize: 18, fontFace: 'Sarabun', color: colorHex(colorTheme.text), valign: 'top',
         });
+      }
+
+      // Real chart (chart_text layout) — native PPTX chart from Step 7's
+      // structured chart.data when it normalizes; a labeled placeholder box
+      // when the AI output doesn't normalize cleanly, same fallback the HTML
+      // export uses.
+      if (isChartText) {
+        const chartH = 6.7 - contentStartY;
+        const spec = pptxChartSpec(s.chart, colorTheme);
+        if (spec) {
+          // pptxgenjs's own typings disagree with themselves here: addChart's
+          // signature wants the string-literal CHART_NAME union, but the
+          // library also exports a same-named ChartType *enum* whose members
+          // aren't structurally assignable to it. Passing the literal directly
+          // (spec.family already is 'bar' | 'line' | 'area' | 'pie') satisfies
+          // CHART_NAME without a cast.
+          slide.addChart(spec.family, spec.data as any, {
+            x: 0.6, y: contentStartY, w: 6.5, h: chartH,
+            chartColors: [colorTheme.chart1, colorTheme.chart2, colorTheme.chart3, colorTheme.chart4, colorTheme.chart5].map(colorHex),
+            barGrouping: spec.barGrouping,
+            showLegend: spec.data.length > 1,
+            showTitle: false,
+            dataLabelColor: colorHex(colorTheme.textMuted),
+          });
+        } else {
+          slide.addShape('rect', {
+            x: 0.6, y: contentStartY, w: 6.5, h: chartH,
+            fill: { color: 'F8FAFC' }, line: { color: 'E2E8F0' },
+          });
+          slide.addText(`📊 ${s.chart?.type || 'chart'}${s.chart?.highlight ? '\n' + s.chart.highlight : ''}`, {
+            x: 0.6, y: contentStartY, w: 6.5, h: chartH,
+            align: 'center', valign: 'middle', fontSize: 12, fontFace: 'Sarabun', color: colorHex(colorTheme.textMuted),
+          });
+        }
+      }
+
+      // Media image — non-chart_text slides whose media_suggestion resolved to
+      // a real generated image (chart_text already uses this same left-column
+      // slot for its chart, so skip there to avoid overlapping it).
+      if (!isChartText && s.media_suggestion?.kind === 'image') {
+        const resolvedMedia = resolvedImageOf(s.media_suggestion);
+        if (resolvedMedia) {
+          slide.addImage({
+            data: `${resolvedMedia.mime};base64,${resolvedMedia.base64}`,
+            x: 0.6, y: contentStartY, w: 6.5, h: 6.7 - contentStartY,
+            sizing: { type: 'cover', w: 6.5, h: 6.7 - contentStartY },
+          });
+        }
       }
 
       // Data table

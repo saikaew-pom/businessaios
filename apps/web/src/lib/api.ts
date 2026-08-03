@@ -1650,6 +1650,13 @@ export async function generatePresentationStep(id: string, step: number, input: 
   });
 }
 
+export async function autofillPresentationStep(id: string, step: number, input: any) {
+  return fetchAPI<{ ok: boolean; step: number; suggestion: any; meta: { credits_used: number; credits_remaining: number } }>(
+    `/api/presentation/projects/${id}/autofill/${step}`,
+    { method: 'POST', body: JSON.stringify({ input }) }
+  );
+}
+
 export async function savePresentationStepInput(id: string, step: number, data: { input?: any; output?: any; custom_system_prompt?: string }) {
   return fetchAPI<{ ok: boolean }>(`/api/presentation/projects/${id}/step/${step}`, {
     method: 'PUT',

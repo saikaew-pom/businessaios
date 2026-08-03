@@ -3,18 +3,45 @@
    * Step 2: Audience Profile
    * Select communication styles + concerns → Smart Engine builds persona card
    */
-  let { project, initialData, presets, onGenerate, isGenerating }: {
+  import { autofillPresentationStep } from '$lib/api';
+
+  let { project, initialData, presets, onGenerate, isGenerating, onCreditsUpdated }: {
     project: any;
     initialData: any;
     presets: any;
     onGenerate: (input: any) => void;
     isGenerating: boolean;
+    onCreditsUpdated?: (remaining: number) => void;
   } = $props();
 
   let audience_role = $state(initialData?.audience_role || '');
   let business_context = $state(initialData?.business_context || '');
   let communication_styles = $state<string[]>(initialData?.communication_styles || []);
   let audience_concerns = $state<string[]>(initialData?.audience_concerns || []);
+
+  let isAutofilling = $state(false);
+  let autofillError = $state('');
+
+  async function handleAutofill() {
+    if (isAutofilling) return;
+    isAutofilling = true;
+    autofillError = '';
+    try {
+      const res = await autofillPresentationStep(project.id, 2, {
+        title: project?.title, objective: project?.objective,
+      });
+      const s = res.suggestion || {};
+      if (s.audience_role) audience_role = s.audience_role;
+      if (s.business_context) business_context = s.business_context;
+      if (Array.isArray(s.communication_styles) && s.communication_styles.length) communication_styles = s.communication_styles;
+      if (Array.isArray(s.audience_concerns) && s.audience_concerns.length) audience_concerns = s.audience_concerns;
+      onCreditsUpdated?.(res.meta.credits_remaining);
+    } catch (err: any) {
+      autofillError = err.message || 'AI ช่วยกรอกไม่สำเร็จ';
+    } finally {
+      isAutofilling = false;
+    }
+  }
 
   function toggleStyle(id: string) {
     communication_styles = communication_styles.includes(id)
@@ -39,6 +66,17 @@
   <div>
     <h2 class="text-2xl font-bold mb-2">👥 Audience Profile</h2>
     <p class="text-sm text-dark-900/60 dark:text-dark-100/60">ระบุผู้ฟัง — ระบบอัจฉริยะ จะสร้าง persona card และ handling strategy</p>
+    <button
+      type="button"
+      onclick={handleAutofill}
+      disabled={isAutofilling}
+      class="mt-2 text-sm font-semibold text-primary-600 dark:text-primary-400 hover:text-primary-700 disabled:opacity-40 disabled:cursor-not-allowed"
+    >
+      {isAutofilling ? '⏳ AI กำลังช่วยกรอก...' : '✨ ให้ AI ช่วยกรอก Audience Profile'}
+    </button>
+    {#if autofillError}
+      <p class="mt-1 text-xs text-red-600 dark:text-red-400">{autofillError}</p>
+    {/if}
   </div>
 
   <form onsubmit={handleSubmit} class="space-y-5">

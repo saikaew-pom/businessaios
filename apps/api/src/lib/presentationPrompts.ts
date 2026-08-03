@@ -4,7 +4,7 @@
  * Step 6 has 3 variants (SCQA, 5M, Pop-Up) chosen by objective
  */
 
-import { COMMUNICATION_STYLES, AUDIENCE_CONCERNS, FRAMEWORK_NAMES } from './presentationPresets';
+import { COMMUNICATION_STYLES, AUDIENCE_CONCERNS, FRAMEWORK_NAMES, frameworkVariantForObjective } from './presentationPresets';
 
 export type PresentationStepInput = Record<string, any>;
 
@@ -634,7 +634,7 @@ export const step6Prompt: PresentationPromptTemplate = {
   maxTokens: 14000,
   creditsRequired: 2,
   buildPrompt: (input) => {
-    const fw = input.framework_variant || (input.objective === 'informative' ? 'scqa_minto' : input.objective === 'story' ? 'popup_pitch' : '5m_mission');
+    const fw = input.framework_variant || frameworkVariantForObjective(input.objective);
     return step6Base(input, fw as any);
   },
   parseOutput: (raw) => raw,
@@ -700,8 +700,8 @@ ${JSON.stringify(input.outline || {}, null, 2)}
         "rows": [["..."]]
       },
       "chart": {
-        "type": "pie | bar | line | bullet | ...",
-        "data": [...],
+        "type": "pie | bar | stacked_bar | line | area | ...",
+        "data": [{"label": "...", "value": 0}],
         "highlight": "..."
       },
       "media_suggestion": {
@@ -832,4 +832,107 @@ export const STEP_NAMES_TH: Record<number, string> = {
   7: 'Slide Blueprint',
   8: 'Speaker Notes',
   9: 'Export',
+};
+
+// =====================================================
+// Autofill prompts — draft the wizard's OWN input fields (title excepted;
+// that's the one thing only the user can seed) from whatever context
+// exists so far, so a user can review/edit an AI-drafted starting point
+// instead of typing every field from a blank form. Deliberately NOT
+// offered for Step 4 (Source Content): fabricating fake source material
+// the user never actually researched would be actively harmful, not just
+// low-value — Step 4 already has a real, honest fallback (auto-use the
+// Step 3 content gap) for when there's no source text yet.
+// =====================================================
+
+export interface AutofillPromptTemplate {
+  step: number;
+  buildPrompt: (input: PresentationStepInput) => { system: string; user: string };
+  maxTokens: number;
+}
+
+const autofillStep1: AutofillPromptTemplate = {
+  step: 1,
+  maxTokens: 1200,
+  buildPrompt: (input) => ({
+    system: `คุณคือ Presentation Strategist ช่วยร่าง brief จากหัวข้อสั้นๆ ให้ผู้ใช้แก้ไขต่อได้ทันที
+⚠️ ตอบ JSON object เดียวเท่านั้น ห้ามมี markdown code fence ห้ามอธิบายก่อน/หลัง`,
+    user: `# หัวข้อ Presentation
+${input.title}
+
+${input.objective ? `# Objective ที่ผู้ใช้เลือกไว้แล้ว\n${input.objective} (เก็บค่านี้ไว้ ไม่ต้องเปลี่ยน)` : '# Objective ยังไม่ได้เลือก — ช่วยแนะนำจากหัวข้อ'}
+
+# Output JSON Schema
+{
+  "objective": "informative | persuasive | story",
+  "description": "คำอธิบาย 1-2 ประโยคว่า presentation นี้เกี่ยวกับอะไร จุดประสงค์หลักคืออะไร",
+  "target_slides": 10,
+  "time_minutes": 15
+}
+
+⚠️ objective: informative = รายงาน/สรุปงาน/อธิบาย, persuasive = pitch/ขออนุมัติ/เสนอไอเดีย, story = keynote/TED Talk/เล่าเรื่องแบรนด์
+⚠️ target_slides ระหว่าง 5-25, time_minutes ระหว่าง 3-60 ให้เหมาะกับเนื้อหา
+⚠️ ตอบ JSON เท่านั้น`,
+  }),
+};
+
+const autofillStep2: AutofillPromptTemplate = {
+  step: 2,
+  maxTokens: 1500,
+  buildPrompt: (input) => ({
+    system: `คุณคือ Audience Analyst ช่วยร่าง audience profile จาก context ของ presentation ให้ผู้ใช้แก้ไขต่อได้ทันที
+⚠️ ตอบ JSON object เดียวเท่านั้น ห้ามมี markdown code fence`,
+    user: `# Presentation Context
+- Title: ${input.title}
+- Objective: ${input.objective}
+${input.description ? `- คำอธิบาย: ${input.description}` : ''}
+
+# ตัวเลือก Communication Style ที่มีจริง (เลือกได้หลายข้อ ต้องใช้ id ตรงนี้เท่านั้น)
+${COMMUNICATION_STYLES.map((s) => `- ${s.id}: ${s.name} — ${s.description}`).join('\n')}
+
+# ตัวเลือก Concerns ที่มีจริง (เลือกได้หลายข้อ ต้องใช้ id ตรงนี้เท่านั้น)
+${AUDIENCE_CONCERNS.map((c) => `- ${c.id}: ${c.name}`).join('\n')}
+
+# Output JSON Schema
+{
+  "audience_role": "ผู้ฟังคือใคร เช่น CMO + Head of Sales",
+  "business_context": "บริบทธุรกิจสั้นๆ",
+  "communication_styles": ["เลือกจาก id ด้านบน 1-2 ตัวที่เข้ากับ objective และ audience_role"],
+  "audience_concerns": ["เลือกจาก id ด้านบน 2-4 ตัวที่ audience นี้น่าจะกังวล"]
+}
+
+⚠️ communication_styles และ audience_concerns ต้องเป็น id ที่มีอยู่จริงในลิสต์ด้านบนเท่านั้น ห้ามสร้าง id ใหม่
+⚠️ ตอบ JSON เท่านั้น`,
+  }),
+};
+
+const autofillStep3: AutofillPromptTemplate = {
+  step: 3,
+  maxTokens: 1800,
+  buildPrompt: (input) => ({
+    system: `คุณคือ Presentation Strategist ช่วยร่าง ATR (Audience Transformation Roadmap, Phil Waknell) ให้ผู้ใช้แก้ไขต่อได้ทันที
+⚠️ ตอบ JSON object เดียวเท่านั้น ห้ามมี markdown code fence`,
+    user: `# Presentation Context
+- Title: ${input.title}
+- Objective: ${input.objective}
+${input.audience_role ? `- ผู้ฟัง: ${input.audience_role}` : ''}
+${input.business_context ? `- บริบทธุรกิจ: ${input.business_context}` : ''}
+${input.audience_persona ? `- Persona: ${JSON.stringify(input.audience_persona)}` : ''}
+
+# Output JSON Schema
+{
+  "summary": "สรุปสั้นๆ ว่า presentation นี้จะพูดเรื่องอะไร",
+  "before": { "know": "ผู้ฟังรู้อะไรแล้วก่อนฟัง", "believe": "ผู้ฟังเชื่ออะไรก่อนฟัง", "feel": "ผู้ฟังรู้สึกอย่างไรก่อนฟัง", "do": "ผู้ฟังทำอะไรอยู่ก่อนฟัง" },
+  "after": { "know": "อยากให้รู้อะไรหลังฟัง", "believe": "อยากให้เชื่ออะไรหลังฟัง", "feel": "อยากให้รู้สึกอย่างไรหลังฟัง", "do": "อยากให้ทำอะไร (action) หลังฟัง" }
+}
+
+⚠️ ทุก field ต้องมีเนื้อหาจริง ไม่เว้นว่าง กระชับ 1 ประโยคต่อช่อง
+⚠️ ตอบ JSON เท่านั้น`,
+  }),
+};
+
+export const AUTOFILL_PROMPTS: Record<number, AutofillPromptTemplate> = {
+  1: autofillStep1,
+  2: autofillStep2,
+  3: autofillStep3,
 };

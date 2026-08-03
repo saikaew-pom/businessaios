@@ -4,13 +4,16 @@
    * 4×2 grid: Know/Believe/Feel/Do × Before/After
    * Smart Engine proposes → user edits → Smart Engine computes content gap
    */
-  let { project, initialData, presets, step2Data, onGenerate, isGenerating }: {
+  import { autofillPresentationStep } from '$lib/api';
+
+  let { project, initialData, presets, step2Data, onGenerate, isGenerating, onCreditsUpdated }: {
     project: any;
     initialData: any;
     presets: any;
     step2Data: any;
     onGenerate: (input: any) => void;
     isGenerating: boolean;
+    onCreditsUpdated?: (remaining: number) => void;
   } = $props();
 
   // Initialize from previous data or defaults
@@ -30,6 +33,31 @@
     do: initialData?.after?.do || '',
   });
 
+  let isAutofilling = $state(false);
+  let autofillError = $state('');
+
+  async function handleAutofill() {
+    if (isAutofilling) return;
+    isAutofilling = true;
+    autofillError = '';
+    try {
+      const res = await autofillPresentationStep(project.id, 3, {
+        title: project?.title,
+        objective: project?.objective,
+        audience_persona: step2Data?.persona_card,
+      });
+      const s = res.suggestion || {};
+      if (s.summary) summary = s.summary;
+      if (s.before) before = { ...before, ...s.before };
+      if (s.after) after = { ...after, ...s.after };
+      onCreditsUpdated?.(res.meta.credits_remaining);
+    } catch (err: any) {
+      autofillError = err.message || 'AI ช่วยกรอกไม่สำเร็จ';
+    } finally {
+      isAutofilling = false;
+    }
+  }
+
   function handleSubmit(e: Event) {
     e.preventDefault();
     if (!summary.trim()) return;
@@ -47,6 +75,17 @@
   <div>
     <h2 class="text-2xl font-bold mb-2">🎯 ATR Canvas</h2>
     <p class="text-sm text-dark-900/60 dark:text-dark-100/60">Audience Transformation Roadmap (Phil Waknell) — ระบุว่าผู้ฟังจะเปลี่ยนไปอย่างไร</p>
+    <button
+      type="button"
+      onclick={handleAutofill}
+      disabled={isAutofilling}
+      class="mt-2 text-sm font-semibold text-primary-600 dark:text-primary-400 hover:text-primary-700 disabled:opacity-40 disabled:cursor-not-allowed"
+    >
+      {isAutofilling ? '⏳ AI กำลังช่วยกรอก...' : '✨ ให้ AI ช่วยร่าง ATR Canvas'}
+    </button>
+    {#if autofillError}
+      <p class="mt-1 text-xs text-red-600 dark:text-red-400">{autofillError}</p>
+    {/if}
   </div>
 
   <form onsubmit={handleSubmit} class="space-y-5">

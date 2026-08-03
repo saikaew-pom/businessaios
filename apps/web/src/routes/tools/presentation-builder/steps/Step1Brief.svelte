@@ -2,31 +2,70 @@
   /**
    * Step 1: Quick Brief
    * Configure title, objective, slides, time
-   * Free — no ระบบอัจฉริยะ
+   * Free — no ระบบอัจฉริยะ (ยกเว้นปุ่ม autofill ซึ่งเป็น AI แยกต่างหาก)
    */
-  let { project, initialData, presets, onGenerate, onUpdate, isGenerating }: {
+  import { autofillPresentationStep } from '$lib/api';
+
+  let { project, initialData, presets, onGenerate, onUpdate, isGenerating, hasLaterSteps, onCreditsUpdated }: {
     project: any;
     initialData: any;
     presets: any;
     onGenerate: (input: any) => void;
-    onUpdate: (data: any) => void;
+    onUpdate: (data: any) => Promise<any>;
     isGenerating: boolean;
+    hasLaterSteps?: boolean;
+    onCreditsUpdated?: (remaining: number) => void;
   } = $props();
 
   let title = $state(project?.title || '');
   let description = $state(initialData?.description || '');
+  let objective = $state(project?.objective || 'informative');
   let target_slides = $state(project?.target_slides || 10);
   let time_minutes = $state(project?.time_minutes || 15);
   let color_theme = $state(project?.color_theme || 'business_blue');
   let language = $state(project?.language || 'th');
 
-  let selectedObjective = $derived(presets?.objectives?.find((o: any) => o.id === project?.objective));
+  let isAutofilling = $state(false);
+  let autofillError = $state('');
 
-  function handleSubmit(e: Event) {
+  let selectedObjective = $derived(presets?.objectives?.find((o: any) => o.id === objective));
+
+  async function handleAutofill() {
+    if (!title.trim() || isAutofilling) return;
+    isAutofilling = true;
+    autofillError = '';
+    try {
+      const res = await autofillPresentationStep(project.id, 1, { title, objective: objective || undefined });
+      const s = res.suggestion || {};
+      if (s.objective) objective = s.objective;
+      if (s.description) description = s.description;
+      if (s.target_slides) target_slides = s.target_slides;
+      if (s.time_minutes) time_minutes = s.time_minutes;
+      onCreditsUpdated?.(res.meta.credits_remaining);
+    } catch (err: any) {
+      autofillError = err.message || 'AI ช่วยกรอกไม่สำเร็จ';
+    } finally {
+      isAutofilling = false;
+    }
+  }
+
+  async function handleSubmit(e: Event) {
     e.preventDefault();
     if (!title.trim()) return;
-    onUpdate({ title, target_slides, time_minutes, color_theme, language });
-    onGenerate({ title, description, target_slides, time_minutes, color_theme, language });
+    if (objective !== project?.objective && hasLaterSteps) {
+      const confirmed = confirm(
+        'การเปลี่ยน Objective จะเปลี่ยน Framework ที่ใช้ด้วย — เนื้อหาที่สร้างไว้แล้วใน Step อื่น (2 เป็นต้นไป) จะยังอยู่ แต่จะไม่ตรงกับ Framework ใหม่จนกว่าจะ Regenerate ใหม่ ต้องการดำเนินการต่อหรือไม่?'
+      );
+      if (!confirmed) return;
+    }
+    // Must complete BEFORE onGenerate fires: the generate call re-reads the
+    // project row server-side to compute framework_variant for this (and
+    // every later) step. Firing both requests without ordering them races
+    // two separate HTTP round trips against the same row — if the generate
+    // request's read lands before this update's write commits, it silently
+    // computes the framework from the OLD objective with no error surfaced.
+    await onUpdate({ title, objective, target_slides, time_minutes, color_theme, language });
+    onGenerate({ title, description, objective, target_slides, time_minutes, color_theme, language });
   }
 </script>
 
@@ -46,6 +85,17 @@
         placeholder="เช่น Q3 Marketing Plan, Series A Pitch, Brand Story"
         class="w-full px-4 py-3 border border-dark-200 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-base"
       />
+      <button
+        type="button"
+        onclick={handleAutofill}
+        disabled={!title.trim() || isAutofilling}
+        class="mt-2 text-sm font-semibold text-primary-600 dark:text-primary-400 hover:text-primary-700 disabled:opacity-40 disabled:cursor-not-allowed"
+      >
+        {isAutofilling ? '⏳ AI กำลังช่วยกรอก...' : '✨ ให้ AI ช่วยกรอกที่เหลือจากหัวข้อนี้'}
+      </button>
+      {#if autofillError}
+        <p class="mt-1 text-xs text-red-600 dark:text-red-400">{autofillError}</p>
+      {/if}
     </div>
 
     <div>
@@ -56,6 +106,23 @@
         placeholder="อธิบายสั้นๆ ว่า presentation นี้เกี่ยวกับอะไร จุดประสงค์หลักคืออะไร"
         class="w-full px-4 py-2.5 border border-dark-200 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-primary-500"
       ></textarea>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-dark-700 dark:text-dark-200 mb-1">Objective *</label>
+      <select
+        bind:value={objective}
+        class="w-full px-4 py-2.5 border border-dark-200 dark:border-dark-600 rounded-lg focus:ring-2 focus:ring-primary-500"
+      >
+        {#if presets}
+          {#each presets.objectives as o}
+            <option value={o.id}>{o.icon} {o.name}</option>
+          {/each}
+        {/if}
+      </select>
+      {#if objective !== project?.objective && hasLaterSteps}
+        <p class="mt-1 text-xs text-amber-600 dark:text-amber-400">⚠️ มี Step อื่นที่สร้างไว้แล้ว — เปลี่ยน Objective จะเปลี่ยน Framework ด้วย ต้อง Regenerate step ที่เหลือใหม่</p>
+      {/if}
     </div>
 
     {#if selectedObjective}

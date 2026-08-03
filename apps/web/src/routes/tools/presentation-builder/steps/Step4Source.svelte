@@ -16,32 +16,55 @@
   let sourceText = $state(initialData?.source_text || '');
   let uploadedFiles = $state<any[]>(initialData?.uploaded_files || []);
   let useAutoFromATR = $state(!initialData?.source_text && (initialData?.auto_use_atr ?? true));
+  // Text files are read via async FileReader — without this flag, clicking
+  // "Save" before a read finishes silently drops that file's content from
+  // the saved source (handleSubmit ran synchronously off stale state).
+  let isReadingFiles = $state(false);
+  let fileReadError = $state('');
 
-  function addSourceItem() {
-    sourceText = sourceText + (sourceText ? '\n\n' : '');
+  function readFileAsText(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (ev) => resolve((ev.target?.result as string) ?? '');
+      reader.onerror = () => reject(reader.error || new Error('file_read_failed'));
+      reader.readAsText(file);
+    });
   }
 
-  function handleFileUpload(e: Event) {
+  async function handleFileUpload(e: Event) {
     const input = e.target as HTMLInputElement;
     const files = input.files;
     if (!files) return;
-    for (const f of Array.from(files)) {
-      // For text files, read content
-      if (f.type.startsWith('text/') || /\.(md|txt|csv|json)$/i.test(f.name)) {
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-          const content = ev.target?.result as string;
+    isReadingFiles = true;
+    fileReadError = '';
+    const failed: string[] = [];
+    try {
+      for (const f of Array.from(files)) {
+        if (f.type.startsWith('text/') || /\.(md|txt|csv|json)$/i.test(f.name)) {
+          // Each file's read is isolated — one failed read (e.g. an OS-level
+          // permission error) must not abort the rest of the batch. Without
+          // this try/catch, a rejection here would throw out of the whole
+          // loop and silently drop every file queued after the failing one.
+          try {
+            const content = await readFileAsText(f);
+            uploadedFiles = [
+              ...uploadedFiles,
+              { name: f.name, size: f.size, mime: f.type || 'text/plain', content: content.slice(0, 50000) },
+            ];
+          } catch {
+            failed.push(f.name);
+          }
+        } else {
           uploadedFiles = [
             ...uploadedFiles,
-            { name: f.name, size: f.size, mime: f.type || 'text/plain', content: content.slice(0, 50000) },
+            { name: f.name, size: f.size, mime: f.type || 'application/octet-stream', content: null },
           ];
-        };
-        reader.readAsText(f);
-      } else {
-        uploadedFiles = [
-          ...uploadedFiles,
-          { name: f.name, size: f.size, mime: f.type || 'application/octet-stream', content: null },
-        ];
+        }
+      }
+    } finally {
+      isReadingFiles = false;
+      if (failed.length > 0) {
+        fileReadError = `อ่านไฟล์ไม่สำเร็จ: ${failed.join(', ')}`;
       }
     }
   }
@@ -145,6 +168,12 @@
         onchange={handleFileUpload}
         class="w-full text-sm text-dark-900/60 dark:text-dark-100/60 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
       />
+      {#if isReadingFiles}
+        <div class="mt-2 text-sm text-dark-900/60 dark:text-dark-100/60">⏳ กำลังอ่านไฟล์...</div>
+      {/if}
+      {#if fileReadError}
+        <div class="mt-2 text-sm text-red-600 dark:text-red-400">⚠️ {fileReadError}</div>
+      {/if}
       {#if uploadedFiles.length > 0}
         <div class="mt-2 space-y-1">
           {#each uploadedFiles as f, i}
@@ -159,10 +188,10 @@
 
     <button
       type="submit"
-      disabled={isSaving}
+      disabled={isSaving || isReadingFiles}
       class="w-full bg-primary-600 hover:bg-primary-700 disabled:bg-dark-300 text-white font-semibold py-3 rounded-lg transition"
     >
-      {isSaving ? '💾 Saving...' : '💾 Save Source → Step 5'}
+      {isReadingFiles ? '⏳ กำลังอ่านไฟล์...' : isSaving ? '💾 Saving...' : '💾 Save Source → Step 5'}
     </button>
   </form>
 </div>

@@ -73,6 +73,17 @@ export const FRAMEWORK_NAMES: Record<string, { name: string; name_th: string }> 
   popup_pitch: { name: 'Pop-Up Pitch (Dan Roam)', name_th: 'Pop-Up Pitch by Dan Roam (Story)' },
 };
 
+// The single source of truth for objective -> framework mapping. Lives in
+// this leaf module (no imports of its own) so both presentationRoutes.ts and
+// presentationPrompts.ts can import it without a circular dependency between
+// those two files. Used at project creation, whenever `objective` is edited,
+// and as the last-resort fallback when computing a step's generation input.
+export function frameworkVariantForObjective(objective: string | undefined): string {
+  return objective === 'informative' ? 'scqa_minto'
+    : objective === 'story' ? 'popup_pitch'
+    : '5m_mission';
+}
+
 // =====================================================
 // Presentation Objectives
 // =====================================================

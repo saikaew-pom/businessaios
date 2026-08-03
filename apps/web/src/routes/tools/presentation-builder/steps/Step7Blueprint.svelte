@@ -4,7 +4,10 @@
    * For each slide: pick type (Flat/Story/Visual), layout, media, chart
    * User can EDIT system prompt here
    */
-  let { project, initialData, step6Data, presets, customSystemPrompt: initialCustomPrompt, onGenerate, isGenerating }: {
+  import { onDestroy } from 'svelte';
+  import { previewMediaPricing, createMediaGeneration, getMediaGeneration, getMediaAssetContentUrl } from '$lib/api';
+
+  let { project, initialData, step6Data, presets, customSystemPrompt: initialCustomPrompt, onGenerate, isGenerating, onSave, onCreditsUpdated }: {
     project: any;
     initialData: any;
     step6Data: any;
@@ -12,13 +15,121 @@
     customSystemPrompt?: string;
     onGenerate: (input: any, customPrompt?: string) => void;
     isGenerating: boolean;
+    onSave?: (output: any) => Promise<any>;
+    onCreditsUpdated?: (remaining: number) => void;
   } = $props();
+
+  const IMAGE_MODEL_ID = 'minimax-image-01-t2i';
 
   let customSystemPrompt = $state(initialCustomPrompt || '');
   let showCustomPrompt = $state(false);
 
   let slides = $derived<any[]>(initialData?.slides || []);
   let expandedSlide = $state<number | null>(null);
+
+  // Per-slide AI image generation status — the blueprint slides array itself
+  // is a read-only $derived from props, so in-flight generation status lives
+  // here instead, keyed by slide_number.
+  let imageGenState = $state<Record<number, { status: string; assetId?: string; error?: string }>>({});
+  const pollTimers: Record<number, ReturnType<typeof setInterval>> = {};
+
+  // Resume polling for any slide whose blueprint already references a
+  // generation (e.g. after a page reload mid-generation) that we haven't
+  // started tracking locally yet.
+  $effect(() => {
+    for (const slide of slides) {
+      const generationId = slide?.media_suggestion?.generation_id;
+      if (generationId && !imageGenState[slide.slide_number]) {
+        imageGenState = { ...imageGenState, [slide.slide_number]: { status: 'checking' } };
+        pollImageGeneration(slide.slide_number, generationId);
+      }
+    }
+  });
+
+  onDestroy(() => {
+    for (const timer of Object.values(pollTimers)) clearInterval(timer);
+  });
+
+  async function handleGenerateImage(slide: any) {
+    const slideNum = slide.slide_number;
+    const current = imageGenState[slideNum]?.status;
+    if (current && !['failed'].includes(current)) return;
+    // Lock synchronously, in the same tick as the guard above and before any
+    // `await` — a double-click (or any re-invocation while the quote fetch
+    // and confirm() dialog are still in flight) must see this lock and bail
+    // out at the guard, exactly like studio/+page.svelte's handleGenerate()
+    // sets `isGenerating = true` synchronously before its own first await.
+    // Without this, two clicks landing inside that window both pass the
+    // guard (imageGenState[slideNum] is still unset for both), both show a
+    // confirm() dialog, and — if confirmed twice — both call
+    // createMediaGeneration with their own fresh crypto.randomUUID(), which
+    // does NOT dedupe them (each is a distinct idempotency key by design),
+    // burning real credits twice for one intended click.
+    imageGenState = { ...imageGenState, [slideNum]: { status: 'checking' } };
+    try {
+      const quote = await previewMediaPricing({ model_id: IMAGE_MODEL_ID, options: { aspect_ratio: '16:9' } });
+      const confirmed = confirm(`สร้างภาพจริงด้วย AI ใช้ ${quote.credits} เครดิต ต้องการดำเนินการต่อหรือไม่?`);
+      if (!confirmed) {
+        // Release the lock — no generation was created, so the button must
+        // reappear instead of getting stuck showing a loading state forever.
+        const { [slideNum]: _dropped, ...rest } = imageGenState;
+        imageGenState = rest;
+        return;
+      }
+      imageGenState = { ...imageGenState, [slideNum]: { status: 'queued' } };
+      const res = await createMediaGeneration({
+        model_id: IMAGE_MODEL_ID,
+        prompt: slide.media_suggestion.image_prompt,
+        options: { aspect_ratio: '16:9' },
+        references: [],
+        quote_id: quote.id,
+        expected_pricing_version: quote.pricing_version,
+      }, crypto.randomUUID());
+      if (res.credits_remaining !== undefined) onCreditsUpdated?.(res.credits_remaining);
+      await persistGenerationId(slideNum, res.generation.id);
+      pollImageGeneration(slideNum, res.generation.id);
+    } catch (err: any) {
+      imageGenState = { ...imageGenState, [slideNum]: { status: 'failed', error: err.message || 'สร้างภาพไม่สำเร็จ' } };
+    }
+  }
+
+  async function persistGenerationId(slideNum: number, generationId: string) {
+    if (!onSave) return;
+    const updatedSlides = slides.map((s) => s.slide_number === slideNum
+      ? { ...s, media_suggestion: { ...s.media_suggestion, generation_id: generationId } }
+      : s);
+    await onSave({ ...initialData, slides: updatedSlides });
+  }
+
+  function pollImageGeneration(slideNum: number, generationId: string) {
+    stopPolling(slideNum);
+    const tick = async () => {
+      try {
+        const gen = await getMediaGeneration(generationId);
+        if (gen.status === 'completed') {
+          imageGenState = { ...imageGenState, [slideNum]: { status: 'completed', assetId: gen.outputs?.[0]?.id } };
+          stopPolling(slideNum);
+        } else if (['failed', 'cancelled'].includes(gen.status)) {
+          imageGenState = { ...imageGenState, [slideNum]: { status: 'failed', error: gen.error_message || 'สร้างภาพไม่สำเร็จ' } };
+          stopPolling(slideNum);
+        } else {
+          imageGenState = { ...imageGenState, [slideNum]: { status: gen.status } };
+        }
+      } catch (err: any) {
+        imageGenState = { ...imageGenState, [slideNum]: { status: 'failed', error: err.message || 'สร้างภาพไม่สำเร็จ' } };
+        stopPolling(slideNum);
+      }
+    };
+    pollTimers[slideNum] = setInterval(tick, 2500);
+    void tick();
+  }
+
+  function stopPolling(slideNum: number) {
+    if (pollTimers[slideNum]) {
+      clearInterval(pollTimers[slideNum]);
+      delete pollTimers[slideNum];
+    }
+  }
 
   function getTypeIcon(type: string) {
     if (type === 'title') return '🎬';
@@ -155,6 +266,27 @@
                     <div class="text-xs font-mono bg-dark-100 dark:bg-dark-700 p-2 rounded mt-1 text-dark-900/70 dark:text-dark-100/70">
                       "{slide.media_suggestion.image_prompt}"
                     </div>
+
+                    {#if imageGenState[slide.slide_number]?.status === 'completed' && imageGenState[slide.slide_number]?.assetId}
+                      <img
+                        src={getMediaAssetContentUrl(imageGenState[slide.slide_number].assetId!)}
+                        alt={slide.media_suggestion.description || 'AI generated image'}
+                        class="mt-2 w-full max-w-xs rounded-lg border border-dark-200 dark:border-dark-600"
+                      />
+                    {:else if ['queued', 'submitting', 'processing', 'delivery_pending', 'checking'].includes(imageGenState[slide.slide_number]?.status || '')}
+                      <div class="mt-2 text-xs text-primary-600 dark:text-primary-400">⏳ กำลังสร้างภาพ... ({imageGenState[slide.slide_number].status})</div>
+                    {:else}
+                      <button
+                        type="button"
+                        onclick={() => handleGenerateImage(slide)}
+                        class="mt-2 text-xs font-semibold text-primary-600 dark:text-primary-400 hover:text-primary-700"
+                      >
+                        🎨 สร้างภาพจริงด้วย AI
+                      </button>
+                      {#if imageGenState[slide.slide_number]?.status === 'failed'}
+                        <div class="mt-1 text-xs text-red-600 dark:text-red-400">{imageGenState[slide.slide_number].error}</div>
+                      {/if}
+                    {/if}
                   {/if}
                 </div>
               {/if}

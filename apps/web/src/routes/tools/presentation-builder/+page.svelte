@@ -25,6 +25,7 @@
     generatePresentationStep,
     savePresentationStepInput,
     exportPresentation,
+    getCredits,
     type PresentationProject,
     type PresentationStep,
   } from '$lib/api';
@@ -84,11 +85,8 @@
 
   async function loadUserCredits() {
     try {
-      const res = await fetch('/api/me/credits', { credentials: 'include' });
-      if (res.ok) {
-        const data = await res.json();
-        creditsRemaining = data.credits ?? 0;
-      }
+      const data = await getCredits();
+      creditsRemaining = data.balance ?? 0;
     } catch {}
   }
 
@@ -131,10 +129,33 @@
     }
   }
 
-  async function goToStep(step: number) {
+  const STEP_NAMES_TH: Record<number, string> = {
+    1: 'Quick Brief', 2: 'Audience Profile', 3: 'ATR Canvas', 4: 'Source Content',
+    5: 'Content Triage', 6: 'Story Outline', 7: 'Slide Blueprint', 8: 'Speaker Notes', 9: 'Export',
+  };
+
+  // Steps 6-8 build directly on the immediately preceding step's AI output
+  // (outline → blueprint → speaker notes) — jumping straight to one of
+  // these via the step-indicator without ever generating its prerequisite
+  // produces a low-quality/garbage result with no warning. Steps 1-5 have
+  // no such hard dependency (Step 5 already self-guards on its own Generate
+  // button), so they stay freely navigable.
+  function missingPrerequisiteFor(step: number): number | null {
+    if (step === 6 && !getStepData(5)) return 5;
+    if (step === 7 && !getStepData(6)) return 6;
+    if (step === 8 && (!getStepData(6) || !getStepData(7))) return !getStepData(6) ? 6 : 7;
+    return null;
+  }
+
+  function goToStep(step: number) {
     if (step < 1 || step > 9) return;
+    const missing = missingPrerequisiteFor(step);
+    if (missing !== null) {
+      error = `กรุณาทำ Step ${missing} (${STEP_NAMES_TH[missing] || ''}) ให้เสร็จก่อน ไม่งั้นผลลัพธ์ของ Step นี้จะไม่มีข้อมูลอ้างอิง`;
+      return;
+    }
+    error = '';
     currentStep = step;
-    await updatePresentationProject(project.id, {});
   }
 
   async function handleStepGenerate(step: number, input: any, customSystemPrompt?: string) {
@@ -142,8 +163,14 @@
     error = '';
     try {
       const res = await generatePresentationStep(project.id, step, input, customSystemPrompt);
-      // Reload project to get latest step data
+      // Reload project + steps — project must be refreshed too (not just
+      // steps): editing objective in Step 1 (PUT) updates the DB row, but
+      // nothing else re-fetches `project` afterwards, so without this the
+      // Framework badge and the `project?.objective` comparison Step1Brief
+      // uses to decide whether to warn about a framework change would keep
+      // showing stale pre-edit data for the rest of the session.
       const updated = await getPresentationProject(project.id);
+      project = updated.project;
       steps = updated.steps || [];
       // Move to next step
       if (step < 9) {
@@ -177,6 +204,14 @@
   async function handleExport(format: 'html' | 'md' | 'json' | 'csv' | 'pptx' | 'gsheet') {
     isLoading = true;
     error = '';
+    // Browsers only treat `window.open` as user-initiated (not a blocked
+    // popup) within the synchronous portion of a click handler — after two
+    // `await`s (export call + fetch), that window has long closed. Open a
+    // blank tab NOW, synchronously, and point it at the real URL once known;
+    // if even that gets blocked, `tab` is null and we fall back to showing
+    // the link instead of silently doing nothing.
+    const needsNewTab = format === 'gsheet' || format === 'html';
+    const tab = needsNewTab ? window.open('', '_blank') : null;
     try {
       const res = await exportPresentation(project.id, format);
       // Open in new tab or trigger download
@@ -192,13 +227,21 @@
         a.href = url;
         a.download = `${project.title}.csv`;
         a.click();
-        // Open Google Sheets
-        window.open(data.google_sheets_url, '_blank');
-        alert('ดาวน์โหลด CSV แล้ว! ใน Google Sheets: File > Import > Upload > เลือกไฟล์ CSV ที่ดาวน์โหลด');
+        // Open Google Sheets in the tab we already opened synchronously above
+        if (tab) {
+          tab.location.href = data.google_sheets_url;
+          alert('ดาวน์โหลด CSV แล้ว! ใน Google Sheets: File > Import > Upload > เลือกไฟล์ CSV ที่ดาวน์โหลด');
+        } else {
+          error = `เบราว์เซอร์บล็อก popup — เปิดลิงก์นี้เอง: ${data.google_sheets_url}`;
+        }
       } else {
         const downloadUrl = `${PUBLIC_API_URL}/api/presentation/exports/${res.export_id}`;
         if (format === 'html') {
-          window.open(downloadUrl, '_blank');
+          if (tab) {
+            tab.location.href = downloadUrl;
+          } else {
+            error = `เบราว์เซอร์บล็อก popup — เปิดลิงก์นี้เอง: ${downloadUrl}`;
+          }
         } else {
           // Force download
           const a = document.createElement('a');
@@ -209,6 +252,7 @@
       }
     } catch (err: any) {
       error = err.message;
+      tab?.close();
     } finally {
       isLoading = false;
     }
@@ -222,18 +266,6 @@
     if (!raw) return null;
     try {
       return typeof raw === 'string' ? JSON.parse(raw) : raw;
-    } catch {
-      return null;
-    }
-  }
-
-  function getStepInput(stepNumber: number): any {
-    // For steps with editable input (step 1, 4)
-    const s = steps.find((x) => x.step_number === stepNumber);
-    if (!s) return null;
-    try {
-      const out = typeof s.output_json === 'string' ? JSON.parse(s.output_json) : s.output_json;
-      return out;
     } catch {
       return null;
     }
@@ -412,6 +444,9 @@
             </button>
             <div class="text-sm font-medium text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/40 px-3 py-1.5 rounded-lg">
               เครดิต: {creditsRemaining.toLocaleString()}
+              {#if lastCreditsUsed > 0}
+                <span class="text-xs text-primary-500 dark:text-primary-400/70 ml-1">(ใช้ไป {lastCreditsUsed} ล่าสุด)</span>
+              {/if}
             </div>
           </div>
         </div>
@@ -443,6 +478,8 @@
             onGenerate={(input) => handleStepGenerate(1, input)}
             onUpdate={(data) => updatePresentationProject(project.id, data)}
             isGenerating={isGenerating}
+            hasLaterSteps={[2, 3, 4, 5, 6, 7, 8, 9].some((s) => !!getStepData(s))}
+            onCreditsUpdated={(remaining) => (creditsRemaining = remaining)}
           />
         {:else if currentStep === 2}
           <Step2Audience
@@ -451,6 +488,7 @@
             presets={presets}
             onGenerate={(input) => handleStepGenerate(2, input)}
             isGenerating={isGenerating}
+            onCreditsUpdated={(remaining) => (creditsRemaining = remaining)}
           />
         {:else if currentStep === 3}
           <Step3ATR
@@ -460,6 +498,7 @@
             step2Data={getStepData(2)}
             onGenerate={(input) => handleStepGenerate(3, input)}
             isGenerating={isGenerating}
+            onCreditsUpdated={(remaining) => (creditsRemaining = remaining)}
           />
         {:else if currentStep === 4}
           <Step4Source
@@ -499,6 +538,8 @@
             customSystemPrompt={getCustomPrompt(7)}
             onGenerate={(input, customPrompt) => handleStepGenerate(7, input, customPrompt)}
             isGenerating={isGenerating}
+            onSave={(output) => handleStepSave(7, { output })}
+            onCreditsUpdated={(remaining) => (creditsRemaining = remaining)}
           />
         {:else if currentStep === 8}
           <Step8Notes
