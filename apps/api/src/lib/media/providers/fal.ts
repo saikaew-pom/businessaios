@@ -11,9 +11,24 @@ export function createFalProvider(apiKey: string | null, fetchImpl: typeof fetch
       const firstReference = input.references[0];
       const body: Record<string, unknown> = {
         prompt: input.prompt,
-        image_size: normalizeImageSize(input.options.aspect_ratio),
         num_images: normalizeCount(input.options.num_images ?? input.options.count),
       };
+
+      // fal hosts models from several upstream vendors and they do NOT share
+      // one request schema for output dimensions. FLUX and GPT Image 2 take an
+      // `image_size` enum ('landscape_16_9'); Google's Nano Banana family takes
+      // a raw `aspect_ratio` string ('16:9'). Sending the wrong one is silently
+      // ignored by fal and you get a default-square image back, so the per-model
+      // convention is declared in the catalog's adapter_config_json rather than
+      // guessed from the model id.
+      const sizeParam = readSizeParam(input.model.adapter_config_json);
+      const ratio = typeof input.options.aspect_ratio === 'string' ? input.options.aspect_ratio : '1:1';
+      if (sizeParam === 'aspect_ratio') {
+        body.aspect_ratio = ratio;
+      } else {
+        body.image_size = normalizeImageSize(ratio);
+      }
+
       if (firstReference) body.image_url = firstReference.provider_url;
 
       const response = await fetchImpl(`${FAL_ENDPOINT_BASE}/${input.model.provider_model_id}`, {
@@ -54,6 +69,20 @@ export function createFalProvider(apiKey: string | null, fetchImpl: typeof fetch
       };
     },
   };
+}
+
+/**
+ * Which request field this model wants its output dimensions in. Defaults to
+ * 'image_size' so a catalog row that predates this field (or omits it) keeps
+ * the original FLUX behaviour instead of silently sending nothing.
+ */
+function readSizeParam(adapterConfigJson: string): 'image_size' | 'aspect_ratio' {
+  try {
+    const parsed = JSON.parse(adapterConfigJson || '{}');
+    return parsed?.size_param === 'aspect_ratio' ? 'aspect_ratio' : 'image_size';
+  } catch {
+    return 'image_size';
+  }
 }
 
 function normalizeImageSize(value: unknown): string {

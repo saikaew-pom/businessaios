@@ -126,9 +126,103 @@ export async function seedMediaModelCatalog(env: Pick<Bindings, 'DB'>, now = Dat
     }),
     pricing_version: 'fal-flux-dev-2026-08-02-v1',
     safety_config_json: canonicalJson({ policy: 'provider_default' }),
-    adapter_config_json: canonicalJson({ endpoint: 'fal.run', model: 'fal-ai/flux/dev' }),
+    adapter_config_json: canonicalJson({ endpoint: 'fal.run', model: 'fal-ai/flux/dev', size_param: 'image_size' }),
     sort_order: 100,
   }, now, 1);
+
+  // Models are seeded in maintenance mode until a platform API key exists for
+  // their provider. But the "setting a key lifts maintenance" UPDATE in
+  // adminRoutes only touches rows that existed when the key was saved — so a
+  // model added to this catalog AFTER an admin already configured fal would
+  // otherwise be born in maintenance with no obvious way to know why. Checking
+  // the key here keeps newly-added models consistent with the provider's
+  // already-configured state.
+  let falKeyConfigured: { ok: number } | null = null;
+  try {
+    falKeyConfigured = await env.DB
+      .prepare("SELECT 1 as ok FROM platform_provider_keys WHERE provider = 'fal' AND is_active = 1")
+      .first<{ ok: number }>();
+  } catch {
+    falKeyConfigured = null;
+  }
+  const falSeedMaintenance: 0 | 1 = falKeyConfigured ? 0 : 1;
+
+  // Additional fal-hosted models. Credit prices are derived from fal's published
+  // per-image cost at the project's documented rate of 1 credit ≈ $0.001 cost
+  // (see lib/packages.ts), rounded up — so a generation never costs more to
+  // serve than it charges. provider_cost_usd_per_output records the real cost so
+  // the admin panel's margin reporting stays honest; adjust both together there
+  // (no deploy needed) if fal changes pricing.
+  const falModels: Array<{
+    id: string; providerModelId: string; displayName: string;
+    credits: number; costUsd: number; maxOutputCount: number;
+    aspectRatios: string[]; sizeParam: 'image_size' | 'aspect_ratio'; sortOrder: number;
+  }> = [
+    {
+      id: 'fal-flux-schnell-t2i', providerModelId: 'fal-ai/flux/schnell', displayName: 'FLUX.1 [schnell] — เร็ว/ประหยัด (fal.ai)',
+      credits: 3, costUsd: 0.003, maxOutputCount: 4,
+      aspectRatios: ['1:1', '4:3', '3:4', '16:9', '9:16'], sizeParam: 'image_size', sortOrder: 101,
+    },
+    {
+      id: 'fal-flux-pro-v11-t2i', providerModelId: 'fal-ai/flux-pro/v1.1', displayName: 'FLUX1.1 [pro] — คุณภาพสูง (fal.ai)',
+      credits: 55, costUsd: 0.055, maxOutputCount: 4,
+      aspectRatios: ['1:1', '4:3', '3:4', '16:9', '9:16'], sizeParam: 'image_size', sortOrder: 102,
+    },
+    {
+      id: 'fal-recraft-v3-t2i', providerModelId: 'fal-ai/recraft/v3/text-to-image', displayName: 'Recraft V3 — กราฟิก/ภาพประกอบ (fal.ai)',
+      credits: 40, costUsd: 0.04, maxOutputCount: 4,
+      aspectRatios: ['1:1', '4:3', '3:4', '16:9', '9:16'], sizeParam: 'image_size', sortOrder: 103,
+    },
+    {
+      id: 'fal-nano-banana-2-t2i', providerModelId: 'fal-ai/nano-banana-2', displayName: 'Nano Banana 2 (Google, fal.ai)',
+      credits: 80, costUsd: 0.08, maxOutputCount: 4,
+      aspectRatios: ['1:1', '16:9', '9:16', '4:3', '3:4', '3:2', '2:3', '5:4', '4:5', '21:9'],
+      sizeParam: 'aspect_ratio', sortOrder: 104,
+    },
+    {
+      id: 'fal-nano-banana-pro-t2i', providerModelId: 'fal-ai/nano-banana-pro', displayName: 'Nano Banana 2 Pro (Google, fal.ai)',
+      credits: 150, costUsd: 0.15, maxOutputCount: 4,
+      aspectRatios: ['1:1', '16:9', '9:16', '4:3', '3:4', '3:2', '2:3', '5:4', '4:5', '21:9'],
+      sizeParam: 'aspect_ratio', sortOrder: 105,
+    },
+    {
+      // fal bills GPT Image 2 by quality tier + resolution ($0.01 lowest → $0.41
+      // at 4K/high). We never send a `quality` field, so fal's own default
+      // applies; 210 credits is priced against the ~$0.21 mid/high 1K tier.
+      // Re-check in the admin panel if that default or fal's tiering changes.
+      id: 'fal-gpt-image-2-t2i', providerModelId: 'openai/gpt-image-2', displayName: 'GPT Image 2 (OpenAI, fal.ai)',
+      credits: 210, costUsd: 0.21, maxOutputCount: 4,
+      aspectRatios: ['1:1', '4:3', '3:4', '16:9', '9:16'], sizeParam: 'image_size', sortOrder: 106,
+    },
+  ];
+
+  for (const model of falModels) {
+    await upsertSeedModel(env, {
+      id: model.id,
+      provider: 'fal',
+      provider_model_id: model.providerModelId,
+      display_name: model.displayName,
+      model_type: 'image',
+      operation: 'text_to_image',
+      capabilities_json: canonicalJson({
+        aspectRatios: model.aspectRatios,
+        outputFormats: ['url'],
+        maxOutputCount: model.maxOutputCount,
+        maxReferenceImages: 1,
+      }),
+      pricing_json: canonicalJson({
+        unit: 'credit',
+        credits_per_output: model.credits,
+        minimum_credits: model.credits,
+        provider_cost_usd_per_output: model.costUsd,
+        billing_unit: 'delivered_output',
+      }),
+      pricing_version: `${model.id}-2026-08-03-v1`,
+      safety_config_json: canonicalJson({ policy: 'provider_default' }),
+      adapter_config_json: canonicalJson({ endpoint: 'fal.run', model: model.providerModelId, size_param: model.sizeParam }),
+      sort_order: model.sortOrder,
+    }, now, falSeedMaintenance);
+  }
 }
 
 async function upsertSeedModel(
