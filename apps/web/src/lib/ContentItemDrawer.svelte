@@ -13,6 +13,7 @@
     updateContentItem,
     type ContentItem,
   } from '$lib/api';
+  import { buildStudioPrompt, suggestedAspectRatio } from '$lib/studioHandoff';
 
   let { item, onClose, onUpdated }: {
     item: ContentItem | null;
@@ -181,9 +182,12 @@
     error = '';
     try {
       const res = await createContentItemCreativeRequest(item.id);
+      // Use the drawer's live `visualSuggestion` field, not `item.visual_suggestion` —
+      // otherwise editing the Visual suggestion textarea and clicking สร้าง Creative
+      // without saving first would silently send the stale, pre-edit description.
       localStorage.setItem('creativeStudioDraft', JSON.stringify({
         creative_request_id: res.creative_request_id,
-        prompt: buildStudioPrompt(item),
+        prompt: buildStudioPrompt({ ...item, visual_suggestion: visualSuggestion }),
         options: { aspect_ratio: suggestedAspectRatio(item), response_format: 'url', num_images: 1 },
         references: [],
       }));
@@ -193,22 +197,6 @@
     } finally {
       isActionBusy = '';
     }
-  }
-
-  function buildStudioPrompt(current: ContentItem) {
-    return [
-      `สร้าง creative สำหรับ ${current.platform || 'social media'} format ${current.format || 'post'}`,
-      current.visual_suggestion,
-      current.hook ? `Main hook: ${current.hook}` : '',
-      current.caption ? `Caption context: ${current.caption}` : '',
-      current.cta ? `CTA: ${current.cta}` : '',
-    ].filter(Boolean).join('\n');
-  }
-
-  function suggestedAspectRatio(current: ContentItem) {
-    if (current.format.includes('story') || current.format.includes('reel') || current.format.includes('short')) return '9:16';
-    if (current.platform.includes('youtube')) return '16:9';
-    return '1:1';
   }
 
   function humanizeError(err: unknown) {

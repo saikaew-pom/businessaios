@@ -10,6 +10,7 @@
   import { initAuth, isAuthed } from '$lib/auth';
   import { fetchConfig } from '$lib/config';
   import ContentItemDrawer from '$lib/ContentItemDrawer.svelte';
+  import { buildStudioPrompt, suggestedAspectRatio } from '$lib/studioHandoff';
 
   const statusOptions = [
     { value: 'pending_review', label: 'รอรีวิว' },
@@ -147,22 +148,6 @@
     } finally {
       actionBusy = '';
     }
-  }
-
-  function buildStudioPrompt(item: ContentItem) {
-    return [
-      `สร้างภาพสำหรับ ${item.platform || 'social media'} format ${item.format || 'post'}`,
-      item.visual_suggestion,
-      item.hook ? `Hook: ${item.hook}` : '',
-      item.caption ? `Caption context: ${item.caption}` : '',
-      item.cta ? `CTA: ${item.cta}` : '',
-    ].filter(Boolean).join('\n');
-  }
-
-  function suggestedAspectRatio(item: ContentItem) {
-    if (item.format.includes('story') || item.format.includes('reel')) return '9:16';
-    if (item.platform.includes('youtube')) return '16:9';
-    return '1:1';
   }
 
   function defaultScheduleText() {

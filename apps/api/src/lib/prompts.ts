@@ -288,7 +288,7 @@ ${input.uploaded_files.map((f: any) => `- ${f.name} (${f.mime || 'unknown'})`).j
       "caption": "caption 3-5 บรรทัด ภาษาไทย",
       "cta": "กดลิงก์ / ทักแชท / แชร์ / บันทึก",
       "hashtags": ["#tag1", "#tag2", "#tag3"],
-      "visual_suggestion": "คำอธิบายภาพ 1 บรรทัด",
+      "visual_suggestion": "คำอธิบายภาพ 1 บรรทัด — บรรยายเฉพาะสิ่งที่เห็นในภาพ (ฉาก คน สิ่งของ มุมกล้อง แสง สี อารมณ์) ห้ามระบุตัวอักษร ข้อความ ป้าย ปุ่ม โลโก้ หรือราคาในภาพ",
       "expected_engagement": "high | medium | low"
     }
   ]
@@ -297,6 +297,7 @@ ${input.uploaded_files.map((f: any) => `- ${f.name} (${f.mime || 'unknown'})`).j
 ⚠️ สร้าง 20-30 items ใน calendar (เริ่ม day ที่ 1)
 ⚠️ กระจาย pillar: ~25% awareness / ~35% education / ~25% social_proof / ~15% conversion
 ⚠️ hashtag ไม่เกิน 5 ตัว ต่อ item
+⚠️ visual_suggestion ต้องบรรยายภาพล้วน ๆ ห้ามมีตัวอักษร/ข้อความ/ป้าย/ปุ่ม/โลโก้/ราคาในภาพ (AI วาดตัวหนังสือไทยไม่ได้ — หัวข้อกับ CTA จะถูกใส่ทีหลังด้วยเครื่องมือแยก)
 ⚠️ ทุก field ต้องมี ไม่เว้นว่าง
 ⚠️ JSON valid — ไม่มี comment, ไม่มี trailing comma`,
   }),
