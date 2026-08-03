@@ -155,6 +155,52 @@
     notice = '';
   }
 
+  // Optional "เลือกแนวรูป" style presets — purely a prompt-text shortcut, not
+  // a separate API param. Clicking a card appends a short style descriptor to
+  // whatever the user has already typed; clicking the same card again (or a
+  // different one) removes the previously-injected fragment first so
+  // switching presets doesn't stack multiple style descriptions in the
+  // prompt. This is best-effort text matching, not tracked state — if the
+  // user hand-edits the fragment after selecting it, un-selecting won't
+  // perfectly clean it back out. That's an acceptable trade-off for an
+  // optional shortcut the user can otherwise just ignore and type freely.
+  type StylePreset = { id: string; label: string; emoji: string; fragment: string };
+  const STYLE_PRESETS: StylePreset[] = [
+    { id: 'professional', label: 'มืออาชีพ', emoji: '🧭', fragment: 'โทนมืออาชีพ น่าเชื่อถือ แสงนุ่มนวล สไตล์คอร์ปอเรท' },
+    { id: 'warm', label: 'อบอุ่น เป็นกันเอง', emoji: '☀️', fragment: 'โทนอบอุ่น เป็นกันเอง เข้าถึงง่าย สีโทนพาสเทล' },
+    { id: 'premium', label: 'พรีเมียม หรูหรา', emoji: '✨', fragment: 'โทนพรีเมียม หรูหรา โทนมืด มีประกาย' },
+    { id: 'clean', label: 'มินิมอล สะอาดตา', emoji: '🤍', fragment: 'โทนมินิมอล สะอาดตา สีขาว-เทา เรียบง่ายทันสมัย' },
+  ];
+  let selectedStyleId: string | null = null;
+
+  function stripEdgeCommas(text: string): string {
+    return text.replace(/^[,\s]+|[,\s]+$/g, '').trim();
+  }
+
+  function removeStyleFragment(text: string, fragment: string): string {
+    return stripEdgeCommas(
+      text
+        .split(fragment).join('')
+        .replace(/,\s*,/g, ',')
+    );
+  }
+
+  function toggleStylePreset(preset: StylePreset) {
+    const previous = STYLE_PRESETS.find((p) => p.id === selectedStyleId);
+    if (selectedStyleId === preset.id) {
+      prompt = removeStyleFragment(prompt, preset.fragment);
+      selectedStyleId = null;
+    } else {
+      // Strip edge commas here too (not just .trim()) — otherwise a base
+      // prompt that already ends with a comma (e.g. "..., ") produces a
+      // double comma once ", <fragment>" is appended below.
+      const withoutPrevious = previous ? removeStyleFragment(prompt, previous.fragment) : stripEdgeCommas(prompt);
+      prompt = withoutPrevious ? `${withoutPrevious}, ${preset.fragment}` : preset.fragment;
+      selectedStyleId = preset.id;
+    }
+    invalidateQuote();
+  }
+
   function generationOptions() {
     return {
       aspect_ratio: aspectRatio,
@@ -739,6 +785,28 @@
                   <input type="checkbox" bind:checked={promptOptimizer} onchange={invalidateQuote} class="h-4 w-4" />
                 </span>
               </label>
+            </div>
+
+            <div class="mt-4">
+              <div class="mb-2 flex items-center justify-between gap-2">
+                <span class="text-sm font-semibold">เลือกแนวภาพ <span class="font-normal text-dark-900/50 dark:text-dark-100/50">(ไม่บังคับ)</span></span>
+                {#if selectedStyleId}
+                  <span class="text-xs text-dark-900/50 dark:text-dark-100/50">เติมลง prompt แล้ว — กดซ้ำเพื่อเอาออก</span>
+                {/if}
+              </div>
+              <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {#each STYLE_PRESETS as preset}
+                  <button
+                    type="button"
+                    onclick={() => toggleStylePreset(preset)}
+                    aria-pressed={selectedStyleId === preset.id}
+                    class="rounded-lg border px-3 py-2.5 text-left text-sm transition {selectedStyleId === preset.id ? 'border-primary-500 bg-primary-50 ring-2 ring-primary-500 dark:bg-primary-950/40' : 'border-dark-200 hover:border-primary-300 dark:border-dark-600'}"
+                  >
+                    <span class="block text-lg leading-none">{preset.emoji}</span>
+                    <span class="mt-1 block font-semibold">{preset.label}</span>
+                  </button>
+                {/each}
+              </div>
             </div>
 
             <label class="mt-4 block">
