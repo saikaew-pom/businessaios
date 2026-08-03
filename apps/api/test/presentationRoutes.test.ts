@@ -127,6 +127,78 @@ describe('Presentation Builder — generate step money-safety', () => {
     expect(step.status).toBe('error');
   });
 
+  it('retries once when the AI returns unparseable content, and succeeds using the second attempt', async () => {
+    // First call: "content" isn't valid JSON at all (no fence, no braces to
+    // salvage) — real production report was exactly this shape, MiniMax
+    // returning prose despite jsonMode being requested.
+    const fetchSpy = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        id: 'gen-1',
+        choices: [{ message: { role: 'assistant', content: 'ขอโทษค่ะ ไม่สามารถสร้างได้ในตอนนี้' }, finish_reason: 'stop' }],
+        usage: { prompt_tokens: 40, completion_tokens: 20, total_tokens: 60 },
+      }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        id: 'gen-2',
+        choices: [{ message: { role: 'assistant', content: JSON.stringify({ persona_card: {}, handling_strategy: {}, concerns_responses: {} }) }, finish_reason: 'stop' }],
+        usage: { prompt_tokens: 40, completion_tokens: 60, total_tokens: 100 },
+      }), { status: 200 }));
+    globalThis.fetch = fetchSpy as any;
+
+    const projectId = await createProject(ctx.env, (await authHeadersFor(ctx.env, 'session-u1')));
+    const before = ctx.db.prepare("SELECT credits FROM users WHERE id='u1'").get() as any;
+
+    const res = await app.request(`/api/presentation/projects/${projectId}/generate/2`, {
+      method: 'POST',
+      headers: { ...(await authHeadersFor(ctx.env, 'session-u1')), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ input: {} }),
+    }, ctx.env);
+    expect(res.status).toBe(200);
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+
+    const body = await res.json() as any;
+    expect(body.output).toEqual({ persona_card: {}, handling_strategy: {}, concerns_responses: {} });
+    // Billed for BOTH attempts' real usage (40+20 wasted + 40+60 successful),
+    // not just the successful one — both calls cost real MiniMax API spend.
+    expect(body.meta.tokens).toEqual({ prompt_tokens: 80, completion_tokens: 80, total_tokens: 160 });
+
+    const after = ctx.db.prepare("SELECT credits FROM users WHERE id='u1'").get() as any;
+    expect(before.credits - after.credits).toBe(body.meta.credits_used);
+
+    const step = ctx.db.prepare("SELECT status FROM presentation_steps WHERE project_id=? AND step_number=2").get(projectId) as any;
+    expect(step.status).toBe('done');
+  });
+
+  it('gives up and refunds in full when both attempts return unparseable content', async () => {
+    const badResponse = () => new Response(JSON.stringify({
+      id: 'gen-x',
+      choices: [{ message: { role: 'assistant', content: 'not json at all' }, finish_reason: 'stop' }],
+      usage: { prompt_tokens: 30, completion_tokens: 10, total_tokens: 40 },
+    }), { status: 200 });
+    const fetchSpy = vi.fn(async () => badResponse());
+    globalThis.fetch = fetchSpy as any;
+
+    const projectId = await createProject(ctx.env, (await authHeadersFor(ctx.env, 'session-u1')));
+    const before = ctx.db.prepare("SELECT credits FROM users WHERE id='u1'").get() as any;
+
+    const res = await app.request(`/api/presentation/projects/${projectId}/generate/2`, {
+      method: 'POST',
+      headers: { ...(await authHeadersFor(ctx.env, 'session-u1')), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ input: {} }),
+    }, ctx.env);
+    expect(res.status).toBe(500);
+    expect(fetchSpy).toHaveBeenCalledTimes(2); // both attempts exhausted before giving up
+
+    const body = await res.json() as any;
+    expect(body.error).toBe('parse_error');
+
+    const after = ctx.db.prepare("SELECT credits FROM users WHERE id='u1'").get() as any;
+    expect(after.credits).toBe(before.credits); // fully refunded, no net charge for either wasted attempt
+
+    const step = ctx.db.prepare("SELECT status, error FROM presentation_steps WHERE project_id=? AND step_number=2").get(projectId) as any;
+    expect(step.status).toBe('error');
+    expect(step.error).toContain('after 2 attempts');
+  });
+
   it('rejects generation for a user without enough credits for the reservation, before touching the DB', async () => {
     const fetchSpy = mockMinimaxSuccess(50, 50, {});
     globalThis.fetch = fetchSpy as any;

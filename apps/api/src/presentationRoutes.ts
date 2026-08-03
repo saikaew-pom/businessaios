@@ -386,7 +386,17 @@ export function createPresentationRoutes(app: any) {
       // checkmark for a generation that never actually ran.
       const genId = generateId();
       const estPromptTokens = Math.ceil((finalSystem.length + userMsg.length) / 3);
-      const reserveCredits = calculateCredits({ prompt_tokens: estPromptTokens, completion_tokens: template.maxTokens });
+      // Reserve for up to 2 worst-case attempts, not 1 — see the retry loop
+      // below. MiniMax occasionally returns content that isn't valid JSON
+      // despite jsonMode being requested (a real production report: Step 2
+      // failed with "AI returned invalid JSON" on a normal-sized request),
+      // and a single same-request retry is a well-known, usually-effective
+      // mitigation for that class of non-deterministic formatting flakiness.
+      // Both attempts cost real MiniMax API usage, so the reservation has to
+      // cover both up front; the true-up below still refunds whatever wasn't
+      // actually used (including the whole second attempt's worth, on the
+      // common case where the first attempt succeeds).
+      const reserveCredits = calculateCredits({ prompt_tokens: estPromptTokens * 2, completion_tokens: template.maxTokens * 2 });
       const reservation = await deductCredits(env, user.id, reserveCredits, 'presentation_generation_reserve', genId);
       if (!reservation.ok) {
         return c.json({
@@ -446,54 +456,78 @@ export function createPresentationRoutes(app: any) {
 
       const startTime = Date.now();
       let result;
-      try {
-        result = await callMinimax(
-          { apiKey: env.MINIMAX_API_KEY, groupId: env.MINIMAX_GROUP_ID, model: env.MINIMAX_MODEL },
-          [
-            { role: 'system', content: finalSystem },
-            { role: 'user', content: userMsg + '\n\n[ตอบ JSON object ใน content field เท่านั้น]' },
-          ],
-          { maxTokens: template.maxTokens, temperature: 0.7, jsonMode: true }
-        );
-      } catch (err: any) {
-        // Restore 'done' (not 'error') if this row already had completed
-        // output from an earlier successful generation — a failed
-        // regeneration attempt must not drop an already-done step out of
-        // the `status = 'done'` context filter used for later steps.
-        await env.DB.prepare(
-          "UPDATE presentation_steps SET status = CASE WHEN output_json IS NOT NULL THEN 'done' ELSE 'error' END, error = ?, updated_at = ? WHERE id = ?"
-        ).bind(err.message, Date.now(), actualStepId).run();
-        const refund = await addCredits(env, user.id, reserveCredits, 'presentation_generation_refund', { referenceId: genId, note: 'AI call failed' });
-        return c.json({ error: 'ai_error', message: err.message, credits_remaining: refund.ok ? refund.balance : undefined }, 500);
+      let output: any;
+      let lastParseError: any = null;
+      let totalPromptTokens = 0;
+      let totalCompletionTokens = 0;
+      const MAX_ATTEMPTS = 2;
+
+      for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+        try {
+          result = await callMinimax(
+            { apiKey: env.MINIMAX_API_KEY, groupId: env.MINIMAX_GROUP_ID, model: env.MINIMAX_MODEL },
+            [
+              { role: 'system', content: finalSystem },
+              { role: 'user', content: userMsg + '\n\n[ตอบ JSON object ใน content field เท่านั้น]' },
+            ],
+            { maxTokens: template.maxTokens, temperature: 0.7, jsonMode: true }
+          );
+        } catch (err: any) {
+          // Network/API-level failures are a different class of problem than
+          // an unparseable response (rate limits, provider outage, auth) —
+          // retrying those automatically on every request would mask real
+          // issues and multiply cost for something a retry won't fix, so
+          // these stay fatal on the first failure, same as before.
+          await env.DB.prepare(
+            "UPDATE presentation_steps SET status = CASE WHEN output_json IS NOT NULL THEN 'done' ELSE 'error' END, error = ?, updated_at = ? WHERE id = ?"
+          ).bind(err.message, Date.now(), actualStepId).run();
+          const refund = await addCredits(env, user.id, reserveCredits, 'presentation_generation_refund', { referenceId: genId, note: 'AI call failed' });
+          return c.json({ error: 'ai_error', message: err.message, credits_remaining: refund.ok ? refund.balance : undefined }, 500);
+        }
+
+        totalPromptTokens += result.usage?.prompt_tokens || 0;
+        totalCompletionTokens += result.usage?.completion_tokens || 0;
+
+        try {
+          output = extractJsonFromAny(result.content, result.reasoning);
+          lastParseError = null;
+          break;
+        } catch (err: any) {
+          // MiniMax occasionally returns content that doesn't parse as JSON
+          // despite jsonMode being requested — usually transient formatting
+          // noise, not a systemic failure, so one same-request retry before
+          // giving up (see the doubled reservation above for why this is
+          // safe to do without under-charging for the real API cost of both
+          // attempts).
+          lastParseError = err;
+        }
       }
 
-      let output: any;
-      try {
-        output = extractJsonFromAny(result.content, result.reasoning);
-      } catch (err: any) {
+      if (lastParseError) {
         await env.DB.prepare(
           "UPDATE presentation_steps SET status = CASE WHEN output_json IS NOT NULL THEN 'done' ELSE 'error' END, error = ?, updated_at = ? WHERE id = ?"
-        ).bind(`parse_error: ${err.message}`, Date.now(), actualStepId).run();
+        ).bind(`parse_error: ${lastParseError.message} (after ${MAX_ATTEMPTS} attempts)`, Date.now(), actualStepId).run();
         const refund = await addCredits(env, user.id, reserveCredits, 'presentation_generation_refund', { referenceId: genId, note: 'AI returned unparseable output' });
         return c.json({
           error: 'parse_error',
           message: 'AI returned invalid JSON',
-          raw: result.content.slice(0, 500),
-          reasoning: result.reasoning.slice(0, 500),
+          raw: result!.content.slice(0, 500),
+          reasoning: result!.reasoning.slice(0, 500),
           credits_remaining: refund.ok ? refund.balance : undefined,
         }, 500);
       }
 
       const durationMs = Date.now() - startTime;
-      const costUsd = estimateCost(result.usage);
-      const creditsUsed = calculateCredits(result.usage);
+      const combinedUsage = { prompt_tokens: totalPromptTokens, completion_tokens: totalCompletionTokens, total_tokens: totalPromptTokens + totalCompletionTokens };
+      const costUsd = estimateCost(combinedUsage);
+      const creditsUsed = calculateCredits(combinedUsage);
 
       // Update step
       await env.DB.prepare(`
         UPDATE presentation_steps
         SET output_json = ?, status = 'done', tokens_used = ?, cost_usd = ?, duration_ms = ?, updated_at = ?
         WHERE id = ?
-      `).bind(JSON.stringify(output), result.usage?.total_tokens || 0, costUsd, durationMs, Date.now(), actualStepId).run();
+      `).bind(JSON.stringify(output), combinedUsage.total_tokens, costUsd, durationMs, Date.now(), actualStepId).run();
 
       // Update project current_step
       const nextStep = Math.min(stepNum + 1, 9);
@@ -518,7 +552,7 @@ export function createPresentationRoutes(app: any) {
         output,
         meta: {
           duration_ms: durationMs,
-          tokens: result.usage,
+          tokens: combinedUsage,
           cost_usd: costUsd,
           credits_used: creditsUsed,
           credits_remaining: finalBalance,
