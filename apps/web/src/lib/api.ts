@@ -519,7 +519,7 @@ export async function materializeStep5ContentItems(projectId: string): Promise<{
 }
 
 export async function transitionContentItem(id: string, data: {
-  action: 'approve' | 'reject' | 'schedule' | 'unschedule' | 'manual_publish_ack' | 'archive';
+  action: 'approve' | 'reject' | 'schedule' | 'reschedule' | 'unschedule' | 'revert_to_draft' | 'manual_publish_ack' | 'archive';
   reason?: string;
   scheduled_at?: number | null;
   timezone?: string;
@@ -528,6 +528,25 @@ export async function transitionContentItem(id: string, data: {
   const res = await fetchAPI<{ item: ContentItem }>(`/api/content-items/${id}/transition`, {
     method: 'POST',
     body: JSON.stringify(data),
+  });
+  return res.item;
+}
+
+export async function updateContentItem(id: string, fields: {
+  title?: string;
+  platform?: string;
+  format?: string;
+  pillar?: string;
+  hook?: string;
+  caption?: string;
+  cta?: string;
+  visual_suggestion?: string;
+  expected_engagement?: string;
+  hashtags?: string[];
+}): Promise<ContentItem> {
+  const res = await fetchAPI<{ item: ContentItem }>(`/api/content-items/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(fields),
   });
   return res.item;
 }

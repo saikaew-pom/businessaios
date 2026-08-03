@@ -173,6 +173,32 @@ contentRoutes.post('/api/content-items/:id/transition', async (c) => {
     toStatus = 'approved';
     update.scheduled_at = null;
     update.timezone = null;
+  } else if (action === 'reschedule') {
+    // Move an already-scheduled item to a new date, or schedule an approved
+    // item — without forcing an unschedule→schedule round trip. This is what
+    // the content calendar's drag-to-move and "send to calendar" both call.
+    if (!['approved', 'scheduled'].includes(item.status)) return c.json({ error: 'approval_required' }, 409);
+    const scheduledAt = Number(body.scheduled_at || 0);
+    if (!Number.isFinite(scheduledAt) || scheduledAt <= now) return c.json({ error: 'invalid_schedule_time' }, 400);
+    toStatus = 'scheduled';
+    update.scheduled_at = scheduledAt;
+    update.timezone = (body.timezone || item.timezone || 'Asia/Bangkok').slice(0, 80);
+  } else if (action === 'revert_to_draft') {
+    // Pull a piece back into editing. Reachable from any non-terminal review
+    // state (published/archived are terminal). Clears every downstream state
+    // marker — approval, rejection, and any schedule — so the item is a clean
+    // draft again, not an "approved-but-actually-draft" hybrid.
+    if (!['pending_review', 'approved', 'scheduled', 'rejected'].includes(item.status)) {
+      return c.json({ error: 'invalid_transition' }, 409);
+    }
+    toStatus = 'draft';
+    update.scheduled_at = null;
+    update.timezone = null;
+    update.approved_at = null;
+    update.approved_by = null;
+    update.rejected_at = null;
+    update.rejected_by = null;
+    update.rejection_reason = null;
   } else if (action === 'manual_publish_ack') {
     if (!['approved', 'scheduled'].includes(item.status)) return c.json({ error: 'approval_required' }, 409);
     toStatus = 'published';
@@ -191,6 +217,42 @@ contentRoutes.post('/api/content-items/:id/transition', async (c) => {
   await logContentEvent(c.env, user.id, item.project_id, id, user.id, action, item.status, toStatus, body.reason || null, {
     scheduled_at: body.scheduled_at,
     manual_publish_url: body.manual_publish_url ? '[provided]' : undefined,
+  });
+  return c.json({ item: serializeContentItem((await getContentItem(c.env, user.id, id))!) });
+});
+
+// Edit a content item's authored fields (title/caption/hook/etc). Status,
+// ownership, scheduling, and provenance are deliberately NOT editable here —
+// those move only through /transition, so a stray PATCH can never smuggle an
+// item into 'approved' or reassign it to another user. Free (no credits).
+const EDITABLE_TEXT_FIELDS = ['title', 'platform', 'format', 'pillar', 'hook', 'caption', 'cta', 'visual_suggestion', 'expected_engagement'] as const;
+
+contentRoutes.patch('/api/content-items/:id', async (c) => {
+  const user = getUser(c)!;
+  const id = c.req.param('id');
+  const item = await getContentItem(c.env, user.id, id);
+  if (!item) return c.json({ error: 'content_item_not_found' }, 404);
+
+  const parsed = await c.req.json<unknown>().catch(() => ({}));
+  const body = (parsed && typeof parsed === 'object' ? parsed : {}) as Record<string, unknown>;
+  const update: Record<string, unknown> = {};
+  for (const field of EDITABLE_TEXT_FIELDS) {
+    const value = body[field];
+    if (typeof value === 'string') {
+      update[field] = value.slice(0, field === 'title' ? 160 : 5000);
+    }
+  }
+  if (Array.isArray(body.hashtags)) {
+    update.hashtags_json = JSON.stringify(
+      body.hashtags.filter((t): t is string => typeof t === 'string').map((t) => t.slice(0, 120)).slice(0, 60),
+    );
+  }
+  if (!Object.keys(update).length) return c.json({ error: 'no_editable_fields' }, 400);
+
+  update.updated_at = Date.now();
+  await updateContentItem(c.env, user.id, id, update);
+  await logContentEvent(c.env, user.id, item.project_id, id, user.id, 'content_edited', item.status, item.status, null, {
+    fields: Object.keys(update).filter((k) => k !== 'updated_at'),
   });
   return c.json({ item: serializeContentItem((await getContentItem(c.env, user.id, id))!) });
 });
