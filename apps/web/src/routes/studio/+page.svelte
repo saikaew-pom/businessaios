@@ -1007,27 +1007,27 @@
                         {/if}
                       </div>
                       <div class="mt-0.5 text-xs text-dark-900/50 dark:text-dark-100/50">{asset.asset_type} · {asset.width || '-'}x{asset.height || '-'}</div>
-                      <div class="mt-2 flex items-center gap-2">
+                      <div class="mt-2 flex flex-wrap items-center gap-2">
                         <button
                           onclick={() => toggleReference(asset)}
                           disabled={!canUseReferences}
-                          class="rounded-md px-2 py-1 text-xs font-semibold disabled:opacity-40 {selectedAsReference ? 'bg-primary-600 text-white hover:bg-primary-700 dark:bg-primary-500 dark:text-dark-950' : 'bg-primary-50 text-primary-700 hover:bg-primary-100 dark:bg-primary-900/40 dark:text-primary-300'}"
+                          class="max-w-full truncate rounded-md px-2 py-1 text-xs font-semibold disabled:opacity-40 {selectedAsReference ? 'bg-primary-600 text-white hover:bg-primary-700 dark:bg-primary-500 dark:text-dark-950' : 'bg-primary-50 text-primary-700 hover:bg-primary-100 dark:bg-primary-900/40 dark:text-primary-300'}"
                         >
                           {selectedAsReference ? 'เอาออกจาก reference' : 'ใช้เป็น reference'}
                         </button>
                         <button
                           onclick={() => toggleReference(asset)}
                           disabled={!canUseReferences}
-                          class="rounded-md bg-dark-50 px-2 py-1 text-xs font-semibold text-dark-900/70 hover:bg-dark-100 disabled:opacity-40 dark:bg-dark-900 dark:text-dark-100/70 dark:hover:bg-dark-700"
+                          class="max-w-full truncate rounded-md bg-dark-50 px-2 py-1 text-xs font-semibold text-dark-900/70 hover:bg-dark-100 disabled:opacity-40 dark:bg-dark-900 dark:text-dark-100/70 dark:hover:bg-dark-700"
                           title="Mention name ที่จะถูกใส่ใน prompt"
                         >
                           @{sanitizeMention(asset.original_filename?.replace(/\.[^.]+$/, '') || 'ref')}
                         </button>
-                        <button onclick={() => toggleFavorite(asset)} class="rounded-md px-2 py-1 text-xs text-dark-900/60 hover:bg-dark-50 dark:text-dark-100/60 dark:hover:bg-dark-900">
+                        <button onclick={() => toggleFavorite(asset)} class="max-w-full truncate rounded-md px-2 py-1 text-xs text-dark-900/60 hover:bg-dark-50 dark:text-dark-100/60 dark:hover:bg-dark-900">
                           {asset.favorite ? 'Favorited' : 'Favorite'}
                         </button>
                         {#if isCompositionEnabled}
-                          <button onclick={() => (templateModalAssetId = asset.id)} class="rounded-md px-2 py-1 text-xs text-dark-900/60 hover:bg-dark-50 dark:text-dark-100/60 dark:hover:bg-dark-900">
+                          <button onclick={() => (templateModalAssetId = asset.id)} class="max-w-full truncate rounded-md px-2 py-1 text-xs text-dark-900/60 hover:bg-dark-50 dark:text-dark-100/60 dark:hover:bg-dark-900">
                             + Template
                           </button>
                         {/if}
