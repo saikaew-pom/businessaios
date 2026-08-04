@@ -18,16 +18,18 @@
     </a>
 
     <!--
-      There are now enough items here (credits, Admin, 7 links, email, logout)
+      There are enough items here (credits, Admin, 7 links, email, logout)
       that they no longer fit on one row within container-narrow's max-w-6xl
-      at ordinary desktop widths -- without shrink-0 + whitespace-nowrap on
-      every item, the flex row was letting individual text (the title, the
-      email) wrap mid-phrase instead of the row overflowing, which read as
-      "the menu is broken" rather than "there are a lot of links". min-w-0 is
-      required for overflow-x-auto to actually take effect on a flex child
-      instead of the row just forcing the header wider.
+      at ordinary desktop widths. Logout must never be the thing that scrolls
+      out of view when that happens (it did — a hidden overflow with no
+      visible scroll affordance just reads as "the button disappeared"), so
+      it's pinned outside the scrollable region: only the middle nav-links
+      group scrolls (flex-1 min-w-0 overflow-x-auto), while logout sits in
+      its own shrink-0 group that the scrollable sibling yields space to.
+      shrink-0 + whitespace-nowrap on every item keeps text from wrapping
+      mid-phrase instead of the row overflowing/scrolling as intended.
     -->
-    <div class="flex items-center gap-3 min-w-0 overflow-x-auto whitespace-nowrap">
+    <div class="flex min-w-0 flex-1 items-center gap-3 overflow-x-auto whitespace-nowrap">
       {#if $fullUser}
         <a href="/billing" class="shrink-0 text-xs px-2 py-0.5 rounded-full bg-primary-50 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 hover:bg-primary-100 dark:hover:bg-primary-900/50 font-semibold" title="เครดิต ระบบอัจฉริยะ คงเหลือ — คลิกเพื่อเติม">
           ⚡ {$fullUser.credits} credits
@@ -36,7 +38,7 @@
       {#if $fullUser?.role === 'admin'}
         <a href="/admin" class="shrink-0 text-sm text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 font-semibold">🛡️ Admin</a>
       {/if}
-      <!-- Everything below is reachable via the mobile bottom nav (โปรไฟล์ → account links, logout) -->
+      <!-- Everything below is also reachable via the mobile bottom nav (โปรไฟล์ → account links, logout) -->
       <div class="hidden sm:flex items-center gap-3">
         <a href="/studio" class="shrink-0 text-sm text-dark-900/70 dark:text-dark-100/70 hover:text-dark-900 dark:hover:text-dark-50 font-semibold">🎨 Studio</a>
         <a href="/inbox" class="shrink-0 text-sm text-dark-900/70 dark:text-dark-100/70 hover:text-dark-900 dark:hover:text-dark-50 font-semibold">Inbox</a>
@@ -48,9 +50,11 @@
         <a href="/developers" class="shrink-0 text-sm text-dark-900/70 dark:text-dark-100/70 hover:text-dark-900 dark:hover:text-dark-50">🔌 Developers</a>
         {#if $user}
           <span class="shrink-0 text-sm text-dark-900/60 dark:text-dark-100/60">{$user.email}</span>
-          <button onclick={handleLogout} class="shrink-0 text-sm text-dark-900/70 dark:text-dark-100/70 hover:text-dark-900 dark:hover:text-dark-50">ออกจากระบบ</button>
         {/if}
       </div>
     </div>
+    {#if $user}
+      <button onclick={handleLogout} class="hidden sm:block shrink-0 text-sm text-dark-900/70 dark:text-dark-100/70 hover:text-dark-900 dark:hover:text-dark-50">ออกจากระบบ</button>
+    {/if}
   </div>
 </header>
