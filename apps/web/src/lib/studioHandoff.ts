@@ -20,7 +20,13 @@ import type { ContentItem } from './api';
  */
 export function buildStudioPrompt(item: ContentItem): string {
   return [
-    `สร้างภาพพื้นหลัง/องค์ประกอบภาพ (ไม่มีตัวอักษร) สำหรับโพสต์ ${item.platform || 'social media'} format ${item.format || 'post'}`,
+    // "ภาพประกอบ" not "ภาพพื้นหลัง": visual_suggestion is now a fully
+    // art-directed scene (subject, props, lighting, composition — see
+    // api/src/lib/creative/visualPrompt.ts), and asking for a "background"
+    // actively works against that by implying an empty backdrop with the
+    // subject left out. The no-text constraint below still carries the part
+    // that "ภาพพื้นหลัง" was originally standing in for.
+    `สร้างภาพประกอบโพสต์ ${item.platform || 'social media'} format ${item.format || 'post'} (ภาพล้วน ไม่มีตัวอักษร)`,
     item.visual_suggestion,
     // "ถ้าคำอธิบายด้านบนพูดถึง..." explicitly overrides rather than just
     // restating the constraint — content items created before this fix have
