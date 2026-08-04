@@ -49,7 +49,17 @@ export async function register(email: string, password: string, opts?: { first_n
 }
 
 export async function logout() {
-  await apiLogout();
+  try {
+    await apiLogout();
+  } catch (err) {
+    // Whatever the server-side reason (a stale CSRF token that survived
+    // fetchAPI's own retry, a network blip, a session already gone) — the
+    // user's intent to log out must never leave them stuck looking still
+    // logged in with a button that appears to do nothing. Clear local state
+    // regardless so every call site's `await logout(); goto('/')` still
+    // reaches the navigation.
+    console.error('Logout request failed, clearing local session anyway:', err);
+  }
   user.set(null);
   fullUser.set(null);
 }

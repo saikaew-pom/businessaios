@@ -64,8 +64,8 @@ export async function fetchConfig(refresh = false): Promise<PublicConfig> {
   return fetchPromise;
 }
 
-export async function getCsrfToken(): Promise<string | null> {
-  if (cached?.security.csrf_token) return cached.security.csrf_token;
+export async function getCsrfToken(forceRefresh = false): Promise<string | null> {
+  if (!forceRefresh && cached?.security.csrf_token) return cached.security.csrf_token;
   const config = await fetchConfig(true);
   return config.security.csrf_token;
 }

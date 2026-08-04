@@ -240,22 +240,32 @@ async function fetchAPI<T = any>(
   options: RequestInit = {}
 ): Promise<T> {
   const method = (options.method || 'GET').toUpperCase();
-  const headers = new Headers(options.headers);
+  const isMutating = !['GET', 'HEAD', 'OPTIONS'].includes(method);
 
-  if (!headers.has('Content-Type') && !(options.body instanceof FormData)) {
-    headers.set('Content-Type', 'application/json');
-  }
-
-  if (!['GET', 'HEAD', 'OPTIONS'].includes(method)) {
-    const csrfToken = await getCsrfToken();
+  const send = async (csrfToken: string | null) => {
+    const headers = new Headers(options.headers);
+    if (!headers.has('Content-Type') && !(options.body instanceof FormData)) {
+      headers.set('Content-Type', 'application/json');
+    }
     if (csrfToken) headers.set('X-CSRF-Token', csrfToken);
-  }
+    return fetch(`${PUBLIC_API_URL}${path}`, { ...options, credentials: 'include', headers });
+  };
 
-  const res = await fetch(`${PUBLIC_API_URL}${path}`, {
-    ...options,
-    credentials: 'include',
-    headers,
-  });
+  let res = await send(isMutating ? await getCsrfToken() : null);
+
+  // The CSRF token is cached in memory for the life of the tab. If the
+  // session it was signed against ever gets replaced without a full page
+  // reload (or the tab is just left open long enough for the token to
+  // outlive whatever it was cached from), every mutating request — logout
+  // included — fails with a 403 that looks to the user like the button did
+  // nothing. Refetch a token tied to the CURRENT session cookie and retry
+  // once before giving up.
+  if (isMutating && res.status === 403) {
+    const body = await res.clone().json().catch(() => null);
+    if (body?.error === 'csrf_required' || body?.error === 'csrf_invalid') {
+      res = await send(await getCsrfToken(true));
+    }
+  }
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({ message: `HTTP ${res.status}` }));
@@ -388,19 +398,34 @@ async function uploadMediaAssetWithIntent(file: File, intent: {
   upload_url: string;
   asset_id: string;
 }): Promise<MediaAsset> {
-  const headers = new Headers({
-    'Content-Type': mimeTypeForFile(file),
-    'X-Upload-Token': intent.upload_token,
-  });
-  const csrfToken = await getCsrfToken();
-  if (csrfToken) headers.set('X-CSRF-Token', csrfToken);
+  const send = (csrfToken: string | null) => {
+    const headers = new Headers({
+      'Content-Type': mimeTypeForFile(file),
+      'X-Upload-Token': intent.upload_token,
+    });
+    if (csrfToken) headers.set('X-CSRF-Token', csrfToken);
+    // `file` (a Blob) is safe to send in two separate fetch() calls if the
+    // retry below fires — unlike a ReadableStream it isn't consumed/detached
+    // by being used as a request body.
+    return fetch(`${PUBLIC_API_URL}${intent.upload_url}`, {
+      method: 'PUT',
+      credentials: 'include',
+      headers,
+      body: file,
+    });
+  };
 
-  const uploadRes = await fetch(`${PUBLIC_API_URL}${intent.upload_url}`, {
-    method: 'PUT',
-    credentials: 'include',
-    headers,
-    body: file,
-  });
+  let uploadRes = await send(await getCsrfToken());
+
+  // Same stale-cached-CSRF-token issue as fetchAPI() — without this retry,
+  // a token that went stale mid-session would fail every upload attempt
+  // until a full page reload, since getCsrfToken() never self-heals its cache.
+  if (uploadRes.status === 403) {
+    const body = await uploadRes.clone().json().catch(() => null);
+    if (body?.error === 'csrf_required' || body?.error === 'csrf_invalid') {
+      uploadRes = await send(await getCsrfToken(true));
+    }
+  }
 
   if (!uploadRes.ok) {
     const err = await uploadRes.json().catch(() => ({ message: `HTTP ${uploadRes.status}` }));
