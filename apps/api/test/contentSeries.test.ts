@@ -489,12 +489,12 @@ describe('Content Series Generator', () => {
     });
 
     let seq = 0;
-    function seedItem(opts: { userId?: string; projectId: string | null; hook: string }) {
+    function seedItem(opts: { userId?: string; projectId: string | null; hook: string; status?: string }) {
       seq += 1;
       ctx.db.prepare(`
-        INSERT INTO content_items (id, user_id, project_id, source_type, source_id, source_hash, hook, created_at, updated_at)
-        VALUES (?, ?, ?, 'manual', NULL, ?, ?, ?, ?)
-      `).run(`item-${seq}`, opts.userId || 'u1', opts.projectId, `hash-${seq}`, opts.hook, seq, seq);
+        INSERT INTO content_items (id, user_id, project_id, source_type, source_id, source_hash, hook, status, created_at, updated_at)
+        VALUES (?, ?, ?, 'manual', NULL, ?, ?, ?, ?, ?)
+      `).run(`item-${seq}`, opts.userId || 'u1', opts.projectId, `hash-${seq}`, opts.hook, opts.status || 'pending_review', seq, seq);
     }
 
     /**
@@ -571,6 +571,26 @@ describe('Content Series Generator', () => {
       expect(prompt).toContain(HEADER);
       expect(prompt).toContain('- มุมอิสระที่เคยเขียน');
       expect(prompt).not.toContain('มุมของโปรเจ็คหนึ่ง');
+    });
+
+    it('ignores archived content so a thrown-away angle can be written again', async () => {
+      // Archiving is how a user discards a post. Counting it as "already
+      // covered" would permanently bar that angle from being regenerated.
+      // Rejected is deliberately NOT excluded — that's an angle the user
+      // wants reworked, so re-suggesting the same one is the failure mode.
+      seedItem({ projectId: 'p1', hook: 'มุมที่โยนทิ้งไปแล้ว', status: 'archived' });
+      seedItem({ projectId: 'p1', hook: 'มุมที่ส่งกลับไปแก้', status: 'rejected' });
+      seedItem({ projectId: 'p1', hook: 'มุมที่ยังใช้อยู่', status: 'approved' });
+
+      const { fn, copyUserMessages } = mockCapturingCopyPass(2);
+      globalThis.fetch = fn as any;
+      const res = await createSeries({ topic: 'กาแฟ', requested_count: 2, project_id: 'p1' });
+      expect(res.status).toBe(201);
+
+      const prompt = copyUserMessages[0];
+      expect(prompt).toContain('- มุมที่ยังใช้อยู่');
+      expect(prompt).toContain('- มุมที่ส่งกลับไปแก้');
+      expect(prompt).not.toContain('มุมที่โยนทิ้งไปแล้ว');
     });
 
     it('omits the block entirely when the business has no prior content', async () => {

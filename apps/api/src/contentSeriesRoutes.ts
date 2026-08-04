@@ -274,9 +274,14 @@ contentSeriesRoutes.post('/api/content-series', async (c) => {
   //
   // buildSeriesPrompt sanitises and caps these before they reach the model;
   // this LIMIT only keeps the read itself bounded.
+  // Archived items are excluded: archiving is how a user throws a post away,
+  // so treating it as "already covered" would permanently block that angle
+  // from ever being written again. Rejected items are deliberately still
+  // counted — those are angles the user wants reworked, not abandoned, and
+  // regenerating the same one is exactly what they'd be complaining about.
   const existingHookRows = await c.env.DB.prepare(`
     SELECT hook FROM content_items
-    WHERE user_id = ? AND hook != '' AND project_id IS ?
+    WHERE user_id = ? AND hook != '' AND project_id IS ? AND status != 'archived'
     ORDER BY created_at DESC
     LIMIT ${MAX_EXISTING_HOOKS}
   `).bind(user.id, input.project_id).all<{ hook: string }>();
