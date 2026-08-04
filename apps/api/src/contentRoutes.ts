@@ -1,5 +1,8 @@
 import { Hono } from 'hono';
 import { generateId } from './lib/crypto';
+import { calculateCredits, deductCredits, addCredits } from './lib/credit';
+import { callMinimax, estimateCost, extractJsonFromAny } from './lib/minimax';
+import { assembleVisualPrompt, buildVisualSlotPrompt, type VisualSlots } from './lib/creative/visualPrompt';
 import { getUser, requireAuth } from './lib/middleware';
 import type { Bindings, Variables } from './lib/types';
 
@@ -293,6 +296,196 @@ contentRoutes.patch('/api/content-items/:id', async (c) => {
     fields: Object.keys(update).filter((k) => k !== 'updated_at'),
   });
   return c.json({ item: serializeContentItem((await getContentItem(c.env, user.id, id))!) });
+});
+
+// AI-regenerate a single authored field (Hook/Caption/CTA/Hashtags/Visual
+// suggestion) from the editor — the "✨" button next to each field. Unlike
+// PATCH above this is a real paid MiniMax call, so it follows the same
+// reserve → refund/true-up credit pattern used by
+// /api/compositions/generate-copy and /api/brand-kits/:id/smart-writing.
+// The item id is only used for ownership/auth scoping — the actual context
+// sent to the model is whatever the client currently has in the editor
+// (including unsaved edits to OTHER fields), not a re-fetch from the DB, so
+// regenerating Caption after just typing a new Hook (without saving first)
+// stays consistent with what the user is looking at.
+const REGEN_FIELD_RULES: Record<string, string> = {
+  hook: 'Hook (ประโยคเปิด/คำถามชวนคิดที่ดึงความสนใจ) 1 ประโยค ไม่เกิน 100 ตัวอักษร',
+  caption: 'Caption เนื้อหาโพสต์ภาษาไทย 3-5 บรรทัด',
+  cta: 'CTA (คำกระตุ้นให้ทำอะไรต่อ) 1 ประโยคสั้น ๆ ไม่เกิน 60 ตัวอักษร',
+  hashtags: 'Hashtag ที่เกี่ยวข้อง 3-5 ตัว แต่ละตัวขึ้นต้นด้วย # ไม่มีช่องว่างในแต่ละแท็ก',
+  visual_suggestion: 'คำอธิบายภาพประกอบ 1 บรรทัด บรรยายเฉพาะฉาก องค์ประกอบภาพ แสง สี และบรรยากาศ ห้ามระบุตัวอักษร ข้อความ ป้าย ปุ่มมีข้อความ โลโก้ หรือราคาในภาพเด็ดขาด (จะใส่หัวข้อ/CTA ทีหลังด้วยเครื่องมือแยกต่างหาก)',
+};
+const REGEN_FIELDS = Object.keys(REGEN_FIELD_RULES);
+
+type RegenerateContext = {
+  title?: string; platform?: string; format?: string; pillar?: string;
+  hook?: string; caption?: string; cta?: string; hashtags?: string[]; visual_suggestion?: string;
+};
+
+function buildRegenerateFieldPrompt(field: string, context: RegenerateContext) {
+  const isArray = field === 'hashtags';
+  const system = `คุณคือนักการตลาดคอนเทนต์มืออาชีพสำหรับธุรกิจไทย งานของคุณคือเขียน "${field}" ใหม่ให้กับโพสต์โซเชียลมีเดีย 1 ชิ้น ให้เข้ากับบริบทของโพสต์ทั้งหมดที่ให้มา แต่งใหม่ ไม่ใช่แค่ปรับคำเดิมเล็กน้อย
+
+กติกา: ${REGEN_FIELD_RULES[field]}
+
+ตอบเป็น JSON object เท่านั้น: {"value": ${isArray ? '["...", "..."]' : '"..."'}}`;
+
+  const user = [
+    context.title ? `หัวข้อ: ${context.title}` : '',
+    context.platform ? `Platform: ${context.platform}` : '',
+    context.format ? `Format: ${context.format}` : '',
+    context.pillar ? `Pillar: ${context.pillar}` : '',
+    field !== 'hook' && context.hook ? `Hook ปัจจุบัน: ${context.hook}` : '',
+    field !== 'caption' && context.caption ? `Caption ปัจจุบัน: ${context.caption}` : '',
+    field !== 'cta' && context.cta ? `CTA ปัจจุบัน: ${context.cta}` : '',
+    field !== 'visual_suggestion' && context.visual_suggestion ? `Visual suggestion ปัจจุบัน: ${context.visual_suggestion}` : '',
+    field !== 'hashtags' && context.hashtags?.length ? `Hashtags ปัจจุบัน: ${context.hashtags.join(', ')}` : '',
+  ].filter(Boolean).join('\n');
+
+  return { system, user };
+}
+
+contentRoutes.post('/api/content-items/:id/regenerate-field', async (c) => {
+  const user = getUser(c)!;
+  const id = c.req.param('id');
+  const item = await getContentItem(c.env, user.id, id);
+  if (!item) return c.json({ error: 'content_item_not_found' }, 404);
+
+  const account = await c.env.DB.prepare('SELECT email_verified FROM users WHERE id = ?')
+    .bind(user.id).first<{ email_verified: number }>();
+  if (account && account.email_verified === 0) {
+    return c.json({ error: 'email_not_verified', message: 'กรุณายืนยันอีเมลก่อน' }, 403);
+  }
+
+  const body: { field?: string; context?: RegenerateContext } = await c.req.json<{ field?: string; context?: RegenerateContext }>().catch(() => ({}));
+  const field = body.field || '';
+  if (!REGEN_FIELDS.includes(field)) {
+    return c.json({ error: 'validation_error', message: 'field ไม่ถูกต้อง', errors: ['invalid_field'] }, 400);
+  }
+  const context: RegenerateContext = body.context && typeof body.context === 'object' ? body.context : {};
+
+  const toolRunId = generateId();
+  const startTime = Date.now();
+  // visual_suggestion goes through a different pipeline than the other
+  // fields: instead of asking for finished prose, it asks for structured
+  // slots and assembles the art direction deterministically afterwards.
+  // See lib/creative/visualPrompt.ts for why.
+  const isVisual = field === 'visual_suggestion';
+  const { system, user: userPrompt } = isVisual
+    ? buildVisualSlotPrompt(context)
+    : buildRegenerateFieldPrompt(field, context);
+  // MiniMax-M3 spends tokens on an internal reasoning trace before writing
+  // the final answer, and the reasoning length is NOT proportional to how
+  // small the final answer is — 2000 was tried first and still truncated
+  // (finish_reason: 'length', reasoningLength: 3542, empty content) on a
+  // live test with this exact route. 12000 matches the budget already
+  // proven reliable elsewhere in this codebase for the same reasoning-model
+  // behavior (toolRoutes.ts). Only the actual tokens used are billed — this
+  // just raises the ceiling the reserve is calculated against, refunded down
+  // to real usage afterward.
+  const maxTokens = 12000;
+  const estPromptTokens = Math.ceil((system.length + userPrompt.length) / 3);
+  const reserveCredits = calculateCredits({ prompt_tokens: estPromptTokens, completion_tokens: maxTokens });
+  const reservation = await deductCredits(c.env, user.id, reserveCredits, 'generation_reserve', toolRunId);
+  if (!reservation.ok) {
+    return c.json({ error: 'insufficient_credits', message: 'เครดิตไม่เพียงพอ', balance: reservation.balance, required: reserveCredits }, 402);
+  }
+
+  let result: Awaited<ReturnType<typeof callMinimax>>;
+  try {
+    result = await callMinimax(
+      { apiKey: c.env.MINIMAX_API_KEY, groupId: c.env.MINIMAX_GROUP_ID, model: c.env.MINIMAX_MODEL },
+      [
+        { role: 'system', content: system },
+        { role: 'user', content: `${userPrompt}\n\nตอบเป็น JSON object เท่านั้น ห้าม markdown ห้ามคำอธิบายเพิ่ม` },
+      ],
+      { maxTokens, temperature: 0.85, jsonMode: true },
+    );
+  } catch (err: any) {
+    console.error('Regenerate field error:', err);
+    const refund = await addCredits(c.env, user.id, reserveCredits, 'generation_refund', { referenceId: toolRunId, note: 'AI call failed' });
+    return c.json({ error: 'ai_error', message: 'สร้างเนื้อหาไม่สำเร็จ', credits_remaining: refund.ok ? refund.balance : undefined }, 500);
+  }
+
+  let parsed: { value?: unknown };
+  try {
+    parsed = extractJsonFromAny(result.content, result.reasoning);
+  } catch (err: any) {
+    console.error('Regenerate field parse error:', err);
+    const refund = await addCredits(c.env, user.id, reserveCredits, 'generation_refund', { referenceId: toolRunId, note: 'AI returned unparseable output' });
+    return c.json({ error: 'parse_error', message: 'AI ตอบกลับไม่ถูกต้อง', credits_remaining: refund.ok ? refund.balance : undefined }, 500);
+  }
+
+  let value: string | string[];
+  if (isVisual) {
+    // The model returns slots, not the finished string — assembling here is
+    // what makes the output good regardless of how well the model writes.
+    // Every slot falls back to a default inside assembleVisualPrompt, so the
+    // only genuinely unusable response is one that isn't an object at all.
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      const refund = await addCredits(c.env, user.id, reserveCredits, 'generation_refund', { referenceId: toolRunId, note: 'AI returned wrong slot shape' });
+      return c.json({ error: 'parse_error', message: 'AI ตอบกลับไม่ถูกต้อง', credits_remaining: refund.ok ? refund.balance : undefined }, 500);
+    }
+    value = assembleVisualPrompt(parsed as Partial<VisualSlots>);
+  } else if (field === 'hashtags') {
+    const arr = Array.isArray(parsed.value) ? parsed.value : [];
+    value = arr.filter((t): t is string => typeof t === 'string').map((t) => t.trim()).filter(Boolean).slice(0, 8);
+    if (!value.length) {
+      const refund = await addCredits(c.env, user.id, reserveCredits, 'generation_refund', { referenceId: toolRunId, note: 'AI returned empty hashtags' });
+      return c.json({ error: 'parse_error', message: 'AI ไม่ได้ส่ง hashtags กลับมา', credits_remaining: refund.ok ? refund.balance : undefined }, 500);
+    }
+  } else {
+    // parsed.value must actually be a string here — a reasoning model in
+    // JSON mode can drift from the requested shape (e.g. hand back an array
+    // or object for a scalar field). String(parsed.value) would silently
+    // turn an array into a comma-joined mess ("a,b") or an object into
+    // "[object Object]" and save that as if it were valid copy, instead of
+    // rejecting like the hashtags branch above already does for its own
+    // shape mismatch (string instead of array). Require the right type
+    // before coercing so both shapes fail the same way: cleanly refunded,
+    // not silently corrupted.
+    if (typeof parsed.value !== 'string') {
+      const refund = await addCredits(c.env, user.id, reserveCredits, 'generation_refund', { referenceId: toolRunId, note: 'AI returned wrong value type' });
+      return c.json({ error: 'parse_error', message: 'AI ตอบกลับไม่ถูกต้อง', credits_remaining: refund.ok ? refund.balance : undefined }, 500);
+    }
+    value = parsed.value.trim().slice(0, field === 'caption' ? 2000 : 300);
+    if (!value) {
+      const refund = await addCredits(c.env, user.id, reserveCredits, 'generation_refund', { referenceId: toolRunId, note: 'AI returned empty value' });
+      return c.json({ error: 'parse_error', message: 'AI ไม่ได้ส่งข้อความกลับมา', credits_remaining: refund.ok ? refund.balance : undefined }, 500);
+    }
+  }
+
+  try {
+    await c.env.DB.prepare(`
+      INSERT INTO tool_runs (id, user_id, tool_name, input, output, model, prompt_tokens, completion_tokens, total_tokens, cost_usd, duration_ms, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      toolRunId, user.id, 'content_item_regenerate_field',
+      JSON.stringify({ content_item_id: id, field }),
+      JSON.stringify({ value }),
+      c.env.MINIMAX_MODEL,
+      result.usage?.prompt_tokens || 0,
+      result.usage?.completion_tokens || 0,
+      result.usage?.total_tokens || 0,
+      estimateCost(result.usage),
+      Date.now() - startTime,
+      Date.now(),
+    ).run();
+  } catch (err) {
+    console.error('Failed to save regenerate-field tool_run (non-fatal):', err);
+  }
+
+  const creditsUsed = calculateCredits(result.usage);
+  let finalBalance = reservation.balance;
+  if (creditsUsed < reserveCredits) {
+    const refund = await addCredits(c.env, user.id, reserveCredits - creditsUsed, 'generation_refund', { referenceId: toolRunId, note: 'Reserved more than actual usage' });
+    if (refund.ok) finalBalance = refund.balance;
+  } else if (creditsUsed > reserveCredits) {
+    const extra = await deductCredits(c.env, user.id, creditsUsed - reserveCredits, 'generation_true_up', toolRunId);
+    if (extra.ok) finalBalance = extra.balance;
+  }
+
+  return c.json({ ok: true, field, value, credits_remaining: finalBalance });
 });
 
 contentRoutes.post('/api/content-items/:id/assets', async (c) => {

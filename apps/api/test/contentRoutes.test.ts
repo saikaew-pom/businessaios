@@ -8,7 +8,7 @@
 import { DatabaseSync } from 'node:sqlite';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { app } from '../src/index';
 import { makeD1Shim } from './helpers/d1-shim';
 
@@ -27,6 +27,7 @@ function makeEnv() {
   const userColumns = (db.prepare('PRAGMA table_info(users)').all() as any[]).map((c) => c.name);
   if (!userColumns.includes('credits')) db.exec('ALTER TABLE users ADD COLUMN credits INTEGER DEFAULT 100');
   if (!userColumns.includes('role')) db.exec("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'user'");
+  if (!userColumns.includes('email_verified')) db.exec('ALTER TABLE users ADD COLUMN email_verified INTEGER DEFAULT 0');
   db.exec(`
     INSERT INTO users (id, email, password_hash, name, plan, role, credits, created_at, updated_at)
     VALUES ('u1', 'u1@test.com', 'x', 'User One', 'free', 'user', 100, 0, 0);
@@ -518,5 +519,160 @@ describe('Creative request — fulfill (Studio → content item link)', () => {
 
     const req = ctx.db.prepare('SELECT status FROM creative_requests WHERE id = ?').get(reqId) as any;
     expect(req.status).toBe('completed');
+  });
+});
+
+describe('Content item — regenerate-field (AI copy assist)', () => {
+  // Most of these cover routing/validation/auth/credit-gating only — the
+  // endpoint's happy path normally makes a real MiniMax call (no mock exists
+  // for callMinimax elsewhere in this suite, same as
+  // /api/compositions/generate-copy), so the actual AI-success path was
+  // verified live in a browser instead, not here. The "AI response shape
+  // mismatch" sub-suite below is the exception: it stubs global fetch
+  // directly to drive the parse/coercion branch, which a missing API key
+  // can't reach.
+  let ctx: ReturnType<typeof makeEnv>;
+  beforeEach(() => { ctx = makeEnv(); });
+
+  function regenerate(id: string, body: Record<string, unknown>, session = 'session-u1', envOverride: Record<string, unknown> = {}) {
+    return app.request(`/api/content-items/${id}/regenerate-field`, {
+      method: 'POST', headers: H(session), body: JSON.stringify(body),
+    }, { ...ctx.env, ...envOverride });
+  }
+
+  function verifyEmail(userId: string) {
+    ctx.db.prepare('UPDATE users SET email_verified = 1 WHERE id = ?').run(userId);
+  }
+
+  it('404s for a nonexistent item', async () => {
+    verifyEmail('u1');
+    const res = await regenerate('ci_does_not_exist', { field: 'hook', context: {} });
+    expect(res.status).toBe(404);
+  });
+
+  it('does not let a different user regenerate a field on someone else\'s item', async () => {
+    verifyEmail('u2');
+    const id = seedItem(ctx.db);
+    const res = await regenerate(id, { field: 'hook', context: {} }, 'session-u2');
+    expect(res.status).toBe(404);
+  });
+
+  it('403s with email_not_verified before touching credits, matching the smart-writing/generate-copy gate', async () => {
+    const id = seedItem(ctx.db);
+    const before = ctx.db.prepare('SELECT credits FROM users WHERE id = ?').get('u1') as any;
+    const res = await regenerate(id, { field: 'hook', context: {} });
+    expect(res.status).toBe(403);
+    expect(await res.json()).toMatchObject({ error: 'email_not_verified' });
+    const after = ctx.db.prepare('SELECT credits FROM users WHERE id = ?').get('u1') as any;
+    expect(after.credits).toBe(before.credits);
+  });
+
+  it('400s on an invalid field name before touching credits', async () => {
+    verifyEmail('u1');
+    const id = seedItem(ctx.db);
+    const before = ctx.db.prepare('SELECT credits FROM users WHERE id = ?').get('u1') as any;
+    const res = await regenerate(id, { field: 'title', context: {} });
+    expect(res.status).toBe(400);
+    expect(await res.json()).toMatchObject({ error: 'validation_error' });
+    const after = ctx.db.prepare('SELECT credits FROM users WHERE id = ?').get('u1') as any;
+    expect(after.credits).toBe(before.credits);
+  });
+
+  it('accepts every documented regenerable field name (rejected only after credit-gating, by the missing MINIMAX_API_KEY in this env)', async () => {
+    verifyEmail('u1');
+    const id = seedItem(ctx.db);
+    for (const field of ['hook', 'caption', 'cta', 'hashtags', 'visual_suggestion']) {
+      const res = await regenerate(id, { field, context: { title: 'ทดสอบ' } });
+      // No MiniMax credentials configured in the test env, so the real call
+      // fails — but that proves the request got PAST field validation and
+      // ownership/verification checks for every field name, which is what
+      // this test is actually checking.
+      expect(res.status).toBe(500);
+      expect(await res.json()).toMatchObject({ error: 'ai_error' });
+    }
+  });
+
+  it('rejects a call with no auth header at all', async () => {
+    const id = seedItem(ctx.db);
+    const res = await app.request(`/api/content-items/${id}/regenerate-field`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ field: 'hook' }),
+    }, ctx.env);
+    expect(res.status).toBe(401);
+  });
+
+  it('rejects when the embedded feature flag is off', async () => {
+    verifyEmail('u1');
+    const id = seedItem(ctx.db);
+    const res = await app.request(`/api/content-items/${id}/regenerate-field`, {
+      method: 'POST', headers: H(), body: JSON.stringify({ field: 'hook', context: {} }),
+    }, { ...ctx.env, CREATIVE_EMBEDDED_ENABLED: 'false' });
+    expect(res.status).toBe(404);
+    expect(await res.json()).toMatchObject({ error: 'feature_disabled' });
+  });
+
+  // MiniMax-M3 (JSON mode, reasoning model) can drift from the requested
+  // {"value": <shape>} contract — a scalar field's "value" coming back as an
+  // array/object, or hashtags' "value" coming back as a plain string instead
+  // of an array. Regression coverage for both directions of that mismatch:
+  // the route must reject cleanly (parse_error + refund), never silently
+  // coerce garbage into a saved field (e.g. String(['a','b']) === 'a,b').
+  describe('AI response shape mismatch (type confusion)', () => {
+    const minimaxEnv = { MINIMAX_API_KEY: 'k', MINIMAX_GROUP_ID: 'g', MINIMAX_MODEL: 'MiniMax-M3' };
+
+    afterEach(() => {
+      vi.unstubAllGlobals();
+    });
+
+    function stubMinimaxContent(content: string) {
+      vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({
+        id: 'test',
+        choices: [{ message: { role: 'assistant', content, reasoning_content: '' }, finish_reason: 'stop' }],
+        usage: { prompt_tokens: 10, completion_tokens: 10, total_tokens: 20 },
+      }), { status: 200 })));
+    }
+
+    it('rejects (not silently joins) an array value for a scalar field like hook', async () => {
+      verifyEmail('u1');
+      const id = seedItem(ctx.db);
+      const before = ctx.db.prepare('SELECT credits FROM users WHERE id = ?').get('u1') as any;
+      stubMinimaxContent(JSON.stringify({ value: ['ประโยคเปิดที่หนึ่ง', 'ประโยคเปิดที่สอง'] }));
+
+      const res = await regenerate(id, { field: 'hook', context: {} }, 'session-u1', minimaxEnv);
+      expect(res.status).toBe(500);
+      expect(await res.json()).toMatchObject({ error: 'parse_error' });
+
+      // Confirms this isn't just a status-code check: the item's hook must
+      // not have been overwritten with the old buggy String(array) output
+      // ("ประโยคเปิดที่หนึ่ง,ประโยคเปิดที่สอง"), and the credit reserve must
+      // be fully refunded, not left partially spent.
+      const item = ctx.db.prepare('SELECT hook FROM content_items WHERE id = ?').get(id) as any;
+      expect(item.hook).not.toContain(',');
+      const after = ctx.db.prepare('SELECT credits FROM users WHERE id = ?').get('u1') as any;
+      expect(after.credits).toBe(before.credits);
+    });
+
+    it('rejects (not silently accepts) a plain-string value for the hashtags field', async () => {
+      verifyEmail('u1');
+      const id = seedItem(ctx.db);
+      const before = ctx.db.prepare('SELECT credits FROM users WHERE id = ?').get('u1') as any;
+      stubMinimaxContent(JSON.stringify({ value: '#promo #newlaunch' }));
+
+      const res = await regenerate(id, { field: 'hashtags', context: {} }, 'session-u1', minimaxEnv);
+      expect(res.status).toBe(500);
+      expect(await res.json()).toMatchObject({ error: 'parse_error' });
+      const after = ctx.db.prepare('SELECT credits FROM users WHERE id = ?').get('u1') as any;
+      expect(after.credits).toBe(before.credits);
+    });
+
+    it('still accepts a well-formed string value for a scalar field (control case)', async () => {
+      verifyEmail('u1');
+      const id = seedItem(ctx.db);
+      stubMinimaxContent(JSON.stringify({ value: 'ประโยคเปิดใหม่ที่เขียนโดย AI' }));
+
+      const res = await regenerate(id, { field: 'hook', context: {} }, 'session-u1', minimaxEnv);
+      expect(res.status).toBe(200);
+      const json = await res.json();
+      expect(json).toMatchObject({ ok: true, field: 'hook', value: 'ประโยคเปิดใหม่ที่เขียนโดย AI' });
+    });
   });
 });

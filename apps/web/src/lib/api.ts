@@ -562,6 +562,28 @@ export async function updateContentItem(id: string, fields: {
   return res.item;
 }
 
+export type RegenerableContentField = 'hook' | 'caption' | 'cta' | 'hashtags' | 'visual_suggestion';
+
+export async function regenerateContentItemField(id: string, data: {
+  field: RegenerableContentField;
+  context: {
+    title?: string;
+    platform?: string;
+    format?: string;
+    pillar?: string;
+    hook?: string;
+    caption?: string;
+    cta?: string;
+    hashtags?: string[];
+    visual_suggestion?: string;
+  };
+}): Promise<{ ok: boolean; field: RegenerableContentField; value: string | string[]; credits_remaining: number }> {
+  return fetchAPI(`/api/content-items/${id}/regenerate-field`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
 export async function attachContentItemAsset(id: string, data: {
   asset_id: string;
   link_role?: string;

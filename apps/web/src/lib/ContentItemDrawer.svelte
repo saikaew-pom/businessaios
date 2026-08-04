@@ -9,11 +9,37 @@
   import {
     createContentItemCreativeRequest,
     getMediaAssetContentUrl,
+    regenerateContentItemField,
     transitionContentItem,
     updateContentItem,
     type ContentItem,
+    type RegenerableContentField,
   } from '$lib/api';
   import { buildStudioPrompt, suggestedAspectRatio } from '$lib/studioHandoff';
+
+  // Canonical values the content generators (Content Series, Presentation
+  // Builder step 5) actually produce — see apps/api/src/lib/prompts.ts and
+  // lib/creative/contentSeries.ts. Kept in sync manually since they're plain
+  // string columns server-side, not an enum the backend validates.
+  const PLATFORM_OPTIONS = [
+    { value: 'facebook', label: 'Facebook' },
+    { value: 'instagram', label: 'Instagram' },
+    { value: 'tiktok', label: 'TikTok' },
+    { value: 'line', label: 'LINE' },
+  ];
+  const FORMAT_OPTIONS = [
+    { value: 'post', label: 'Post' },
+    { value: 'image', label: 'Image' },
+    { value: 'carousel', label: 'Carousel' },
+    { value: 'reel', label: 'Reel' },
+    { value: 'story', label: 'Story' },
+  ];
+  const PILLAR_OPTIONS = [
+    { value: 'awareness', label: 'Awareness' },
+    { value: 'education', label: 'Education' },
+    { value: 'social_proof', label: 'Social Proof' },
+    { value: 'conversion', label: 'Conversion' },
+  ];
 
   let { item, onClose, onUpdated }: {
     item: ContentItem | null;
@@ -34,16 +60,35 @@
 
   let isSaving = $state(false);
   let isActionBusy = $state('');
-  // Save and every status transition/studio action mutate the same content
-  // item, so they must not be allowed to fire concurrently (e.g. clicking
-  // Approve while a Save PATCH is still in flight) — a single derived busy
-  // flag disables ALL of them together instead of each guarding only its own
-  // in-flight state.
-  let busy = $derived(isSaving || !!isActionBusy);
+  let regeneratingField = $state<RegenerableContentField | ''>('');
+  // Save, every status transition/studio action, and field regeneration all
+  // mutate the same content item's editable state, so none of them may fire
+  // concurrently (e.g. clicking Approve while a Save PATCH — or an AI
+  // regenerate — is still in flight) — a single derived busy flag disables
+  // ALL of them together instead of each guarding only its own in-flight state.
+  let busy = $derived(isSaving || !!isActionBusy || !!regeneratingField);
   let error = $state('');
   let notice = $state('');
   let showScheduleInput = $state(false);
   let scheduleValue = $state('');
+
+  // A select bound to a value outside its own <option> list silently falls
+  // back to the first option while the underlying state keeps the real
+  // (off-list) value — the UI would show one platform while `platform`
+  // actually holds another, and saving would look like a no-op edit that
+  // secretly changed nothing. Content items created before these dropdowns
+  // existed (or from a hand-edited value) can genuinely hold a value outside
+  // PLATFORM/FORMAT/PILLAR_OPTIONS, so each list appends the current value
+  // as an extra option rather than risk that silent mismatch.
+  let platformOptions = $derived(
+    !platform || PLATFORM_OPTIONS.some((o) => o.value === platform) ? PLATFORM_OPTIONS : [...PLATFORM_OPTIONS, { value: platform, label: platform }],
+  );
+  let formatOptions = $derived(
+    !format || FORMAT_OPTIONS.some((o) => o.value === format) ? FORMAT_OPTIONS : [...FORMAT_OPTIONS, { value: format, label: format }],
+  );
+  let pillarOptions = $derived(
+    !pillar || PILLAR_OPTIONS.some((o) => o.value === pillar) ? PILLAR_OPTIONS : [...PILLAR_OPTIONS, { value: pillar, label: pillar }],
+  );
 
   let loadedItemId = $state<string | null>(null);
 
@@ -116,6 +161,40 @@
       error = humanizeError(err);
     } finally {
       isSaving = false;
+    }
+  }
+
+  async function regenerateField(field: RegenerableContentField) {
+    if (!item || busy) return;
+    regeneratingField = field;
+    error = '';
+    try {
+      const result = await regenerateContentItemField(item.id, {
+        field,
+        // Send the CURRENT (possibly unsaved) draft, not item.* — so
+        // regenerating Caption after just editing Hook (without saving
+        // first) stays consistent with what's on screen right now.
+        context: {
+          title, platform, format, pillar, hook, caption, cta, visual_suggestion: visualSuggestion,
+          hashtags: hashtagsText.split(',').map((t) => t.trim()).filter(Boolean),
+        },
+      });
+      if (field === 'hashtags') {
+        hashtagsText = (Array.isArray(result.value) ? result.value : []).join(', ');
+      } else if (field === 'hook') {
+        hook = String(result.value);
+      } else if (field === 'caption') {
+        caption = String(result.value);
+      } else if (field === 'cta') {
+        cta = String(result.value);
+      } else if (field === 'visual_suggestion') {
+        visualSuggestion = String(result.value);
+      }
+      notice = 'AI เขียนให้ใหม่แล้ว — ตรวจแล้วกด บันทึกเนื้อหา เพื่อเก็บไว้';
+    } catch (err) {
+      error = humanizeError(err);
+    } finally {
+      regeneratingField = '';
     }
   }
 
@@ -254,7 +333,8 @@
           </div>
 
           <div class="space-y-5">
-            <div class="space-y-3">
+            <div class="space-y-3 rounded-xl border border-dark-100 dark:border-dark-700 p-4">
+              <div class="text-xs font-semibold uppercase tracking-wide text-dark-900/50 dark:text-dark-100/50">รายละเอียดโพสต์</div>
               <div>
                 <label class="mb-1 block text-sm font-medium text-dark-700 dark:text-dark-200" for="title">หัวข้อ</label>
                 <input id="title" bind:value={title} class="input" />
@@ -262,35 +342,70 @@
               <div class="grid grid-cols-2 gap-3">
                 <div>
                   <label class="mb-1 block text-sm font-medium text-dark-700 dark:text-dark-200" for="platform">Platform</label>
-                  <input id="platform" bind:value={platform} class="input" />
+                  <select id="platform" bind:value={platform} class="input">
+                    {#each platformOptions as opt}<option value={opt.value}>{opt.label}</option>{/each}
+                  </select>
                 </div>
                 <div>
                   <label class="mb-1 block text-sm font-medium text-dark-700 dark:text-dark-200" for="format">Format</label>
-                  <input id="format" bind:value={format} class="input" />
+                  <select id="format" bind:value={format} class="input">
+                    {#each formatOptions as opt}<option value={opt.value}>{opt.label}</option>{/each}
+                  </select>
                 </div>
               </div>
               <div>
                 <label class="mb-1 block text-sm font-medium text-dark-700 dark:text-dark-200" for="pillar">Pillar</label>
-                <input id="pillar" bind:value={pillar} class="input" />
+                <select id="pillar" bind:value={pillar} class="input">
+                  {#each pillarOptions as opt}<option value={opt.value}>{opt.label}</option>{/each}
+                </select>
               </div>
+            </div>
+
+            <div class="space-y-3 rounded-xl border border-dark-100 dark:border-dark-700 p-4">
+              <div class="text-xs font-semibold uppercase tracking-wide text-dark-900/50 dark:text-dark-100/50">เนื้อหา</div>
               <div>
-                <label class="mb-1 block text-sm font-medium text-dark-700 dark:text-dark-200" for="hook">Hook</label>
+                <div class="mb-1 flex items-center justify-between gap-2">
+                  <label class="text-sm font-medium text-dark-700 dark:text-dark-200" for="hook">Hook</label>
+                  <button type="button" onclick={() => regenerateField('hook')} disabled={busy} class="shrink-0 text-xs font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 disabled:opacity-40">
+                    {regeneratingField === 'hook' ? '✨ กำลังคิด...' : '✨ AI ช่วยเขียน'}
+                  </button>
+                </div>
                 <textarea id="hook" bind:value={hook} rows="2" class="input"></textarea>
               </div>
               <div>
-                <label class="mb-1 block text-sm font-medium text-dark-700 dark:text-dark-200" for="caption">Caption</label>
+                <div class="mb-1 flex items-center justify-between gap-2">
+                  <label class="text-sm font-medium text-dark-700 dark:text-dark-200" for="caption">Caption</label>
+                  <button type="button" onclick={() => regenerateField('caption')} disabled={busy} class="shrink-0 text-xs font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 disabled:opacity-40">
+                    {regeneratingField === 'caption' ? '✨ กำลังคิด...' : '✨ AI ช่วยเขียน'}
+                  </button>
+                </div>
                 <textarea id="caption" bind:value={caption} rows="4" class="input"></textarea>
               </div>
               <div>
-                <label class="mb-1 block text-sm font-medium text-dark-700 dark:text-dark-200" for="cta">CTA</label>
+                <div class="mb-1 flex items-center justify-between gap-2">
+                  <label class="text-sm font-medium text-dark-700 dark:text-dark-200" for="cta">CTA</label>
+                  <button type="button" onclick={() => regenerateField('cta')} disabled={busy} class="shrink-0 text-xs font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 disabled:opacity-40">
+                    {regeneratingField === 'cta' ? '✨ กำลังคิด...' : '✨ AI ช่วยเขียน'}
+                  </button>
+                </div>
                 <input id="cta" bind:value={cta} class="input" />
               </div>
               <div>
-                <label class="mb-1 block text-sm font-medium text-dark-700 dark:text-dark-200" for="hashtags">Hashtags (คั่นด้วยจุลภาค)</label>
+                <div class="mb-1 flex items-center justify-between gap-2">
+                  <label class="text-sm font-medium text-dark-700 dark:text-dark-200" for="hashtags">Hashtags (คั่นด้วยจุลภาค)</label>
+                  <button type="button" onclick={() => regenerateField('hashtags')} disabled={busy} class="shrink-0 text-xs font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 disabled:opacity-40">
+                    {regeneratingField === 'hashtags' ? '✨ กำลังคิด...' : '✨ AI ช่วยเขียน'}
+                  </button>
+                </div>
                 <input id="hashtags" bind:value={hashtagsText} class="input" placeholder="#promo, #newlaunch" />
               </div>
               <div>
-                <label class="mb-1 block text-sm font-medium text-dark-700 dark:text-dark-200" for="visual">Visual suggestion</label>
+                <div class="mb-1 flex items-center justify-between gap-2">
+                  <label class="text-sm font-medium text-dark-700 dark:text-dark-200" for="visual">Visual suggestion</label>
+                  <button type="button" onclick={() => regenerateField('visual_suggestion')} disabled={busy} class="shrink-0 text-xs font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 disabled:opacity-40">
+                    {regeneratingField === 'visual_suggestion' ? '✨ กำลังคิด...' : '✨ AI ช่วยเขียน'}
+                  </button>
+                </div>
                 <textarea id="visual" bind:value={visualSuggestion} rows="2" class="input"></textarea>
               </div>
               <div>
