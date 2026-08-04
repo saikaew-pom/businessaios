@@ -15,6 +15,7 @@
   import { fetchConfig } from '$lib/config';
   import ContentItemDrawer from '$lib/ContentItemDrawer.svelte';
   import { buildStudioPrompt, suggestedAspectRatio } from '$lib/studioHandoff';
+  import { syncFilterParams, withProjectFilter } from '$lib/urlFilters';
 
   const statuses = [
     { value: '', label: 'ทั้งหมด' },
@@ -74,6 +75,7 @@
   async function loadItems() {
     error = '';
     items = await listContentItems({ status: statusFilter, project_id: projectFilter, limit: 120 });
+    syncFilterParams({ status: statusFilter, project_id: projectFilter });
   }
 
   async function handleFilterChange() {
@@ -189,8 +191,8 @@
         <p class="text-dark-900/60 dark:text-dark-100/60">คลังงานคอนเทนต์และ creative asset ที่พร้อมตรวจ ต่อยอด และเผยแพร่</p>
       </div>
       <div class="flex gap-2">
-        <a href="/inbox" class="btn-secondary">Inbox</a>
-        <a href="/calendar" class="btn-secondary">Calendar</a>
+        <a href={withProjectFilter('/inbox', projectFilter)} class="btn-secondary">Inbox</a>
+        <a href={withProjectFilter('/calendar', projectFilter)} class="btn-secondary">Calendar</a>
         <a href="/studio/library" class="btn-primary">Asset Library</a>
       </div>
     </div>
@@ -260,7 +262,7 @@
                     {actionBusy === `studio:${item.id}` ? 'กำลังเปิด...' : 'Create Creative'}
                   </button>
                   {#if ['approved', 'scheduled'].includes(item.status)}
-                    <a href={`/calendar?focus=${item.id}`} class="btn-secondary">📅 Calendar</a>
+                    <a href={withProjectFilter(`/calendar?focus=${item.id}`, projectFilter)} class="btn-secondary">📅 Calendar</a>
                     <button onclick={() => markPublished(item)} disabled={!!actionBusy} class="btn-secondary">Mark Published</button>
                   {/if}
                 </div>

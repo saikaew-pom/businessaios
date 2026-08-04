@@ -13,6 +13,7 @@
   import { initAuth, isAuthed } from '$lib/auth';
   import { fetchConfig } from '$lib/config';
   import ContentItemDrawer from '$lib/ContentItemDrawer.svelte';
+  import { syncFilterParams, withProjectFilter } from '$lib/urlFilters';
 
   const WEEKDAY_LABELS = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
 
@@ -122,6 +123,7 @@
     if (seq !== loadSeq) return;
     scheduledItems = scheduled;
     backlogItems = backlog.filter((item) => !item.scheduled_at);
+    syncFilterParams({ project_id: projectFilter });
   }
 
   async function changeMonth(delta: number) {
@@ -259,8 +261,8 @@
         <p class="text-dark-900/60 dark:text-dark-100/60">ลากคอนเทนต์ที่อนุมัติแล้วมาวางบนวันที่ต้องการโพสต์ หรือลากย้ายวันของงานที่ตั้งเวลาไว้แล้ว</p>
       </div>
       <div class="flex gap-2">
-        <a href="/inbox" class="btn-secondary">Inbox</a>
-        <a href="/works" class="btn-secondary">Works</a>
+        <a href={withProjectFilter('/inbox', projectFilter)} class="btn-secondary">Inbox</a>
+        <a href={withProjectFilter('/works', projectFilter)} class="btn-secondary">Works</a>
       </div>
     </div>
 

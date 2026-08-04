@@ -4,13 +4,17 @@
   import {
     createContentItemCreativeRequest,
     listContentItems,
+    listProjects,
     transitionContentItem,
     type ContentItem,
+    type Project,
   } from '$lib/api';
   import { initAuth, isAuthed } from '$lib/auth';
   import { fetchConfig } from '$lib/config';
   import ContentItemDrawer from '$lib/ContentItemDrawer.svelte';
   import { buildStudioPrompt, suggestedAspectRatio } from '$lib/studioHandoff';
+  import { syncFilterParams, withProjectFilter } from '$lib/urlFilters';
+  import { page } from '$app/stores';
 
   const statusOptions = [
     { value: 'pending_review', label: 'รอรีวิว' },
@@ -25,6 +29,8 @@
   let notice = '';
   let items: ContentItem[] = [];
   let statusFilter = 'pending_review';
+  let projectFilter = '';
+  let projects: Project[] = [];
   let actionBusy = '';
   let selectedItem: ContentItem | null = null;
 
@@ -39,6 +45,9 @@
       const config = await fetchConfig();
       isFeatureEnabled = Boolean(config.features.creative_embedded);
       if (!isFeatureEnabled) return;
+      statusFilter = $page.url.searchParams.get('status') || statusFilter;
+      projectFilter = $page.url.searchParams.get('project_id') || '';
+      projects = (await listProjects()).filter((p) => p.status !== 'archived');
       await loadItems();
     } catch (err) {
       error = humanizeError(err);
@@ -49,7 +58,8 @@
 
   async function loadItems() {
     error = '';
-    items = await listContentItems({ status: statusFilter, limit: 80 });
+    items = await listContentItems({ status: statusFilter, project_id: projectFilter, limit: 80 });
+    syncFilterParams({ status: statusFilter, project_id: projectFilter });
   }
 
   async function handleStatusChange() {
@@ -189,8 +199,8 @@
         <p class="text-dark-900/60 dark:text-dark-100/60">รีวิวคอนเทนต์จาก calendar ก่อนส่งต่อไปสร้าง creative หรือเตรียมโพสต์</p>
       </div>
       <div class="flex gap-2">
-        <a href="/works" class="btn-secondary">Works</a>
-        <a href="/calendar" class="btn-secondary">Calendar</a>
+        <a href={withProjectFilter('/works', projectFilter)} class="btn-secondary">Works</a>
+        <a href={withProjectFilter('/calendar', projectFilter)} class="btn-secondary">Calendar</a>
         <a href="/studio" class="btn-primary">Studio</a>
       </div>
     </div>
@@ -216,6 +226,13 @@
           <select id="status" bind:value={statusFilter} onchange={handleStatusChange} class="input max-w-[220px]">
             {#each statusOptions as option}
               <option value={option.value}>{option.label}</option>
+            {/each}
+          </select>
+          <label class="text-sm font-semibold text-dark-900 dark:text-dark-50" for="project">โปรเจ็ค</label>
+          <select id="project" bind:value={projectFilter} onchange={handleStatusChange} class="input max-w-[220px]">
+            <option value="">ทุกโปรเจ็ค</option>
+            {#each projects as p}
+              <option value={p.id}>{p.name}</option>
             {/each}
           </select>
           <button onclick={handleStatusChange} class="btn-secondary">Refresh</button>
