@@ -217,7 +217,7 @@
       forbidden: 'ไม่มีสิทธิ์ทำรายการนี้',
     };
     if (map[message]) return map[message];
-    if (message.startsWith('requested_count_must_be_between')) return 'จำนวน content ต้องอยู่ระหว่าง 1-30 ชิ้น';
+    if (message.startsWith('requested_count_must_be_between')) return 'จำนวน content ต้องอยู่ระหว่าง 1-7 ชิ้น';
     if (message.startsWith('cadence_days_must_be')) return 'ความถี่ต้องอยู่ระหว่าง 0-30 วัน';
     return message || 'ทำรายการไม่สำเร็จ';
   }
@@ -270,7 +270,10 @@
         <div class="grid md:grid-cols-3 gap-3">
           <label class="text-sm">
             <span class="block mb-1 text-dark-900/70 dark:text-dark-100/70">จำนวน content</span>
-            <input type="number" min="1" max="30" bind:value={requestedCount} class="input w-full" />
+            <input type="number" min="1" max="7" bind:value={requestedCount} class="input w-full" />
+            <span class="mt-1 block text-xs text-dark-900/50 dark:text-dark-100/50">
+              สูงสุด 7 ชิ้นต่อครั้ง — อยากได้มากกว่านี้ให้สร้างซ้ำอีกรอบ ระบบจะดูของเดิมในปฏิทินแล้วเลี่ยงมุมที่เขียนไปแล้วให้เอง
+            </span>
           </label>
           <label class="text-sm">
             <span class="block mb-1 text-dark-900/70 dark:text-dark-100/70">ความถี่โพสต์</span>

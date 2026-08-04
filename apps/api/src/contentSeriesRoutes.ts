@@ -5,6 +5,7 @@ import type { Bindings, Variables } from './lib/types';
 import { addCredits, deductCredits } from './lib/credit';
 import { createBrandContextSnapshot } from './lib/creative/brandContext';
 import {
+  MAX_EXISTING_HOOKS,
   callSeriesGeneration,
   getTemplateForUser,
   getVisibleTemplates,
@@ -256,6 +257,31 @@ contentSeriesRoutes.post('/api/content-series', async (c) => {
   const cadenceDays = input.cadence_days || 1;
   const startDate = input.start_date || Date.now();
 
+  // What this business has already published/planned, so the new batch takes
+  // fresh angles instead of rewriting the same posts. Scoped to the project
+  // when there is one (that's the boundary the user filters by everywhere
+  // else); otherwise to the user's own unassigned content, so the two don't
+  // bleed into each other. Hooks only — they carry the angle, and captions
+  // would bloat the prompt for no extra signal.
+  //
+  // `project_id IS ?` (not `= ?`) so a NULL binding means "the unassigned
+  // ones" rather than the never-true `= NULL`. Verified against the real D1
+  // binding layer, not just the node:sqlite test shim: bound with JS null it
+  // returns exactly the NULL-project rows, where `= ?` returns none.
+  // `input.project_id` is normalised to `string | null` above and
+  // validateSeriesInput rejects other types — D1 throws D1_TYPE_ERROR on
+  // `undefined`.
+  //
+  // buildSeriesPrompt sanitises and caps these before they reach the model;
+  // this LIMIT only keeps the read itself bounded.
+  const existingHookRows = await c.env.DB.prepare(`
+    SELECT hook FROM content_items
+    WHERE user_id = ? AND hook != '' AND project_id IS ?
+    ORDER BY created_at DESC
+    LIMIT ${MAX_EXISTING_HOOKS}
+  `).bind(user.id, input.project_id).all<{ hook: string }>();
+  const existingHooks = (existingHookRows.results || []).map((r) => r.hook).filter(Boolean);
+
   const seriesId = generateId();
   const now = Date.now();
   await c.env.DB.prepare(`
@@ -300,6 +326,7 @@ contentSeriesRoutes.post('/api/content-series', async (c) => {
       slots,
       platforms,
       brandSnapshot: snapshot.snapshot,
+      existingHooks,
     });
   } catch (err: any) {
     const refund = await addCredits(c.env, user.id, estReserve, 'content_series_refund', { referenceId: seriesId, note: 'generation failed' });

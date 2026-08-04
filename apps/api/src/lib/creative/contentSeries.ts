@@ -4,8 +4,62 @@ import { callMinimax, extractJsonFromAny } from '../minimax';
 import { calculateCredits } from '../credit';
 import { assembleVisualPrompt, buildVisualSlotBatchPrompt, type VisualSlotBatchItem } from './visualPrompt';
 
-export const MAX_SERIES_COUNT = 30;
+// Measured ceiling, not an arbitrary cap: MiniMax-M3 spends an unbounded
+// amount of its completion budget on internal reasoning before writing the
+// answer, and past ~7 posts that reasoning eats the budget and the JSON comes
+// back truncated (verified live — 7 succeeds, 8 and 12 both fail with
+// finish_reason 'length'). Advertising 30 just charged users for a request
+// that could not succeed. Bigger calendars are built by running several
+// batches; each one is told what the previous ones already covered.
+export const MAX_SERIES_COUNT = 7;
 export const MIN_SERIES_COUNT = 1;
+
+// How much "already covered" context the copy pass is allowed to carry, and
+// the row limit the route reads with. Deliberately small: this is PROMPT
+// budget on a call whose COMPLETION budget is already at its measured ceiling
+// (see MAX_SERIES_COUNT), so it must not be able to grow without bound.
+export const MAX_EXISTING_HOOKS = 40;
+// A hook is spec'd at "1 ประโยค ไม่เกิน 100 ตัวอักษร" (contentRoutes.ts), but
+// nothing enforces that: PATCH /api/content-items accepts up to 5000 chars for
+// any text field, and the generator writes model output through unclamped.
+const MAX_EXISTING_HOOK_CHARS = 120;
+
+/**
+ * Existing hooks are untrusted, user-editable free text that gets
+ * interpolated straight into the prompt, so they are normalised before they
+ * ever reach it:
+ *
+ *  - flattened to a single line (a hook may legally contain newlines, and a
+ *    multi-line one would break out of the "- " bullet list and could forge
+ *    its own "# section" / "⚠️ rule" inside the user message);
+ *  - control characters stripped, whitespace collapsed;
+ *  - truncated per hook and capped in count, so 40 maxed-out 5000-char hooks
+ *    cannot add ~66k tokens of prompt to a call that is already near its
+ *    token ceiling (which would inflate the true-up charge and can fail the
+ *    whole series);
+ *  - de-duplicated, since repeats spend tokens to say the same thing.
+ */
+export function sanitizeExistingHooks(hooks: readonly unknown[] | undefined): string[] {
+  if (!hooks?.length) return [];
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const raw of hooks) {
+    if (typeof raw !== 'string') continue;
+    const flat = raw
+      .replace(/[\u0000-\u001f\u007f]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, MAX_EXISTING_HOOK_CHARS)
+      .trim();
+    if (!flat) continue;
+    const key = flat.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(flat);
+    if (out.length >= MAX_EXISTING_HOOKS) break;
+  }
+  return out;
+}
 
 export type SeriesSlot = {
   pillar?: string;
@@ -118,8 +172,13 @@ function buildSeriesPrompt(params: {
   slots: SeriesSlot[];
   platforms: string[];
   brandSnapshot: any;
+  existingHooks?: string[];
 }) {
   const { topic, count, slots, platforms, brandSnapshot } = params;
+  // Sanitised here rather than at the call site so every caller gets it — this
+  // string goes straight into the prompt and the rows behind it are editable
+  // free text (see sanitizeExistingHooks).
+  const existingHooks = sanitizeExistingHooks(params.existingHooks);
   const system = `คุณคือ Content Strategist ที่เขียน content series ให้ SME ไทยจากหัวข้อเดียว
 เข้าใจ platform ไทย, ภาษาไทย, คนไทย
 caption กระชับ ไม่เกิน 4-5 บรรทัด
@@ -136,7 +195,11 @@ ${topic}
 # Brand context
 ${JSON.stringify(brandSnapshot || {})}
 
-# Slot rotation (เรียงตามลำดับ ให้แต่ละ item ใช้ slot ตาม index ที่กำหนด)
+${existingHooks.length ? `# มุมที่เคยเขียนไปแล้ว (ห้ามซ้ำ)
+โพสต์เหล่านี้อยู่ในปฏิทินของธุรกิจนี้แล้ว ห้ามเขียนซ้ำมุมเดิม ประเด็นเดิม หรือ hook ที่สื่อความหมายเดียวกัน — ให้หามุมใหม่ที่ยังไม่เคยพูดถึง
+${existingHooks.map((h) => `- ${h}`).join('\n')}
+
+` : ''}# Slot rotation (เรียงตามลำดับ ให้แต่ละ item ใช้ slot ตาม index ที่กำหนด)
 ${JSON.stringify(slots)}
 
 # Platforms หมุนเวียน
@@ -160,7 +223,7 @@ ${JSON.stringify(platforms)}
 
 ⚠️ สร้าง ${count} items พอดี (slot_index ไล่จาก 0 ถึง ${count - 1})
 ⚠️ แต่ละ item ต้องใช้ slot ตาม index ที่กำหนดใน slot rotation ข้างบน (วนซ้ำถ้าจำนวน slot น้อยกว่า item)
-⚠️ hashtag ไม่เกิน 5 ตัว ต่อ item
+⚠️ hashtag ไม่เกิน 5 ตัว ต่อ item${existingHooks.length ? '\n⚠️ ห้ามซ้ำมุมกับ "มุมที่เคยเขียนไปแล้ว" ข้างบนเด็ดขาด ทุก item ต้องเป็นมุมใหม่' : ''}
 ⚠️ visual_suggestion ต้องบรรยายภาพล้วน ๆ ห้ามมีตัวอักษร/ข้อความ/ป้าย/ปุ่ม/โลโก้/ราคาในภาพ (AI วาดตัวหนังสือไทยไม่ได้ — หัวข้อกับ CTA จะถูกใส่ทีหลังด้วยเครื่องมือแยก)
 ⚠️ ทุก field ต้องมี ไม่เว้นว่าง
 ⚠️ JSON valid — ไม่มี comment, ไม่มี trailing comma`;
@@ -186,7 +249,7 @@ export type SeriesItemResult = {
  */
 export async function callSeriesGeneration(
   env: Pick<Bindings, 'MINIMAX_API_KEY' | 'MINIMAX_GROUP_ID' | 'MINIMAX_MODEL'>,
-  params: { topic: string; count: number; slots: SeriesSlot[]; platforms: string[]; brandSnapshot: any },
+  params: { topic: string; count: number; slots: SeriesSlot[]; platforms: string[]; brandSnapshot: any; existingHooks?: string[] },
 ): Promise<{ items: SeriesItemResult[]; creditsUsed: number; reserveCredits: number; usage: any }> {
   const { system, user } = buildSeriesPrompt(params);
   const maxCompletionTokens = Math.min(24000, 700 * params.count + 2000);

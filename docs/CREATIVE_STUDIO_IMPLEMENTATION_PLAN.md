@@ -2066,7 +2066,7 @@ Web:    businessaios-web-staging หรือ preview URL ที่ exact allowl
 
 ฟีเจอร์ใหม่ที่เพิ่มนอกเหนือจาก Phase 1-10 เดิม — แรงบันดาลใจจากการดูคู่แข่ง (Hero AI Engine) ที่ gen content ได้ทีละชิ้นเท่านั้น ไม่รองรับการ gen เป็นชุดจากหัวข้อเดียว
 
-- **ทำอะไร**: ใส่หัวข้อเดียว (เช่น "เปิดร้านกาแฟใหม่ย่านทองหล่อ") + จำนวน content ที่ต้องการ (1-30 ชิ้น) + ความถี่โพสต์ → ระบบเรียก MiniMax ครั้งเดียวสร้าง content ครบชุด มุมมองต่างกัน (awareness/education/social_proof/conversion) ไม่ซ้ำกัน แล้ววางลง `content_items` พร้อม `scheduled_at` ตาม cadence โดยอัตโนมัติ
+- **ทำอะไร**: ใส่หัวข้อเดียว (เช่น "เปิดร้านกาแฟใหม่ย่านทองหล่อ") + จำนวน content ที่ต้องการ (1-7 ชิ้น ต่อรอบ — เพดานที่วัดจริงจาก MiniMax-M3, มากกว่านี้ JSON จะถูกตัดกลางคัน) + ความถี่โพสต์ → ระบบเรียก MiniMax ครั้งเดียวสร้าง content ครบชุด มุมมองต่างกัน (awareness/education/social_proof/conversion) ไม่ซ้ำกัน แล้ววางลง `content_items` พร้อม `scheduled_at` ตาม cadence โดยอัตโนมัติ
 - **Template**: ผู้ใช้เลือก template กำหนด slot rotation (ลำดับมุมมอง/สไตล์ hook/สไตล์ CTA) และผูก Brand Book/Profile เข้ามาได้ — template แบ่งเป็นของ user เอง (private) กับของ admin (global, `owner_user_id IS NULL`, ทุก user เห็นหมด) แยกด้วยคอลัมน์ `owner_type`
 - **Schema**: migration `016-content-series.sql` เพิ่ม `content_series_templates`, `content_series`, และคอลัมน์ `series_id`/`series_slot_index` บน `content_items` เดิม (ไม่แตะ `creative_batches`/`creative_requests` ที่มีอยู่แล้วแต่ยังไม่ได้ใช้งานจริง — เป็นแนวคิดคนละอันกัน)
 - **เครดิต**: reserve-then-reconcile pattern เดียวกับ wizard เดิม — จองเครดิตประมาณการก่อนเรียก AI แล้วคืนส่วนต่าง/เก็บเพิ่มตามการใช้จริงหลังเรียกเสร็จ, refund เต็มจำนวนถ้า AI call ล้มเหลว
