@@ -578,17 +578,26 @@ describe('Content item — regenerate-field (AI copy assist)', () => {
     expect(after.credits).toBe(before.credits);
   });
 
-  it('accepts every documented regenerable field name (rejected only after credit-gating, by the missing MINIMAX_API_KEY in this env)', async () => {
-    verifyEmail('u1');
-    const id = seedItem(ctx.db);
-    for (const field of ['hook', 'caption', 'cta', 'hashtags', 'visual_suggestion']) {
-      const res = await regenerate(id, { field, context: { title: 'ทดสอบ' } });
-      // No MiniMax credentials configured in the test env, so the real call
-      // fails — but that proves the request got PAST field validation and
-      // ownership/verification checks for every field name, which is what
-      // this test is actually checking.
-      expect(res.status).toBe(500);
-      expect(await res.json()).toMatchObject({ error: 'ai_error' });
+  it('accepts every documented regenerable field name (rejected only at the AI call, which is stubbed to fail)', async () => {
+    // The provider call is stubbed rather than left to fail on its own:
+    // callMinimax issues an unconditional real fetch, so without this the
+    // test made five live HTTPS calls to MiniMax and intermittently blew
+    // vitest's 5s timeout — flaky, slow, and reaching the network from a
+    // unit test. Failing the call deterministically proves the same thing:
+    // the request got PAST field validation and the ownership/verification
+    // gates for every documented field name.
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = vi.fn(async () => new Response('upstream down', { status: 503 })) as any;
+    try {
+      verifyEmail('u1');
+      const id = seedItem(ctx.db);
+      for (const field of ['hook', 'caption', 'cta', 'hashtags', 'visual_suggestion']) {
+        const res = await regenerate(id, { field, context: { title: 'ทดสอบ' } });
+        expect(res.status).toBe(500);
+        expect(await res.json()).toMatchObject({ error: 'ai_error' });
+      }
+    } finally {
+      globalThis.fetch = originalFetch;
     }
   });
 
