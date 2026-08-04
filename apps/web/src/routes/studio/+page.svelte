@@ -568,7 +568,11 @@
   }
 
   function handlePromptKeydown(event: KeyboardEvent) {
-    if (mentionQuery === null || !mentionMatches.length) return;
+    // Only intercept arrows/Enter/Tab while a *usable* mention menu is open.
+    // On a text-to-image model (canUseReferences === false) the picker is
+    // never shown, so keys like Enter must fall through to their normal
+    // textarea behaviour (newline) instead of being swallowed here.
+    if (mentionQuery === null || !canUseReferences || !mentionMatches.length) return;
     if (event.key === 'ArrowDown') {
       event.preventDefault();
       mentionActiveIndex = (mentionActiveIndex + 1) % mentionMatches.length;
@@ -829,10 +833,12 @@
                   onclick={updateMentionState}
                   onblur={() => { setTimeout(closeMentionMenu, 120); }}
                   rows="7"
-                  placeholder="เช่น สร้างภาพโฆษณา workshop AI สำหรับเจ้าของธุรกิจ SME โทนมืออาชีพ อบอุ่น เห็นคนกำลังใช้ AI วางแผนคอนเทนต์ — พิมพ์ @ เพื่อเลือกภาพอ้างอิง"
+                  placeholder={canUseReferences
+                    ? 'เช่น ทำภาพใหม่โดยรักษาใบหน้าคนใน @ชื่อภาพ ให้ดูมืออาชีพขึ้น — พิมพ์ @ เพื่อเลือกภาพอ้างอิง'
+                    : 'เช่น สร้างภาพโฆษณา workshop AI สำหรับเจ้าของธุรกิจ SME โทนมืออาชีพ อบอุ่น เห็นคนกำลังใช้ AI วางแผนคอนเทนต์'}
                   class="w-full resize-y rounded-lg border border-dark-200 bg-white px-4 py-3 text-sm leading-relaxed outline-none focus:ring-2 focus:ring-primary-500 dark:border-dark-600 dark:bg-dark-900"
                 ></textarea>
-                {#if mentionQuery !== null && mentionMatches.length}
+                {#if mentionQuery !== null && canUseReferences && mentionMatches.length}
                   <ul role="listbox" class="absolute z-20 mt-1 w-full max-w-sm overflow-hidden rounded-lg border border-dark-200 bg-white shadow-lg dark:border-dark-600 dark:bg-dark-900">
                     {#each mentionMatches as match, index}
                       <li role="option" aria-selected={index === mentionActiveIndex}>
@@ -847,6 +853,14 @@
                       </li>
                     {/each}
                   </ul>
+                {:else if mentionQuery !== null && !canUseReferences}
+                  <!-- The user typed @ to attach a reference, but the selected model
+                       is text-to-image and has no reference capability — so the asset
+                       picker would only offer options that silently do nothing on
+                       click. Explain why and point them at the fix instead. -->
+                  <div class="absolute z-20 mt-1 w-full max-w-sm rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-800 shadow-lg dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-200">
+                    โมเดลนี้สร้างภาพจากข้อความล้วน ยังแนบภาพอ้างอิงไม่ได้ — เลือกโมเดลที่มีคำว่า “ภาพอ้างอิง” หรือ “Subject Reference” ในช่อง Model ก่อน แล้วค่อยพิมพ์ @ เพื่อเลือกภาพ
+                  </div>
                 {/if}
               </div>
             </label>
