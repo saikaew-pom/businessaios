@@ -800,7 +800,7 @@
                     type="button"
                     onclick={() => toggleStylePreset(preset)}
                     aria-pressed={selectedStyleId === preset.id}
-                    class="rounded-lg border px-3 py-2.5 text-left text-sm transition {selectedStyleId === preset.id ? 'border-primary-500 bg-primary-50 ring-2 ring-primary-500 dark:bg-primary-950/40' : 'border-dark-200 hover:border-primary-300 dark:border-dark-600'}"
+                    class="rounded-lg border px-3 py-2.5 text-left text-sm transition {selectedStyleId === preset.id ? 'border-primary-500 bg-primary-50 text-primary-700 ring-2 ring-primary-500 dark:bg-primary-900/40 dark:text-primary-300' : 'border-dark-200 text-dark-900 hover:border-primary-300 dark:border-dark-600 dark:text-dark-50'}"
                   >
                     <span class="block text-lg leading-none">{preset.emoji}</span>
                     <span class="mt-1 block font-semibold">{preset.label}</span>
