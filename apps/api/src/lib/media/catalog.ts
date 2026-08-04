@@ -114,7 +114,15 @@ export async function seedMediaModelCatalog(env: Pick<Bindings, 'DB'>, now = Dat
       aspectRatios: ['1:1', '4:3', '3:4', '16:9', '9:16'],
       outputFormats: ['url'],
       maxOutputCount: 4,
-      maxReferenceImages: 1,
+      // No `references` block: this entry's endpoint (fal-ai/flux/dev) is
+      // FLUX's plain text-to-image endpoint and structurally cannot accept
+      // an input image — reference support lives on the separate
+      // fal-flux-dev-i2i entry below, pointed at the real image-to-image
+      // endpoint. `maxReferenceImages` used to be declared here, but nothing
+      // reads that field name (referenceResolver reads `references.min/max`)
+      // and it fell back to 0/0, so the field was purely misleading — it
+      // implied a capability that both the resolver and fal's actual
+      // endpoint would have rejected.
     }),
     pricing_json: canonicalJson({
       unit: 'credit',
@@ -208,7 +216,8 @@ export async function seedMediaModelCatalog(env: Pick<Bindings, 'DB'>, now = Dat
         aspectRatios: model.aspectRatios,
         outputFormats: ['url'],
         maxOutputCount: model.maxOutputCount,
-        maxReferenceImages: 1,
+        // No `references` block, same reasoning as fal-flux-dev-t2i above —
+        // every one of these points at a plain text-to-image endpoint.
       }),
       pricing_json: canonicalJson({
         unit: 'credit',
@@ -220,6 +229,115 @@ export async function seedMediaModelCatalog(env: Pick<Bindings, 'DB'>, now = Dat
       pricing_version: `${model.id}-2026-08-03-v1`,
       safety_config_json: canonicalJson({ policy: 'provider_default' }),
       adapter_config_json: canonicalJson({ endpoint: 'fal.run', model: model.providerModelId, size_param: model.sizeParam }),
+      sort_order: model.sortOrder,
+    }, now, falSeedMaintenance);
+  }
+
+  // Reference-capable siblings of the models above — each points at fal's
+  // actual image-accepting endpoint (a genuinely different URL from the
+  // text-to-image entries, not a flag on the same one), the way MiniMax's
+  // subject-reference model is a separate catalog row from its plain
+  // text-to-image one. Two request shapes exist across providers: Google
+  // and OpenAI's edit endpoints take `image_urls` (a real array — multiple
+  // reference images composited together), FLUX/Recraft's image-to-image
+  // endpoints take a single `image_url` (one starting image transformed by
+  // the prompt). `image_field` in adapter_config_json tells the fal adapter
+  // which shape to send; see readImageField() in providers/fal.ts.
+  //
+  // Output sizing is a THIRD per-vendor split, verified against fal's live
+  // OpenAPI schema for each endpoint (`fal.ai/api/openapi/queue/openapi.json
+  // ?endpoint_id=...`) rather than assumed from the text-to-image sibling:
+  // Google's edit endpoints take `aspect_ratio`, OpenAI's takes `image_size`
+  // — same as their t2i siblings — but FLUX/Recraft's single-image
+  // image-to-image endpoints have NO size field at all (no image_size, no
+  // aspect_ratio, no width/height); they derive output dimensions entirely
+  // from the input image. `sizeParam: 'none'` on those two tells the fal
+  // adapter to send neither field rather than a value the endpoint would
+  // silently ignore.
+  const falImageToImageModels: Array<{
+    id: string; providerModelId: string; displayName: string;
+    credits: number; costUsd: number; maxOutputCount: number;
+    aspectRatios: string[]; sizeParam: 'image_size' | 'aspect_ratio' | 'none';
+    imageField: 'image_url' | 'image_urls'; maxReferences: number; sortOrder: number;
+  }> = [
+    {
+      id: 'fal-flux-dev-i2i', providerModelId: 'fal-ai/flux/dev/image-to-image', displayName: 'FLUX.1 [dev] ปรับจากภาพอ้างอิง (fal.ai)',
+      // $0.03/megapixel vs the t2i entry's $0.003 — image-to-image is a
+      // materially different (10x pricier) endpoint on fal's side, not a
+      // mode switch on the same one. aspectRatios stays populated (so the
+      // shared aspect-ratio picker keeps working and pricing validation
+      // doesn't reject a caller-supplied value) even though sizeParam:
+      // 'none' means the choice isn't actually sent to fal — see the
+      // capability_warnings note pushed for this id in createPricingQuote.
+      credits: 30, costUsd: 0.03, maxOutputCount: 4,
+      aspectRatios: ['1:1', '4:3', '3:4', '16:9', '9:16'], sizeParam: 'none',
+      imageField: 'image_url', maxReferences: 1, sortOrder: 110,
+    },
+    {
+      id: 'fal-recraft-v3-i2i', providerModelId: 'fal-ai/recraft/v3/image-to-image', displayName: 'Recraft V3 ปรับจากภาพอ้างอิง (fal.ai)',
+      // Same sizeParam: 'none' reasoning as fal-flux-dev-i2i above — verified
+      // against fal's OpenAPI schema, this endpoint's only fields are prompt,
+      // image_url, strength, style, colors, style_id, negative_prompt,
+      // sync_mode; there is no size/aspect_ratio/width/height field to send.
+      credits: 40, costUsd: 0.04, maxOutputCount: 4,
+      aspectRatios: ['1:1', '4:3', '3:4', '16:9', '9:16'], sizeParam: 'none',
+      imageField: 'image_url', maxReferences: 1, sortOrder: 111,
+    },
+    {
+      id: 'fal-nano-banana-2-i2i', providerModelId: 'fal-ai/nano-banana-2/edit', displayName: 'Nano Banana 2 ผสมภาพอ้างอิง (Google, fal.ai)',
+      credits: 80, costUsd: 0.08, maxOutputCount: 4,
+      aspectRatios: ['1:1', '16:9', '9:16', '4:3', '3:4', '3:2', '2:3', '5:4', '4:5', '21:9'],
+      sizeParam: 'aspect_ratio',
+      // fal's own endpoint accepts up to 14 reference images; capped lower
+      // here — this app's reference-attach UI (built for MiniMax's single
+      // subject reference) hasn't been designed or tested against a large
+      // gallery picker. Raise this once that UI exists.
+      imageField: 'image_urls', maxReferences: 4, sortOrder: 112,
+    },
+    {
+      id: 'fal-nano-banana-pro-i2i', providerModelId: 'fal-ai/nano-banana-pro/edit', displayName: 'Nano Banana 2 Pro ผสมภาพอ้างอิง (Google, fal.ai)',
+      credits: 150, costUsd: 0.15, maxOutputCount: 4,
+      aspectRatios: ['1:1', '16:9', '9:16', '4:3', '3:4', '3:2', '2:3', '5:4', '4:5', '21:9'],
+      sizeParam: 'aspect_ratio',
+      imageField: 'image_urls', maxReferences: 4, sortOrder: 113,
+    },
+    {
+      id: 'fal-gpt-image-2-i2i', providerModelId: 'openai/gpt-image-2/edit', displayName: 'GPT Image 2 แก้ไขจากภาพอ้างอิง (OpenAI, fal.ai)',
+      // Priced the same as the t2i entry (same quality-tier uncertainty —
+      // see the comment on fal-gpt-image-2-t2i above).
+      credits: 210, costUsd: 0.21, maxOutputCount: 4,
+      aspectRatios: ['1:1', '4:3', '3:4', '16:9', '9:16'], sizeParam: 'image_size',
+      imageField: 'image_urls', maxReferences: 4, sortOrder: 114,
+    },
+  ];
+
+  for (const model of falImageToImageModels) {
+    await upsertSeedModel(env, {
+      id: model.id,
+      provider: 'fal',
+      provider_model_id: model.providerModelId,
+      display_name: model.displayName,
+      model_type: 'image',
+      operation: 'image_to_image',
+      capabilities_json: canonicalJson({
+        aspectRatios: model.aspectRatios,
+        outputFormats: ['url'],
+        maxOutputCount: model.maxOutputCount,
+        references: { min: 1, max: model.maxReferences },
+      }),
+      pricing_json: canonicalJson({
+        unit: 'credit',
+        credits_per_output: model.credits,
+        minimum_credits: model.credits,
+        provider_cost_usd_per_output: model.costUsd,
+        billing_unit: 'delivered_output',
+      }),
+      pricing_version: `${model.id}-2026-08-04-v1`,
+      safety_config_json: canonicalJson({ policy: 'provider_default' }),
+      adapter_config_json: canonicalJson({
+        endpoint: 'fal.run', model: model.providerModelId,
+        size_param: model.sizeParam, image_field: model.imageField,
+      }),
       sort_order: model.sortOrder,
     }, now, falSeedMaintenance);
   }
@@ -346,6 +464,9 @@ export async function createPricingQuote(
   }
   if (model.id === 'minimax-image-01-i2i-subject') {
     warnings.push('MiniMax Image-01 subject reference currently supports character reference only.');
+  }
+  if (model.id === 'fal-flux-dev-i2i' || model.id === 'fal-recraft-v3-i2i') {
+    warnings.push('This model has no output-size control on the fal side; the generated image follows the reference image dimensions regardless of the selected aspect ratio.');
   }
 
   const creditsPerOutput = Math.max(1, Number(pricing.credits_per_output || 1));

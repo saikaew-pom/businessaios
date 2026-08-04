@@ -1167,6 +1167,235 @@ describe('fal.ai provider — admin-managed key, catalog gating, and generation 
       .get(created.generation.id) as any;
     expect(hold.status).toBe('refunded'); // no charge for a provider that was never actually configured
   });
+
+  /**
+   * Reference images on fal previously could not work at all: every fal
+   * catalog entry declared `maxReferenceImages`, a field name
+   * validateReferencesForModel never reads (it reads `references.min/max`),
+   * so min/max defaulted to 0/0 and any attached reference was rejected
+   * before the request ever reached fal's API. Fixed by giving
+   * reference-capable fal models their own catalog entries (mirroring
+   * minimax-image-01-i2i-subject's separate-row pattern) pointed at fal's
+   * actual image-accepting endpoints, which is a different URL from the
+   * text-to-image entries, not a flag on the same one.
+   */
+  async function seedReferenceAsset(db: DatabaseSync, id: string) {
+    const bytes = pngBytes(16, 16);
+    db.exec(`
+      INSERT INTO media_assets (
+        id, user_id, asset_type, source, r2_key, original_filename, mime_type,
+        file_size, width, height, metadata_json, lifecycle_status, created_at, updated_at
+      )
+      VALUES (
+        '${id}', 'u1', 'image', 'upload', 'media/u1/inputs/${id}/original.png',
+        '${id}.png', 'image/png', ${bytes.byteLength}, 16, 16, '{}', 'active', 0, 0
+      );
+    `);
+  }
+
+  it('rejects a reference-capable fal model with zero references (min:1 now actually enforced)', async () => {
+    const { env } = makeEnvWithAdmin();
+    await app.request('/api/admin/creative/providers/fal/key', {
+      method: 'PUT',
+      headers: { Authorization: 'Bearer session-admin', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ api_key: 'fal-real-key-9999' }),
+    }, env);
+
+    // The min:1 check runs inside createPricingQuote itself (before a quote_id
+    // ever exists), so the rejection happens right here at the pricing-preview
+    // step — there is nothing valid to hand to POST /api/media/generations.
+    const quote = await app.request('/api/media/pricing/preview', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer session-1', 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model_id: 'fal-flux-dev-i2i',
+        operation: 'image_to_image',
+        options: { aspect_ratio: '1:1', num_images: 1 },
+        reference_count: 0,
+      }),
+    }, env);
+    expect(quote.status).toBe(400);
+    expect(await quote.json()).toMatchObject({ error: 'reference_count_not_supported' });
+  });
+
+  it('sends a single reference as image_url (not image_urls) to a FLUX/Recraft-style image-to-image endpoint', async () => {
+    const { env, db } = makeEnvWithAdmin();
+    await seedReferenceAsset(db, 'ref-flux');
+    await app.request('/api/admin/creative/providers/fal/key', {
+      method: 'PUT',
+      headers: { Authorization: 'Bearer session-admin', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ api_key: 'fal-real-key-9999' }),
+    }, env);
+
+    let capturedRequest: { url: string; body: any } | null = null;
+    env.__MEDIA_PROVIDER_FETCH = async (url: string, init?: any) => {
+      if (url === 'https://fal.media/files/output/i2i-flux.png') {
+        return new Response(pngBytes(64, 48), { status: 200 });
+      }
+      capturedRequest = { url, body: JSON.parse(init.body) };
+      return new Response(JSON.stringify({
+        request_id: 'fal-req-i2i-flux',
+        images: [{ url: 'https://fal.media/files/output/i2i-flux.png', width: 512, height: 512 }],
+      }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    };
+
+    const quote = await app.request('/api/media/pricing/preview', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer session-1', 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model_id: 'fal-flux-dev-i2i',
+        operation: 'image_to_image',
+        options: { aspect_ratio: '1:1', num_images: 1 },
+        reference_count: 1,
+      }),
+    }, env);
+    const quoteBody = await quote.json() as any;
+
+    const create = await app.request('/api/media/generations', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer session-1', 'Content-Type': 'application/json', 'Idempotency-Key': 'idem-fal-i2i-flux' },
+      body: JSON.stringify({
+        model_id: 'fal-flux-dev-i2i',
+        prompt: 'ปรับภาพ @ref ให้สว่างขึ้น',
+        options: { aspect_ratio: '1:1', num_images: 1 },
+        references: [{ asset_id: 'ref-flux', mention_name: '@ref', reference_role: 'subject' }],
+        quote_id: quoteBody.quote_id,
+        expected_pricing_version: quoteBody.pricing_version,
+      }),
+    }, env);
+    expect(create.status).toBe(201);
+    const created = await create.json() as any;
+
+    await runMediaProcessor(env);
+
+    expect(capturedRequest).not.toBeNull();
+    expect(capturedRequest!.url).toBe('https://fal.run/fal-ai/flux/dev/image-to-image');
+    expect(typeof capturedRequest!.body.image_url).toBe('string');
+    expect(capturedRequest!.body.image_urls).toBeUndefined();
+    // fal-ai/flux/dev/image-to-image has no size-control field at all (no
+    // image_size, no aspect_ratio — verified against fal's own OpenAPI
+    // schema); sending image_size here would just be a dead field the
+    // endpoint ignores, so the adapter must send neither.
+    expect(capturedRequest!.body.image_size).toBeUndefined();
+    expect(capturedRequest!.body.aspect_ratio).toBeUndefined();
+
+    const row = db.prepare('SELECT status FROM media_generations WHERE id = ?').get(created.generation.id) as any;
+    expect(row.status).toBe('completed');
+  });
+
+  it('warns that the aspect ratio option has no effect on FLUX/Recraft image-to-image (no size field on that endpoint)', async () => {
+    const { env } = makeEnvWithAdmin();
+    await app.request('/api/admin/creative/providers/fal/key', {
+      method: 'PUT',
+      headers: { Authorization: 'Bearer session-admin', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ api_key: 'fal-real-key-9999' }),
+    }, env);
+
+    const quote = await app.request('/api/media/pricing/preview', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer session-1', 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model_id: 'fal-flux-dev-i2i',
+        operation: 'image_to_image',
+        options: { aspect_ratio: '16:9', num_images: 1 },
+        reference_count: 1,
+      }),
+    }, env);
+    expect(quote.status).toBe(200);
+    const quoteBody = await quote.json() as any;
+    expect(quoteBody.capability_warnings).toEqual(
+      expect.arrayContaining([expect.stringContaining('no output-size control')]),
+    );
+  });
+
+  it('sends every attached reference as image_urls (not just the first) to a Google/OpenAI-style edit endpoint', async () => {
+    const { env, db } = makeEnvWithAdmin();
+    await seedReferenceAsset(db, 'ref-a');
+    await seedReferenceAsset(db, 'ref-b');
+    await app.request('/api/admin/creative/providers/fal/key', {
+      method: 'PUT',
+      headers: { Authorization: 'Bearer session-admin', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ api_key: 'fal-real-key-9999' }),
+    }, env);
+
+    let capturedRequest: { url: string; body: any } | null = null;
+    env.__MEDIA_PROVIDER_FETCH = async (url: string, init?: any) => {
+      if (url === 'https://fal.media/files/output/i2i-nano.png') {
+        return new Response(pngBytes(64, 48), { status: 200 });
+      }
+      capturedRequest = { url, body: JSON.parse(init.body) };
+      return new Response(JSON.stringify({
+        request_id: 'fal-req-i2i-nano',
+        images: [{ url: 'https://fal.media/files/output/i2i-nano.png', width: 512, height: 512 }],
+      }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    };
+
+    const quote = await app.request('/api/media/pricing/preview', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer session-1', 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model_id: 'fal-nano-banana-2-i2i',
+        operation: 'image_to_image',
+        options: { aspect_ratio: '1:1', num_images: 1 },
+        reference_count: 2,
+      }),
+    }, env);
+    const quoteBody = await quote.json() as any;
+
+    const create = await app.request('/api/media/generations', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer session-1', 'Content-Type': 'application/json', 'Idempotency-Key': 'idem-fal-i2i-nano' },
+      body: JSON.stringify({
+        model_id: 'fal-nano-banana-2-i2i',
+        prompt: 'รวม @first กับ @second เข้าด้วยกัน',
+        options: { aspect_ratio: '1:1', num_images: 1 },
+        references: [
+          { asset_id: 'ref-a', mention_name: '@first', reference_role: 'subject', sort_order: 0 },
+          { asset_id: 'ref-b', mention_name: '@second', reference_role: 'subject', sort_order: 1 },
+        ],
+        quote_id: quoteBody.quote_id,
+        expected_pricing_version: quoteBody.pricing_version,
+      }),
+    }, env);
+    expect(create.status).toBe(201);
+    const created = await create.json() as any;
+
+    await runMediaProcessor(env);
+
+    expect(capturedRequest).not.toBeNull();
+    expect(capturedRequest!.url).toBe('https://fal.run/fal-ai/nano-banana-2/edit');
+    expect(Array.isArray(capturedRequest!.body.image_urls)).toBe(true);
+    expect(capturedRequest!.body.image_urls).toHaveLength(2); // both refs, not just the first
+    expect(capturedRequest!.body.image_url).toBeUndefined();
+
+    const row = db.prepare('SELECT status FROM media_generations WHERE id = ?').get(created.generation.id) as any;
+    expect(row.status).toBe('completed');
+  });
+
+  it('rejects a Nano Banana edit request with more references than its declared max', async () => {
+    const { env } = makeEnvWithAdmin();
+    await app.request('/api/admin/creative/providers/fal/key', {
+      method: 'PUT',
+      headers: { Authorization: 'Bearer session-admin', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ api_key: 'fal-real-key-9999' }),
+    }, env);
+
+    // Same reasoning as the min:1 test above — max:4 is enforced inside
+    // createPricingQuote, so a reference_count of 5 is rejected at the
+    // pricing-preview step itself, before any asset or generation exists.
+    const quote = await app.request('/api/media/pricing/preview', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer session-1', 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model_id: 'fal-nano-banana-2-i2i',
+        operation: 'image_to_image',
+        options: { aspect_ratio: '1:1', num_images: 1 },
+        reference_count: 5,
+      }),
+    }, env);
+    expect(quote.status).toBe(400);
+    expect(await quote.json()).toMatchObject({ error: 'reference_count_not_supported' });
+  });
 });
 
 describe('Admin ops — category rate limits, storage quota, purge worker, stuck-job reconciliation', () => {
