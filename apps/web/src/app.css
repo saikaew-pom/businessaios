@@ -59,4 +59,21 @@
   .eyebrow-label {
     @apply block text-xs font-semibold tracking-wide uppercase text-primary-600 dark:text-primary-400 mb-3;
   }
+
+  /*
+    .input and .btn-ghost are used across dozens of components (works,
+    inbox, calendar, presentation builder, brand kit, etc.) but were never
+    actually defined here — every one of those elements has been rendering
+    as a bare, unstyled native form control this whole time. In dark mode
+    that's easy to miss: `html.dark { color-scheme: dark }` above makes the
+    browser apply its own dark native chrome to inputs/buttons, which reads
+    as "styled" at a glance even though no app CSS is doing anything.
+  */
+  .input {
+    @apply w-full rounded-lg border border-dark-200 dark:border-dark-600 bg-white dark:bg-dark-800 px-3 py-2 text-sm text-dark-900 dark:text-dark-50 placeholder:text-dark-900/40 dark:placeholder:text-dark-100/40 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-lg text-dark-900/70 dark:text-dark-100/70 font-semibold hover:bg-dark-50 dark:hover:bg-dark-800 transition-colors;
+  }
 }
