@@ -719,14 +719,16 @@ brandKitRoutes.post('/api/compositions/generate-copy', rateLimit, async (c) => {
   const startTime = Date.now();
   const { system, user: userPrompt } = buildHeadlineCopyPrompt({ brief, tone: body.tone, platform: body.platform });
   // MiniMax-M3 is a reasoning model that spends tokens on an internal
-  // reasoning_content trace before writing the final answer — a tight budget
-  // here (e.g. 300) gets consumed entirely by reasoning with finish_reason
-  // 'length' and zero actual content, not just a truncated answer. Every
-  // other MiniMax call in this codebase budgets 5200+ tokens for exactly
-  // this reason (see buildBrandbookSmartWritingPrompt above, toolRoutes.ts).
-  // The output here is tiny (~2 short lines), but the token budget has to
-  // cover the reasoning overhead, not the answer length.
-  const maxTokens = 2000;
+  // reasoning_content trace before writing the final answer, and that
+  // reasoning length is NOT proportional to how small the final answer is —
+  // 300 failed outright, and a live test of the sibling regenerate-field
+  // route showed even 2000 still truncates (finish_reason: 'length',
+  // reasoningLength: 3542, empty content) on some calls. 12000 matches the
+  // budget already proven reliable elsewhere in this codebase for the same
+  // behavior (toolRoutes.ts). Only actual tokens used are billed — this just
+  // raises the ceiling the reserve is calculated against, refunded down to
+  // real usage afterward.
+  const maxTokens = 12000;
   const estPromptTokens = Math.ceil((system.length + userPrompt.length) / 3);
   const reserveCredits = calculateCredits({ prompt_tokens: estPromptTokens, completion_tokens: maxTokens });
   const reservation = await deductCredits(c.env, user.id, reserveCredits, 'generation_reserve', toolRunId);
