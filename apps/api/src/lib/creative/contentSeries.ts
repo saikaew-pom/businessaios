@@ -2,6 +2,7 @@ import { generateId } from '../crypto';
 import type { Bindings } from '../types';
 import { callMinimax, extractJsonFromAny } from '../minimax';
 import { calculateCredits } from '../credit';
+import { assembleVisualPrompt, buildVisualSlotBatchPrompt, type VisualSlotBatchItem } from './visualPrompt';
 
 export const MAX_SERIES_COUNT = 30;
 export const MIN_SERIES_COUNT = 1;
@@ -207,6 +208,79 @@ export async function callSeriesGeneration(
 
   const creditsUsed = calculateCredits(result.usage);
   return { items, creditsUsed, reserveCredits, usage: result.usage };
+}
+
+/**
+ * Second pass over a freshly generated series: turn each post's copy into
+ * real art direction via the slot pipeline (see lib/creative/visualPrompt.ts).
+ *
+ * Deliberately separate from callSeriesGeneration rather than folded into its
+ * prompt: that call already asks for 5 copy fields per post and is the
+ * expensive one, and pushing art-direction slots into it would both bloat an
+ * output already near its token ceiling and re-introduce the free-form
+ * "describe the image" task the slot pipeline exists to avoid.
+ *
+ * NEVER THROWS. By the time this runs the copy has been generated and the
+ * user has already been charged for it — a failure here must degrade to the
+ * copy pass's own one-line visual_suggestion, not lose the whole series.
+ * Chunked for the same reason: one truncated response costs a chunk's worth
+ * of art direction instead of the entire month's.
+ */
+const VISUAL_SLOT_CHUNK_SIZE = 10;
+
+export async function callVisualSlotGeneration(
+  env: Pick<Bindings, 'MINIMAX_API_KEY' | 'MINIMAX_GROUP_ID' | 'MINIMAX_MODEL'>,
+  items: VisualSlotBatchItem[],
+): Promise<{ prompts: Map<number, string>; creditsUsed: number }> {
+  const prompts = new Map<number, string>();
+  let creditsUsed = 0;
+  if (!items.length) return { prompts, creditsUsed };
+
+  const chunks: VisualSlotBatchItem[][] = [];
+  for (let i = 0; i < items.length; i += VISUAL_SLOT_CHUNK_SIZE) {
+    chunks.push(items.slice(i, i + VISUAL_SLOT_CHUNK_SIZE));
+  }
+
+  const results = await Promise.all(chunks.map(async (chunk) => {
+    try {
+      // Inside the try, not above it: anything that escapes this callback
+      // rejects the Promise.all and breaks the never-throws contract, which
+      // would lose a series the user has already paid for.
+      const { system, user } = buildVisualSlotBatchPrompt(chunk);
+      const result = await callMinimax(
+        { apiKey: env.MINIMAX_API_KEY, groupId: env.MINIMAX_GROUP_ID, model: env.MINIMAX_MODEL },
+        [
+          { role: 'system', content: system },
+          { role: 'user', content: `${user}\n\n[ตอบเป็น JSON object เท่านั้น ไม่ต้องอธิบาย]` },
+        ],
+        // Budgeted against MiniMax-M3's reasoning overhead, which is not
+        // proportional to the (short) answer — the same trap that made a
+        // 300-token budget return nothing at all on the single-item route.
+        { maxTokens: 6000, temperature: 0.7, jsonMode: true },
+      );
+      const parsed = extractJsonFromAny(result.content, result.reasoning);
+      const rows = Array.isArray(parsed?.items) ? parsed.items : [];
+      const valid = new Set(chunk.map((c) => c.index));
+      const built: Array<[number, string]> = [];
+      for (const row of rows) {
+        const index = Number(row?.i);
+        // Only accept indexes we actually asked for — a hallucinated index
+        // would otherwise overwrite an unrelated post's art direction.
+        if (!Number.isInteger(index) || !valid.has(index)) continue;
+        built.push([index, assembleVisualPrompt(row)]);
+      }
+      return { built, credits: calculateCredits(result.usage) };
+    } catch (err) {
+      console.error('Visual slot batch failed (falling back to plain visual_suggestion):', err);
+      return { built: [] as Array<[number, string]>, credits: 0 };
+    }
+  }));
+
+  for (const result of results) {
+    for (const [index, prompt] of result.built) prompts.set(index, prompt);
+    creditsUsed += result.credits;
+  }
+  return { prompts, creditsUsed };
 }
 
 export function resolveSlots(template: ContentSeriesTemplateRow | null): SeriesSlot[] {

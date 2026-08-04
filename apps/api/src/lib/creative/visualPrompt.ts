@@ -118,7 +118,14 @@ function pick<T>(table: Record<string, T>, key: unknown, fallback: string): T {
  * generic-but-still-well-formed prompt rather than a broken one.
  */
 export function assembleVisualPrompt(slots: Partial<VisualSlots>): string {
-  const subject = (slots.subject || 'บุคคลวัยทำงาน').trim();
+  // Type-guard rather than `slots.subject || default` — the model's reply is
+  // untrusted JSON, and a non-string `subject` (e.g. `"subject": 2024` when it
+  // latches onto a number in the copy) made `.trim()` throw. That throw was
+  // never caught on the single-item regenerate route (contentRoutes.ts), so it
+  // 500'd with the reservation unrefunded, and in the series batch it killed
+  // every other post in the same chunk. Every other slot already degrades to a
+  // default; this one now does too, as the docblock above promises.
+  const subject = (typeof slots.subject === 'string' ? slots.subject.trim() : '') || 'บุคคลวัยทำงาน';
   const setting = pick(SETTINGS, slots.setting, DEFAULTS.setting);
   const mood = pick(MOODS, slots.mood, DEFAULTS.mood);
   const light = pick(LIGHTS, slots.light, DEFAULTS.light);
@@ -186,6 +193,56 @@ export function buildVisualSlotPrompt(context: {
     context.platform ? `Platform: ${context.platform}` : '',
     context.pillar ? `Pillar: ${context.pillar}` : '',
   ].filter(Boolean).join('\n');
+
+  return { system, user };
+}
+
+export type VisualSlotBatchItem = {
+  index: number;
+  hook?: string;
+  caption?: string;
+  cta?: string;
+  platform?: string;
+  pillar?: string;
+};
+
+/**
+ * Batch variant: one call covers several posts. Used by the Content Series
+ * generator, where asking per-post would mean 30 sequential AI round-trips
+ * for a single "generate my month" click.
+ *
+ * The reply is keyed by an explicit `i` rather than relying on array order —
+ * a model that drops or reorders an entry would otherwise silently shift
+ * every subsequent post's art direction onto the wrong copy.
+ */
+export function buildVisualSlotBatchPrompt(items: VisualSlotBatchItem[]) {
+  const base = buildVisualSlotPrompt({});
+  // The base prompt ends with a single-object schema AND a worked example whose
+  // answer is a bare object — for a weak model the example is the strongest
+  // signal in the prompt, so the batch section has to explicitly retire both or
+  // the reply comes back unwrapped, `parsed.items` isn't an array, and the whole
+  // chunk silently falls back to the copy pass one-liner. Hence: an explicit
+  // override, and the same example restated in batch shape.
+  const system = `${base.system}
+
+โหมด batch (ใช้แทนรูปแบบคำตอบด้านบนทั้งหมด): จะได้รับโพสต์หลายชิ้นพร้อมกัน กติกาเรื่อง subject/props/ตัวเลือกยังใช้เหมือนเดิมทุกข้อ แต่คำตอบต้องเป็น JSON object เดียวที่ห่อด้วย "items" เท่านั้น:
+{"items":[{"i":<เลข index ของโพสต์>, "subject":"...", "props":["..."], "setting":"...", "mood":"...", "light":"...", "narrative":"..."}]}
+
+ตัวอย่างคำตอบในโหมด batch (ถ้าโพสต์ตัวอย่างร้านกาแฟด้านบนเป็น index 0):
+{"items":[{"i":0,"subject":"บาริสต้าชายไทยวัย 30 ปี","props":["แก้วกาแฟร้อน","เครื่องชงกาแฟ","แท็บเล็ตบนเคาน์เตอร์"],"setting":"cafe_restaurant","mood":"relieved_light","light":"morning_soft","narrative":"transformation"}]}
+
+- ห้ามตอบเป็น object เดี่ยวแบบตัวอย่างด้านบน — ทุกโพสต์ต้องอยู่ใน array "items" เสมอ
+- ต้องตอบครบทุก index ที่ได้รับ และใส่ "i" ให้ตรงกับ index ของโพสต์นั้นเสมอ ห้ามใส่ index ที่ไม่ได้รับ
+- แต่ละโพสต์ควรมีภาพต่างกัน ไม่ต้องซ้ำฉาก/มุมเดิมทุกชิ้น`;
+
+  const user = items.map((item) => [
+    `--- โพสต์ index ${item.index} ---`,
+    item.hook ? `Hook: ${item.hook}` : '',
+    item.caption ? `Caption: ${item.caption}` : '',
+    item.cta ? `CTA: ${item.cta}` : '',
+    item.platform ? `Platform: ${item.platform}` : '',
+    item.pillar ? `Pillar: ${item.pillar}` : '',
+  ].filter(Boolean).join('\n')).join('\n\n');
 
   return { system, user };
 }

@@ -233,13 +233,15 @@ describe('Content Series Generator', () => {
       const scheduled = body.items.map((i: any) => i.scheduled_at).sort((a: number, b: number) => a - b);
       expect(scheduled[1] - scheduled[0]).toBe(2 * 86_400_000);
 
-      // credits_used on the series should reflect the mocked usage
-      // (calculateCredits({prompt:100, completion:200}) = ceil(0.1 + 0.4) = 1),
-      // not the up-front `requested_count * 8` estimate — proves the
-      // true-up/refund path actually ran instead of just keeping the reserve.
+      // credits_used on the series should reflect real mocked usage, not the
+      // up-front `requested_count * 8` estimate — proves the true-up/refund
+      // path ran instead of just keeping the reserve. Two AI calls now make
+      // up a series (the copy pass, then the art-direction slot pass), and
+      // both are billed under the one series: calculateCredits({prompt:100,
+      // completion:200}) = 1 each.
       const user = ctx.db.prepare("SELECT credits FROM users WHERE id = 'u1'").get() as any;
-      expect(user.credits).toBe(99); // 100 - 1 credit actually used
-      expect(body.series.credits_used).toBe(1);
+      expect(user.credits).toBe(98); // 100 - (1 copy + 1 visual slots)
+      expect(body.series.credits_used).toBe(2);
     });
 
     it('refunds the full reservation when the AI call fails, leaving the user unharmed', async () => {
@@ -315,10 +317,12 @@ describe('Content Series Generator', () => {
       expect(body.series.requested_count).toBe(5);
       expect(body.items).toHaveLength(3);
 
-      // credits are still charged on actual token usage, not the requested_count estimate
+      // credits are still charged on actual token usage, not the
+      // requested_count estimate (1 for the copy pass + 1 for the
+      // art-direction slot pass).
       const user = ctx.db.prepare("SELECT credits FROM users WHERE id = 'u1'").get() as any;
-      expect(user.credits).toBe(99);
-      expect(body.series.credits_used).toBe(1);
+      expect(user.credits).toBe(98);
+      expect(body.series.credits_used).toBe(2);
 
       // persisted row (not just the response) reflects the partial status
       const stored = ctx.db.prepare("SELECT status, generated_count FROM content_series WHERE id = ?").get(body.series.id) as any;
@@ -465,6 +469,184 @@ describe('Content Series Generator', () => {
         headers: { Authorization: 'Bearer session-u1' },
       }, ctx.env)).json() as any;
       expect(all.items).toHaveLength(4);
+    });
+  });
+
+  describe('art-direction pass (visual slots)', () => {
+    beforeEach(() => { ctx = makeEnv(); });
+
+    /**
+     * A series is two AI calls: the copy pass, then the art-direction pass.
+     * They're told apart by payload — only the second one asks for slots.
+     */
+    function mockBothPasses(count: number, slotsReply: unknown) {
+      const items = Array.from({ length: count }, (_, i) => ({
+        slot_index: i, pillar: 'education', platform: 'facebook',
+        hook: `Hook ${i}`, caption: `Caption ${i}`, cta: 'ทักแชท',
+        hashtags: ['#test'], visual_suggestion: 'ภาพหนึ่งบรรทัดจาก copy pass',
+      }));
+      return vi.fn(async (_url: any, init: any) => {
+        const body = String(init?.body || '');
+        const isVisualPass = body.includes('โหมด batch');
+        const content = isVisualPass ? JSON.stringify(slotsReply) : JSON.stringify({ items });
+        return new Response(JSON.stringify({
+          id: 'gen-1',
+          choices: [{ message: { role: 'assistant', content }, finish_reason: 'stop' }],
+          usage: { prompt_tokens: 100, completion_tokens: 200, total_tokens: 300 },
+        }), { status: 200 });
+      });
+    }
+
+    function createSeries(count: number) {
+      return app.request('/api/content-series', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer session-u1', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic: 'เปิดร้านกาแฟ', requested_count: count }),
+      }, ctx.env);
+    }
+
+    it('replaces the copy pass one-liner with assembled art direction', async () => {
+      globalThis.fetch = mockBothPasses(2, {
+        items: [
+          { i: 0, subject: 'บาริสต้าชายไทยวัย 30 ปี', props: ['แก้วกาแฟร้อน'], setting: 'cafe_restaurant', mood: 'relieved_light', light: 'morning_soft', narrative: 'transformation' },
+          { i: 1, subject: 'เจ้าของร้านหญิง', props: ['เครื่องชงกาแฟ'], setting: 'cafe_restaurant', mood: 'confident_proud', light: 'daylight_bright', narrative: 'showcase' },
+        ],
+      }) as any;
+
+      const body = await (await createSeries(2)).json() as any;
+      const items = ctx.db.prepare('SELECT series_slot_index, visual_suggestion FROM content_items WHERE series_id = ? ORDER BY series_slot_index').all(body.series.id) as any[];
+
+      expect(items).toHaveLength(2);
+      for (const item of items) {
+        expect(item.visual_suggestion).not.toBe('ภาพหนึ่งบรรทัดจาก copy pass');
+        // Hallmarks of the assembled prompt, not free-form model prose.
+        expect(item.visual_suggestion).toContain('ห้ามมีในภาพเด็ดขาด');
+        expect(item.visual_suggestion).toContain('commercial advertising photography');
+      }
+      // Slots landed on the right posts, not shuffled.
+      expect(items[0].visual_suggestion).toContain('บาริสต้าชายไทยวัย 30 ปี');
+      expect(items[1].visual_suggestion).toContain('เจ้าของร้านหญิง');
+    });
+
+    it('falls back to the copy pass suggestion when the art-direction call fails', async () => {
+      const items = Array.from({ length: 2 }, (_, i) => ({
+        slot_index: i, pillar: 'education', platform: 'facebook',
+        hook: `Hook ${i}`, caption: `Caption ${i}`, cta: 'ทักแชท',
+        hashtags: ['#test'], visual_suggestion: 'ภาพสำรองจาก copy pass',
+      }));
+      globalThis.fetch = vi.fn(async (_url: any, init: any) => {
+        const isVisualPass = String(init?.body || '').includes('โหมด batch');
+        // The art-direction call fails outright — the series must survive it.
+        if (isVisualPass) return new Response('upstream down', { status: 503 });
+        return new Response(JSON.stringify({
+          id: 'gen-1',
+          choices: [{ message: { role: 'assistant', content: JSON.stringify({ items }) }, finish_reason: 'stop' }],
+          usage: { prompt_tokens: 100, completion_tokens: 200, total_tokens: 300 },
+        }), { status: 200 });
+      }) as any;
+
+      const res = await createSeries(2);
+      expect(res.status).toBe(201);
+      const body = await res.json() as any;
+      expect(body.series.status).toBe('completed');
+      expect(body.items).toHaveLength(2);
+
+      const rows = ctx.db.prepare('SELECT visual_suggestion FROM content_items WHERE series_id = ?').all(body.series.id) as any[];
+      expect(rows.every((r) => r.visual_suggestion === 'ภาพสำรองจาก copy pass')).toBe(true);
+      // Only the copy pass is billed when the second one never succeeds.
+      expect(body.series.credits_used).toBe(1);
+    });
+
+    it('ignores an index the model was never asked about', async () => {
+      globalThis.fetch = mockBothPasses(2, {
+        items: [
+          { i: 0, subject: 'คนที่ถูกต้อง', props: [], setting: 'office_modern', mood: 'calm_focused', light: 'morning_soft', narrative: 'showcase' },
+          { i: 99, subject: 'ดัชนีมั่ว', props: [], setting: 'office_modern', mood: 'calm_focused', light: 'morning_soft', narrative: 'showcase' },
+        ],
+      }) as any;
+
+      const body = await (await createSeries(2)).json() as any;
+      const rows = ctx.db.prepare('SELECT series_slot_index, visual_suggestion FROM content_items WHERE series_id = ? ORDER BY series_slot_index').all(body.series.id) as any[];
+
+      expect(rows[0].visual_suggestion).toContain('คนที่ถูกต้อง');
+      // Index 1 got no valid slots, so it keeps the copy pass fallback —
+      // the bogus index must not have leaked onto it.
+      expect(rows[1].visual_suggestion).toBe('ภาพหนึ่งบรรทัดจาก copy pass');
+      expect(rows.some((r) => String(r.visual_suggestion).includes('ดัชนีมั่ว'))).toBe(false);
+    });
+
+    it('one malformed row does not take down the rest of the chunk', async () => {
+      // A chunk is up to 10 posts in a single reply. `subject` coming back as a
+      // number made assembly throw, and the throw was only caught per CHUNK —
+      // so one bad field silently cost ten posts their art direction (and the
+      // already-spent call was billed as 0 credits).
+      globalThis.fetch = mockBothPasses(3, {
+        items: [
+          { i: 0, subject: 2024, props: [], setting: 'cafe_restaurant', mood: 'calm_focused', light: 'morning_soft', narrative: 'showcase' },
+          { i: 1, subject: 'เจ้าของร้านหญิง', props: [], setting: 'cafe_restaurant', mood: 'confident_proud', light: 'daylight_bright', narrative: 'showcase' },
+          { i: 2, subject: 'บาริสต้าชายไทย', props: [], setting: 'cafe_restaurant', mood: 'warm_connected', light: 'indoor_warm', narrative: 'testimonial' },
+        ],
+      }) as any;
+
+      const res = await createSeries(3);
+      expect(res.status).toBe(201);
+      const body = await res.json() as any;
+      const rows = ctx.db.prepare('SELECT series_slot_index, visual_suggestion FROM content_items WHERE series_id = ? ORDER BY series_slot_index').all(body.series.id) as any[];
+
+      // The neighbours keep their art direction...
+      expect(rows[1].visual_suggestion).toContain('เจ้าของร้านหญิง');
+      expect(rows[2].visual_suggestion).toContain('บาริสต้าชายไทย');
+      // ...and the bad row degrades to the default subject rather than being
+      // dropped back to the copy pass one-liner.
+      expect(rows[0].visual_suggestion).toContain('บุคคลวัยทำงาน');
+      expect(rows[0].visual_suggestion).not.toBe('ภาพหนึ่งบรรทัดจาก copy pass');
+      for (const row of rows) expect(row.visual_suggestion).toContain('commercial advertising photography');
+    });
+
+    it('degrades cleanly when the model replies with an unwrapped single object', async () => {
+      // The likeliest real misbehaviour: the model copies the single-object
+      // worked example instead of the batch envelope. No "items" array means no
+      // usable rows — the series must still complete on the copy pass one-liner
+      // rather than erroring or writing an empty visual_suggestion.
+      globalThis.fetch = mockBothPasses(2, {
+        subject: 'บาริสต้า', props: [], setting: 'cafe_restaurant',
+        mood: 'calm_focused', light: 'morning_soft', narrative: 'showcase',
+      }) as any;
+
+      const res = await createSeries(2);
+      expect(res.status).toBe(201);
+      const body = await res.json() as any;
+      expect(body.series.status).toBe('completed');
+      const rows = ctx.db.prepare('SELECT visual_suggestion FROM content_items WHERE series_id = ?').all(body.series.id) as any[];
+      expect(rows.every((r) => r.visual_suggestion === 'ภาพหนึ่งบรรทัดจาก copy pass')).toBe(true);
+      // The call still happened and still cost tokens, so it is still billed —
+      // unlike the hard-failure path above, which bills the copy pass only.
+      expect(body.series.credits_used).toBe(2);
+    });
+
+    it('bills both passes exactly once and never double-charges the reservation', async () => {
+      // Reserve = requested_count * 8 = 16, real usage = 1 credit per call.
+      // The end state must be balance = 100 - (copy + visual), with the whole
+      // reservation reconciled — not the reserve kept plus a second charge.
+      globalThis.fetch = mockBothPasses(2, {
+        items: [
+          { i: 0, subject: 'คนหนึ่ง', props: [], setting: 'office_modern', mood: 'calm_focused', light: 'morning_soft', narrative: 'showcase' },
+          { i: 1, subject: 'คนสอง', props: [], setting: 'office_modern', mood: 'calm_focused', light: 'morning_soft', narrative: 'showcase' },
+        ],
+      }) as any;
+
+      const body = await (await createSeries(2)).json() as any;
+      const user = ctx.db.prepare("SELECT credits FROM users WHERE id = 'u1'").get() as any;
+      expect(user.credits).toBe(98);
+      expect(body.series.credits_used).toBe(2);
+
+      // Ledger: one reserve out, one refund back, nothing else.
+      const txs = ctx.db.prepare('SELECT delta, reason FROM credit_transactions WHERE reference_id = ? ORDER BY rowid').all(body.series.id) as any[];
+      expect(txs.map((t) => [t.reason, t.delta])).toEqual([
+        ['content_series_reserve', -16],
+        ['content_series_refund', 14],
+      ]);
+      expect(txs.reduce((sum, t) => sum + t.delta, 0)).toBe(-2);
     });
   });
 });

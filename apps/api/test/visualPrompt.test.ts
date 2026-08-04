@@ -5,7 +5,7 @@
  * or hallucinated slots, so that's what these cover.
  */
 import { describe, expect, it } from 'vitest';
-import { assembleVisualPrompt, buildVisualSlotPrompt } from '../src/lib/creative/visualPrompt';
+import { assembleVisualPrompt, buildVisualSlotBatchPrompt, buildVisualSlotPrompt } from '../src/lib/creative/visualPrompt';
 
 describe('assembleVisualPrompt', () => {
   const goodSlots = {
@@ -75,6 +75,20 @@ describe('assembleVisualPrompt', () => {
     expect(out).not.toContain('PROPE'); // 5th valid prop dropped by the cap
   });
 
+  it('degrades a non-string subject to the default instead of throwing', () => {
+    // The model's reply is untrusted JSON; `subject` came back as a number on
+    // a real reply. `.trim()` on it threw, which 500'd the regenerate route
+    // with the credit reservation unrefunded and wiped a whole batch chunk in
+    // the series generator. Every slot must degrade, never throw.
+    for (const subject of [2024 as any, { a: 1 } as any, ['x'] as any, null as any, true as any]) {
+      const out = assembleVisualPrompt({ ...goodSlots, subject });
+      expect(out).toContain('บุคคลวัยทำงาน'); // the default subject
+      expect(out).toContain('commercial advertising photography');
+      expect(out).not.toContain('undefined');
+      expect(out).not.toContain('[object Object]');
+    }
+  });
+
   it('tells the model NOT to render a before/after split for transformation content', () => {
     // A literal split-screen is the obvious-but-wrong reading of before→after
     // copy: diffusion models render it poorly and it usually needs on-image
@@ -101,5 +115,42 @@ describe('buildVisualSlotPrompt', () => {
     expect(user).toContain('แคปชันทดสอบ');
     expect(user).not.toContain('Hook:');
     expect(user).not.toContain('CTA:');
+  });
+});
+
+describe('buildVisualSlotBatchPrompt', () => {
+  const items = [
+    { index: 10, hook: 'ฮุกสิบ', caption: 'แคปสิบ' },
+    { index: 11, hook: 'ฮุกสิบเอ็ด', platform: 'instagram' },
+  ];
+
+  it('labels each post with its global index, not its position in the chunk', () => {
+    // Chunk 2 of a 30-post series covers indexes 10-19. If the prompt renumbered
+    // them from 0 the reply would validate against the wrong post — or, since
+    // out-of-chunk indexes are discarded, silently produce nothing at all.
+    const { user } = buildVisualSlotBatchPrompt(items);
+    expect(user).toContain('index 10');
+    expect(user).toContain('index 11');
+    expect(user).not.toContain('index 0');
+  });
+
+  it('retires the single-object reply format the base prompt asks for', () => {
+    // The base prompt ends with "answer in exactly this format" + a worked
+    // example that is a bare object. Left standing, a weak model copies the
+    // example, the reply has no "items" array, and the entire chunk falls back
+    // to the copy pass one-liner.
+    const { system } = buildVisualSlotBatchPrompt(items);
+    expect(system).toContain('"items"');
+    expect(system).toContain('ใช้แทนรูปแบบคำตอบด้านบน');
+    expect(system).toContain('ห้ามตอบเป็น object เดี่ยว');
+    // The one worked example is the strongest signal in the prompt, so it has
+    // to be restated in batch shape rather than left contradicting it.
+    expect(system).toContain('{"items":[{"i":0,"subject":"บาริสต้าชายไทยวัย 30 ปี"');
+  });
+
+  it('still carries the slot rules from the single-item prompt', () => {
+    const { system } = buildVisualSlotBatchPrompt(items);
+    expect(system).toContain('ห้ามใส่ตัวเลข');
+    expect(system).toContain('office_modern');
   });
 });

@@ -12,6 +12,7 @@ import {
   resolveSlots,
   serializeSeries,
   serializeSeriesTemplate,
+  callVisualSlotGeneration,
   validateSeriesInput,
   type ContentSeriesRow,
   type ContentSeriesTemplateRow,
@@ -307,15 +308,38 @@ contentSeriesRoutes.post('/api/content-series', async (c) => {
     return c.json({ error: 'ai_error', message: err.message, credits_remaining: refund.ok ? refund.balance : undefined }, 500);
   }
 
+  // Second pass: real art direction for each post's image, from its copy.
+  // Never throws — the copy above is already generated and paid for, so a
+  // failure here degrades each affected post to the copy pass's own one-line
+  // visual_suggestion rather than losing the series.
+  const wantedItems = generation.items.slice(0, input.requested_count);
+  // `generation.items` is unvalidated model output, so an element can be null
+  // even though the type says otherwise. Optional-chain it: an unguarded throw
+  // here would land BEFORE the true-up below and cost the user the entire
+  // reservation, where the same bad item previously only broke the insert loop
+  // after the refund had already run.
+  const visual = await callVisualSlotGeneration(c.env, wantedItems.map((item, index) => ({
+    index,
+    hook: item?.hook,
+    caption: item?.caption,
+    cta: item?.cta,
+    platform: item?.platform,
+    pillar: item?.pillar,
+  })));
+
+  // Charged as part of the same series, so the true-up below covers both
+  // passes and the user sees one credit figure for one action.
+  const totalCreditsUsed = generation.creditsUsed + visual.creditsUsed;
+
   // True-up: refund unused reservation, or charge the (rare) overage.
-  if (generation.creditsUsed < estReserve) {
-    await addCredits(c.env, user.id, estReserve - generation.creditsUsed, 'content_series_refund', { referenceId: seriesId, note: 'reserved more than actual usage' });
-  } else if (generation.creditsUsed > estReserve) {
-    await deductCredits(c.env, user.id, generation.creditsUsed - estReserve, 'content_series_true_up', seriesId);
+  if (totalCreditsUsed < estReserve) {
+    await addCredits(c.env, user.id, estReserve - totalCreditsUsed, 'content_series_refund', { referenceId: seriesId, note: 'reserved more than actual usage' });
+  } else if (totalCreditsUsed > estReserve) {
+    await deductCredits(c.env, user.id, totalCreditsUsed - estReserve, 'content_series_true_up', seriesId);
   }
 
   const createdIds: string[] = [];
-  for (const [index, rawItem] of generation.items.slice(0, input.requested_count).entries()) {
+  for (const [index, rawItem] of wantedItems.entries()) {
     const slotIndex = Number.isInteger(rawItem.slot_index) ? rawItem.slot_index : index;
     const slot = slots[slotIndex % slots.length] || {};
     const scheduledAt = startDate + Math.round(index * cadenceDays * 86_400_000);
@@ -345,7 +369,7 @@ contentSeriesRoutes.post('/api/content-series', async (c) => {
       String(rawItem.caption || ''),
       String(rawItem.cta || ''),
       JSON.stringify(Array.isArray(rawItem.hashtags) ? rawItem.hashtags : []),
-      String(rawItem.visual_suggestion || ''),
+      visual.prompts.get(index) || String(rawItem.visual_suggestion || ''),
       JSON.stringify({ series_id: seriesId, slot_index: index, slot }),
       seriesId,
       index,
@@ -364,7 +388,7 @@ contentSeriesRoutes.post('/api/content-series', async (c) => {
     UPDATE content_series
     SET status = ?, generated_count = ?, credits_used = ?, updated_at = ?
     WHERE id = ?
-  `).bind(finalStatus, createdIds.length, generation.creditsUsed, Date.now(), seriesId).run();
+  `).bind(finalStatus, createdIds.length, totalCreditsUsed, Date.now(), seriesId).run();
 
   const series = await c.env.DB.prepare('SELECT * FROM content_series WHERE id = ?').bind(seriesId).first<ContentSeriesRow>();
   const items = await c.env.DB.prepare(`
