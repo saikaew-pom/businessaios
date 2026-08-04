@@ -1957,3 +1957,14 @@ export async function renderCompositionFromTemplate(data: {
     body: JSON.stringify(data),
   });
 }
+
+export async function generateCompositionCopy(data: {
+  brief: string;
+  tone?: string;
+  platform?: string;
+}): Promise<{ ok: boolean; headline: string; subheadline: string; credits_remaining: number }> {
+  return fetchAPI('/api/compositions/generate-copy', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}

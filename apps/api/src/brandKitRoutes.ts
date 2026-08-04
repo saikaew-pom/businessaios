@@ -670,6 +670,135 @@ brandKitRoutes.post('/api/compositions/render', async (c) => {
   return c.json({ ok: true, composition_id: compositionId, asset: serializeAsset(newRow!) }, 201);
 });
 
+// Short headline/subheadline copy for a template overlay — deliberately a
+// separate, cheap call from brandbook smart-writing (small max_tokens, no
+// brand_kit lookup) since this is invoked interactively from the template
+// picker modal, not a document-generation flow. Same reserve → refund/true-up
+// credit pattern as smart-writing above, since this is a real paid MiniMax
+// call, unlike /compositions/render (free — CPU-only satori/resvg render).
+const COPY_TONE_FRAGMENTS: Record<string, string> = {
+  professional: 'มืออาชีพ น่าเชื่อถือ เป็นทางการเล็กน้อย',
+  warm: 'อบอุ่น เป็นกันเอง เข้าถึงง่าย',
+  premium: 'พรีเมียม หรูหรา ดูมีระดับ',
+  clean: 'เรียบง่าย ตรงประเด็น ไม่เยิ่นเย้อ',
+};
+
+function buildHeadlineCopyPrompt(input: { brief: string; tone?: string; platform?: string }) {
+  const system = `คุณคือนักเขียนคำโฆษณา (copywriter) มืออาชีพสำหรับธุรกิจไทย งานของคุณคือเขียนข้อความสั้นมากสำหรับวางทับบนภาพโฆษณาโซเชียลมีเดีย (ไม่ใช่ caption ยาว)
+
+กติกา:
+- headline: ประโยคเดียว กระชับ ดึงดูดใจ ไม่เกิน 45 ตัวอักษร
+- subheadline: ประโยคเดียว ขยายความจาก headline ไม่เกิน 80 ตัวอักษร
+- ห้ามใช้ hashtag, emoji, เครื่องหมายคำพูด หรือวงเล็บ
+- ตอบเป็น JSON object เท่านั้น: {"headline": "...", "subheadline": "..."}`;
+
+  const user = [
+    `บรีฟ: ${input.brief}`,
+    input.platform ? `แพลตฟอร์ม: ${input.platform}` : '',
+    input.tone && COPY_TONE_FRAGMENTS[input.tone] ? `โทน: ${COPY_TONE_FRAGMENTS[input.tone]}` : '',
+  ].filter(Boolean).join('\n');
+
+  return { system, user };
+}
+
+brandKitRoutes.post('/api/compositions/generate-copy', rateLimit, async (c) => {
+  const user = getUser(c)!;
+
+  const account = await c.env.DB.prepare('SELECT email_verified FROM users WHERE id = ?')
+    .bind(user.id).first<{ email_verified: number }>();
+  if (account && account.email_verified === 0) {
+    return c.json({ error: 'email_not_verified', message: 'กรุณายืนยันอีเมลก่อน' }, 403);
+  }
+
+  const body: { brief?: string; tone?: string; platform?: string } = await c.req.json<{ brief?: string; tone?: string; platform?: string }>().catch(() => ({}));
+  const brief = (body.brief || '').trim();
+  if (!brief) return c.json({ error: 'validation_error', message: 'ใส่บรีฟก่อนให้ AI เขียน', errors: ['brief_required'] }, 400);
+  if (brief.length > 500) return c.json({ error: 'validation_error', message: 'บรีฟยาวเกินไป', errors: ['brief_too_long'] }, 400);
+
+  const toolRunId = generateId();
+  const startTime = Date.now();
+  const { system, user: userPrompt } = buildHeadlineCopyPrompt({ brief, tone: body.tone, platform: body.platform });
+  // MiniMax-M3 is a reasoning model that spends tokens on an internal
+  // reasoning_content trace before writing the final answer — a tight budget
+  // here (e.g. 300) gets consumed entirely by reasoning with finish_reason
+  // 'length' and zero actual content, not just a truncated answer. Every
+  // other MiniMax call in this codebase budgets 5200+ tokens for exactly
+  // this reason (see buildBrandbookSmartWritingPrompt above, toolRoutes.ts).
+  // The output here is tiny (~2 short lines), but the token budget has to
+  // cover the reasoning overhead, not the answer length.
+  const maxTokens = 2000;
+  const estPromptTokens = Math.ceil((system.length + userPrompt.length) / 3);
+  const reserveCredits = calculateCredits({ prompt_tokens: estPromptTokens, completion_tokens: maxTokens });
+  const reservation = await deductCredits(c.env, user.id, reserveCredits, 'generation_reserve', toolRunId);
+  if (!reservation.ok) {
+    return c.json({ error: 'insufficient_credits', message: 'เครดิตไม่เพียงพอ', balance: reservation.balance, required: reserveCredits }, 402);
+  }
+
+  let result: Awaited<ReturnType<typeof callMinimax>>;
+  try {
+    result = await callMinimax(
+      { apiKey: c.env.MINIMAX_API_KEY, groupId: c.env.MINIMAX_GROUP_ID, model: c.env.MINIMAX_MODEL },
+      [
+        { role: 'system', content: system },
+        { role: 'user', content: `${userPrompt}\n\nตอบเป็น JSON object เท่านั้น ห้าม markdown ห้ามคำอธิบายเพิ่ม` },
+      ],
+      { maxTokens, temperature: 0.8, jsonMode: true },
+    );
+  } catch (err: any) {
+    console.error('Generate copy error:', err);
+    const refund = await addCredits(c.env, user.id, reserveCredits, 'generation_refund', { referenceId: toolRunId, note: 'AI call failed' });
+    return c.json({ error: 'ai_error', message: 'สร้างข้อความไม่สำเร็จ', credits_remaining: refund.ok ? refund.balance : undefined }, 500);
+  }
+
+  let parsed: { headline?: string; subheadline?: string };
+  try {
+    parsed = extractJsonFromAny(result.content, result.reasoning);
+  } catch (err: any) {
+    console.error('Generate copy parse error:', err);
+    const refund = await addCredits(c.env, user.id, reserveCredits, 'generation_refund', { referenceId: toolRunId, note: 'AI returned unparseable output' });
+    return c.json({ error: 'parse_error', message: 'AI ตอบกลับไม่ถูกต้อง', credits_remaining: refund.ok ? refund.balance : undefined }, 500);
+  }
+
+  const headline = String(parsed.headline || '').trim().slice(0, 120);
+  const subheadline = String(parsed.subheadline || '').trim().slice(0, 200);
+  if (!headline) {
+    const refund = await addCredits(c.env, user.id, reserveCredits, 'generation_refund', { referenceId: toolRunId, note: 'AI returned empty headline' });
+    return c.json({ error: 'parse_error', message: 'AI ไม่ได้ส่ง headline กลับมา', credits_remaining: refund.ok ? refund.balance : undefined }, 500);
+  }
+
+  try {
+    await c.env.DB.prepare(`
+      INSERT INTO tool_runs (id, user_id, tool_name, input, output, model, prompt_tokens, completion_tokens, total_tokens, cost_usd, duration_ms, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      toolRunId, user.id, 'composition_generate_copy',
+      JSON.stringify({ brief, tone: body.tone || null, platform: body.platform || null }),
+      JSON.stringify({ headline, subheadline }),
+      c.env.MINIMAX_MODEL,
+      result.usage?.prompt_tokens || 0,
+      result.usage?.completion_tokens || 0,
+      result.usage?.total_tokens || 0,
+      estimateCost(result.usage),
+      Date.now() - startTime,
+      Date.now(),
+    ).run();
+  } catch (err) {
+    console.error('Failed to save generate-copy tool_run (non-fatal):', err);
+  }
+
+  const creditsUsed = calculateCredits(result.usage);
+  let finalBalance = reservation.balance;
+  if (creditsUsed < reserveCredits) {
+    const refund = await addCredits(c.env, user.id, reserveCredits - creditsUsed, 'generation_refund', { referenceId: toolRunId, note: 'Reserved more than actual usage' });
+    if (refund.ok) finalBalance = refund.balance;
+  } else if (creditsUsed > reserveCredits) {
+    const extra = await deductCredits(c.env, user.id, creditsUsed - reserveCredits, 'generation_true_up', toolRunId);
+    if (extra.ok) finalBalance = extra.balance;
+  }
+
+  return c.json({ ok: true, headline, subheadline, credits_remaining: finalBalance });
+});
+
 async function requireBrandCompositionFeature(c: any, next: any) {
   if (c.env.BRAND_COMPOSITION_ENABLED !== 'true') {
     return c.json({ error: 'feature_disabled', message: 'Brand Kit Composition is not enabled' }, 404);

@@ -2,6 +2,7 @@
   import {
     createVisualTemplate,
     deleteVisualTemplate,
+    generateCompositionCopy,
     listVisualTemplates,
     renderCompositionFromTemplate,
     type MediaAsset,
@@ -9,6 +10,14 @@
     type VisualTemplate,
   } from '$lib/api';
   import { fullUser } from '$lib/auth';
+
+  const COPY_TONES = [
+    { value: '', label: 'โทนอัตโนมัติ' },
+    { value: 'professional', label: 'มืออาชีพ' },
+    { value: 'warm', label: 'อบอุ่น เป็นกันเอง' },
+    { value: 'premium', label: 'พรีเมียม หรูหรา' },
+    { value: 'clean', label: 'มินิมอล สะอาดตา' },
+  ];
 
   export let assetId: string;
   export let onClose: () => void;
@@ -25,6 +34,10 @@
   let badge = '';
   let isApplying = false;
   let isAdmin = false;
+
+  let copyBrief = '';
+  let copyTone = '';
+  let isGeneratingCopy = false;
 
   let showCreateForm = false;
   let newName = '';
@@ -50,7 +63,7 @@
   }
 
   async function apply() {
-    if (!selectedTemplateId || isApplying) return;
+    if (!selectedTemplateId || isApplying || isGeneratingCopy) return;
     if (!headline.trim() && !subheadline.trim() && !badge.trim()) {
       error = 'ใส่ข้อความอย่างน้อย 1 ช่อง (headline, subheadline หรือ badge)';
       return;
@@ -70,6 +83,21 @@
       error = humanizeError(err);
     } finally {
       isApplying = false;
+    }
+  }
+
+  async function generateCopy() {
+    if (!copyBrief.trim() || isGeneratingCopy || isApplying) return;
+    isGeneratingCopy = true;
+    error = '';
+    try {
+      const result = await generateCompositionCopy({ brief: copyBrief.trim(), tone: copyTone || undefined });
+      headline = result.headline;
+      subheadline = result.subheadline;
+    } catch (err) {
+      error = humanizeError(err);
+    } finally {
+      isGeneratingCopy = false;
     }
   }
 
@@ -242,12 +270,26 @@
 
       {#if selectedTemplate}
         <div class="mt-5 space-y-3 border-t border-dark-100 pt-4 dark:border-dark-700">
+          <div class="space-y-2 rounded-lg border border-dark-100 p-3 dark:border-dark-700">
+            <label class="block text-xs font-semibold text-dark-900/70 dark:text-dark-100/70" for="copy-brief">✨ ให้ AI เขียน Headline/Subheadline ให้</label>
+            <input id="copy-brief" bind:value={copyBrief} class="input w-full" placeholder="บรีฟสั้น ๆ เช่น โปรโมชั่นเปิดร้านกาแฟ ลด 20% เดือนแรก" />
+            <div class="flex flex-wrap gap-2">
+              <select bind:value={copyTone} class="input min-w-[140px] flex-1">
+                {#each COPY_TONES as t}
+                  <option value={t.value}>{t.label}</option>
+                {/each}
+              </select>
+              <button type="button" onclick={generateCopy} disabled={!copyBrief.trim() || isGeneratingCopy || isApplying} class="btn-secondary whitespace-nowrap">
+                {isGeneratingCopy ? 'กำลังเขียน...' : '✨ Generate'}
+              </button>
+            </div>
+          </div>
           <textarea bind:value={headline} rows="2" class="input w-full" placeholder="Headline"></textarea>
           <textarea bind:value={subheadline} rows="2" class="input w-full" placeholder="Subheadline (ไม่บังคับ)"></textarea>
           {#if selectedTemplate.layout.blocks.some((b) => b.type === 'badge')}
             <input bind:value={badge} class="input w-full" placeholder="Badge (ไม่บังคับ)" />
           {/if}
-          <button onclick={apply} disabled={isApplying} class="btn-primary w-full">
+          <button onclick={apply} disabled={isApplying || isGeneratingCopy} class="btn-primary w-full">
             {isApplying ? 'กำลังสร้าง...' : 'สร้าง Composed Creative'}
           </button>
         </div>
