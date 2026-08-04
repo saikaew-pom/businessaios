@@ -5,8 +5,10 @@
   import {
     getContentItem,
     listContentItems,
+    listProjects,
     transitionContentItem,
     type ContentItem,
+    type Project,
   } from '$lib/api';
   import { initAuth, isAuthed } from '$lib/auth';
   import { fetchConfig } from '$lib/config';
@@ -23,6 +25,8 @@
   let scheduledItems = $state<ContentItem[]>([]);
   let backlogItems = $state<ContentItem[]>([]);
   let selectedItem = $state<ContentItem | null>(null);
+  let projectFilter = $state('');
+  let projects = $state<Project[]>([]);
   let draggingId = $state<string | null>(null);
   let dragOverKey = $state<string | null>(null);
   // Per-item busy set (not a single string) — two drops can be in flight at
@@ -85,6 +89,8 @@
       const config = await fetchConfig();
       isFeatureEnabled = Boolean(config.features.creative_embedded);
       if (!isFeatureEnabled) return;
+      projectFilter = $page.url.searchParams.get('project_id') || '';
+      projects = (await listProjects()).filter((p) => p.status !== 'archived');
       await loadCalendar();
       const focusId = $page.url.searchParams.get('focus');
       if (focusId) {
@@ -107,8 +113,8 @@
     const seq = ++loadSeq;
     const gridEnd = new Date(gridStart.getFullYear(), gridStart.getMonth(), gridStart.getDate() + 42);
     const [scheduled, backlog] = await Promise.all([
-      listContentItems({ status: 'scheduled', scheduled_from: gridStart.getTime(), scheduled_to: gridEnd.getTime(), limit: 100 }),
-      listContentItems({ status: 'approved', limit: 100 }),
+      listContentItems({ status: 'scheduled', project_id: projectFilter, scheduled_from: gridStart.getTime(), scheduled_to: gridEnd.getTime(), limit: 100 }),
+      listContentItems({ status: 'approved', project_id: projectFilter, limit: 100 }),
     ]);
     // A newer loadCalendar() call already started (and may have already
     // resolved) after this one — its results are more current, so discard
@@ -281,7 +287,19 @@
               <div class="min-w-[9rem] text-center font-bold text-dark-900 dark:text-dark-50">{monthLabel}</div>
               <button type="button" onclick={() => changeMonth(1)} class="btn-secondary px-3">›</button>
             </div>
-            <button type="button" onclick={goToday} class="btn-secondary">วันนี้</button>
+            <div class="flex items-center gap-2">
+              <select
+                bind:value={projectFilter}
+                onchange={() => { isLoading = true; loadCalendar().catch((err) => { error = humanizeError(err); }).finally(() => { isLoading = false; }); }}
+                class="input max-w-[190px]"
+              >
+                <option value="">ทุกโปรเจ็ค</option>
+                {#each projects as p}
+                  <option value={p.id}>{p.name}</option>
+                {/each}
+              </select>
+              <button type="button" onclick={goToday} class="btn-secondary">วันนี้</button>
+            </div>
           </div>
 
           <div class="grid grid-cols-7 gap-1 text-center text-xs font-semibold text-dark-900/50 dark:text-dark-100/50">

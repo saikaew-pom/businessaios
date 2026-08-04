@@ -6,8 +6,10 @@
     createContentItemCreativeRequest,
     getMediaAssetContentUrl,
     listContentItems,
+    listProjects,
     transitionContentItem,
     type ContentItem,
+    type Project,
   } from '$lib/api';
   import { initAuth, isAuthed } from '$lib/auth';
   import { fetchConfig } from '$lib/config';
@@ -27,6 +29,8 @@
   let isFeatureEnabled = false;
   let items: ContentItem[] = [];
   let statusFilter = '';
+  let projectFilter = '';
+  let projects: Project[] = [];
   let query = '';
   let error = '';
   let notice = '';
@@ -50,6 +54,8 @@
       isFeatureEnabled = Boolean(config.features.creative_embedded);
       if (!isFeatureEnabled) return;
       statusFilter = $page.url.searchParams.get('status') || '';
+      projectFilter = $page.url.searchParams.get('project_id') || '';
+      projects = (await listProjects()).filter((p) => p.status !== 'archived');
       await loadItems();
       await tick();
       const focus = $page.url.searchParams.get('focus');
@@ -67,7 +73,7 @@
 
   async function loadItems() {
     error = '';
-    items = await listContentItems({ status: statusFilter, limit: 120 });
+    items = await listContentItems({ status: statusFilter, project_id: projectFilter, limit: 120 });
   }
 
   async function handleFilterChange() {
@@ -205,10 +211,16 @@
       </div>
     {:else}
       <section class="rounded-xl border border-dark-100 dark:border-dark-700 bg-white dark:bg-dark-800 p-4">
-        <div class="grid md:grid-cols-[220px_1fr_auto] gap-3">
+        <div class="grid md:grid-cols-[200px_200px_1fr_auto] gap-3">
           <select bind:value={statusFilter} onchange={handleFilterChange} class="input">
             {#each statuses as status}
               <option value={status.value}>{status.label}</option>
+            {/each}
+          </select>
+          <select bind:value={projectFilter} onchange={handleFilterChange} class="input">
+            <option value="">ทุกโปรเจ็ค</option>
+            {#each projects as p}
+              <option value={p.id}>{p.name}</option>
             {/each}
           </select>
           <input bind:value={query} class="input" placeholder="ค้นหา title, caption, platform, project" />

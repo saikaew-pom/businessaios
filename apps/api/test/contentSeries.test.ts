@@ -347,4 +347,124 @@ describe('Content Series Generator', () => {
       expect(detailAsOtherUser.status).toBe(404);
     });
   });
+
+  describe('project scoping (migration 019)', () => {
+    beforeEach(() => {
+      ctx = makeEnv();
+      ctx.db.exec(`
+        INSERT INTO projects (id, user_id, name, current_step, status, created_at, updated_at)
+        VALUES ('p1', 'u1', 'Project One', 1, 'draft', 0, 0);
+        INSERT INTO projects (id, user_id, name, current_step, status, created_at, updated_at)
+        VALUES ('p2', 'u2', 'Someone Elses Project', 1, 'draft', 0, 0);
+      `);
+    });
+
+    function createSeries(body: Record<string, unknown>, session = 'session-u1') {
+      return app.request('/api/content-series', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${session}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      }, ctx.env);
+    }
+
+    it('adds a nullable project_id column to content_series', () => {
+      const cols = (ctx.db.prepare('PRAGMA table_info(content_series)').all() as any[]);
+      const col = cols.find((c) => c.name === 'project_id');
+      expect(col).toBeTruthy();
+      expect(col.notnull).toBe(0);
+    });
+
+    it('stamps the series AND every content item it generates with the project', async () => {
+      globalThis.fetch = mockMinimaxSuccess(3) as any;
+      const res = await createSeries({ topic: 'Scoped', requested_count: 3, project_id: 'p1' });
+      expect(res.status).toBe(201);
+      const body = await res.json() as any;
+      expect(body.series.project_id).toBe('p1');
+
+      // The actual point of the migration: series items used to be inserted
+      // with a hardcoded NULL project_id.
+      const items = ctx.db.prepare('SELECT project_id FROM content_items WHERE series_id = ?').all(body.series.id) as any[];
+      expect(items).toHaveLength(3);
+      expect(items.every((i) => i.project_id === 'p1')).toBe(true);
+    });
+
+    it('still allows a series with no project, leaving its items unassigned', async () => {
+      globalThis.fetch = mockMinimaxSuccess(2) as any;
+      const res = await createSeries({ topic: 'Unscoped', requested_count: 2 });
+      expect(res.status).toBe(201);
+      const body = await res.json() as any;
+      expect(body.series.project_id).toBeNull();
+
+      const items = ctx.db.prepare('SELECT project_id FROM content_items WHERE series_id = ?').all(body.series.id) as any[];
+      expect(items.every((i) => i.project_id === null)).toBe(true);
+    });
+
+    it("refuses another user's project and creates nothing, before spending anything", async () => {
+      globalThis.fetch = mockMinimaxSuccess(2) as any;
+      const before = (ctx.db.prepare('SELECT credits FROM users WHERE id = ?').get('u1') as any).credits;
+      const res = await createSeries({ topic: 'Hijack', requested_count: 2, project_id: 'p2' });
+      expect(res.status).toBe(404);
+      expect(await res.json()).toMatchObject({ error: 'project_not_found' });
+
+      const seriesCount = ctx.db.prepare('SELECT COUNT(*) as n FROM content_series').get() as any;
+      expect(seriesCount.n).toBe(0);
+      // The ownership check must sit ahead of the brand snapshot, the series
+      // INSERT and the credit reservation — otherwise a rejected request
+      // still costs the caller credits and leaves orphan rows behind.
+      const after = (ctx.db.prepare('SELECT credits FROM users WHERE id = ?').get('u1') as any).credits;
+      expect(after).toBe(before);
+      expect((ctx.db.prepare('SELECT COUNT(*) as n FROM credit_transactions').get() as any).n).toBe(0);
+      expect((ctx.db.prepare('SELECT COUNT(*) as n FROM brand_context_snapshots').get() as any).n).toBe(0);
+    });
+
+    it('400s a non-string project_id instead of exploding inside the DB driver', async () => {
+      globalThis.fetch = mockMinimaxSuccess(2) as any;
+      const res = await createSeries({ topic: 'Malformed', requested_count: 2, project_id: { evil: 1 } });
+      expect(res.status).toBe(400);
+      expect(await res.json()).toMatchObject({ error: 'validation_error', errors: ['project_id_must_be_string'] });
+      expect((ctx.db.prepare('SELECT COUNT(*) as n FROM content_series').get() as any).n).toBe(0);
+    });
+
+    it('two series filed under the SAME project both persist all their items', async () => {
+      // content_items has UNIQUE(user_id, project_id, source_type, source_hash).
+      // Series items used to carry a NULL project_id, which made that
+      // constraint inert for them; now that they carry a real project id it
+      // is live, so prove a second series in the same project is not
+      // silently truncated by it.
+      globalThis.fetch = mockMinimaxSuccess(3) as any;
+      const first = await createSeries({ topic: 'Same project', requested_count: 3, project_id: 'p1' });
+      expect(first.status).toBe(201);
+      globalThis.fetch = mockMinimaxSuccess(3) as any;
+      const second = await createSeries({ topic: 'Same project', requested_count: 3, project_id: 'p1' });
+      expect(second.status).toBe(201);
+      expect((await second.json() as any).series.generated_count).toBe(3);
+
+      const total = ctx.db.prepare("SELECT COUNT(*) as n FROM content_items WHERE project_id = 'p1'").get() as any;
+      expect(total.n).toBe(6);
+    });
+
+    it('404s an unknown project id', async () => {
+      globalThis.fetch = mockMinimaxSuccess(2) as any;
+      const res = await createSeries({ topic: 'Ghost', requested_count: 2, project_id: 'does-not-exist' });
+      expect(res.status).toBe(404);
+    });
+
+    it('lets the content-items list filter down to one project', async () => {
+      globalThis.fetch = mockMinimaxSuccess(2) as any;
+      await createSeries({ topic: 'Scoped', requested_count: 2, project_id: 'p1' });
+      globalThis.fetch = mockMinimaxSuccess(2) as any;
+      await createSeries({ topic: 'Unscoped', requested_count: 2 });
+
+      const scoped = await (await app.request('/api/content-items?project_id=p1', {
+        headers: { Authorization: 'Bearer session-u1' },
+      }, ctx.env)).json() as any;
+      expect(scoped.items).toHaveLength(2);
+      expect(scoped.items.every((i: any) => i.project_id === 'p1')).toBe(true);
+
+      const all = await (await app.request('/api/content-items', {
+        headers: { Authorization: 'Bearer session-u1' },
+      }, ctx.env)).json() as any;
+      expect(all.items).toHaveLength(4);
+    });
+  });
 });

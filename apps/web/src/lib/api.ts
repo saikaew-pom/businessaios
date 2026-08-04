@@ -1841,6 +1841,7 @@ export type ContentSeriesTemplate = {
 export type ContentSeries = {
   id: string;
   user_id: string;
+  project_id: string | null;
   template_id: string | null;
   brand_profile_id: string | null;
   brand_snapshot_id: string | null;
@@ -1895,6 +1896,7 @@ export async function generateContentSeries(data: {
   start_date?: number;
   template_id?: string | null;
   brand_profile_id?: string | null;
+  project_id?: string | null;
   platforms?: string[];
 }): Promise<{ series: ContentSeries; items: ContentItem[] }> {
   return fetchAPI('/api/content-series', {

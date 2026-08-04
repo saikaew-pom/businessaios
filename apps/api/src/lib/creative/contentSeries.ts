@@ -29,6 +29,7 @@ export type ContentSeriesTemplateRow = {
 export type ContentSeriesRow = {
   id: string;
   user_id: string;
+  project_id: string | null;
   template_id: string | null;
   brand_profile_id: string | null;
   brand_snapshot_id: string | null;
@@ -52,6 +53,7 @@ export type SeriesGenerationInput = {
   start_date?: number;
   template_id?: string | null;
   brand_profile_id?: string | null;
+  project_id?: string | null;
   platforms?: string[];
 };
 
@@ -74,6 +76,13 @@ export function validateSeriesInput(input: SeriesGenerationInput) {
     errors.push('cadence_days_must_be_between_0_and_30');
   }
   if (input.platforms !== undefined && !Array.isArray(input.platforms)) errors.push('platforms_must_be_array');
+  // Type-check before the value ever reaches a .bind() — a non-string
+  // project_id (e.g. `{}` from a hand-rolled client) otherwise blows up
+  // inside D1's parameter binding and surfaces as a raw 500 internal_error
+  // with the driver's message, instead of a 400 the caller can act on.
+  if (input.project_id !== undefined && input.project_id !== null && typeof input.project_id !== 'string') {
+    errors.push('project_id_must_be_string');
+  }
   return { ok: errors.length === 0, errors };
 }
 

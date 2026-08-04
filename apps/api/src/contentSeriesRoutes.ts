@@ -217,6 +217,7 @@ contentSeriesRoutes.post('/api/content-series', async (c) => {
     start_date?: number;
     template_id?: string | null;
     brand_profile_id?: string | null;
+    project_id?: string | null;
     platforms?: string[];
   }>();
 
@@ -227,6 +228,7 @@ contentSeriesRoutes.post('/api/content-series', async (c) => {
     start_date: body.start_date,
     template_id: body.template_id || null,
     brand_profile_id: body.brand_profile_id || null,
+    project_id: body.project_id || null,
     platforms: body.platforms,
   };
   const validation = validateSeriesInput(input);
@@ -236,6 +238,15 @@ contentSeriesRoutes.post('/api/content-series', async (c) => {
   if (input.template_id) {
     template = await getTemplateForUser(c.env, user.id, input.template_id);
     if (!template) return c.json({ error: 'template_not_found' }, 404);
+  }
+
+  // Ownership-scoped, same as every other cross-resource reference in this
+  // codebase — without the user_id check a caller could stamp their series
+  // (and every content item it generates) with someone else's project id.
+  if (input.project_id) {
+    const project = await c.env.DB.prepare('SELECT id FROM projects WHERE id = ? AND user_id = ?')
+      .bind(input.project_id, user.id).first();
+    if (!project) return c.json({ error: 'project_not_found' }, 404);
   }
 
   const snapshot = await createBrandContextSnapshot(c.env, user.id, input.brand_profile_id);
@@ -248,14 +259,15 @@ contentSeriesRoutes.post('/api/content-series', async (c) => {
   const now = Date.now();
   await c.env.DB.prepare(`
     INSERT INTO content_series (
-      id, user_id, template_id, brand_profile_id, brand_snapshot_id, topic,
+      id, user_id, project_id, template_id, brand_profile_id, brand_snapshot_id, topic,
       requested_count, cadence_days, start_date, platforms_json, status,
       generated_count, credits_used, created_at, updated_at
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'generating', 0, 0, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'generating', 0, 0, ?, ?)
   `).bind(
     seriesId,
     user.id,
+    input.project_id,
     input.template_id,
     input.brand_profile_id,
     snapshot.id,
@@ -316,10 +328,14 @@ contentSeriesRoutes.post('/api/content-series', async (c) => {
         visual_suggestion, expected_engagement, status, metadata_json,
         series_id, series_slot_index, scheduled_at, created_at, updated_at
       )
-      VALUES (?, ?, NULL, 'content_series', ?, ?, ?, ?, 'post', ?, ?, ?, ?, ?, ?, '', 'pending_review', ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, 'content_series', ?, ?, ?, ?, 'post', ?, ?, ?, ?, ?, ?, '', 'pending_review', ?, ?, ?, ?, ?, ?)
     `).bind(
       itemId,
       user.id,
+      // Inherit the series' project so these items are scoped the same way
+      // Project Step 5 items already are. Was hardcoded NULL, which is what
+      // made /works and /calendar mix every project together.
+      input.project_id,
       seriesId,
       sourceHash,
       String(rawItem.hook || rawItem.caption || `${input.topic} #${index + 1}`).slice(0, 160),

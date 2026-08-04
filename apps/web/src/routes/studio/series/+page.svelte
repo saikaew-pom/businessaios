@@ -6,10 +6,12 @@
     deleteContentSeriesTemplate,
     generateContentSeries,
     listBrandProfiles,
+    listProjects,
     listContentSeries,
     listContentSeriesTemplates,
     type BrandProfile,
     type ContentItem,
+    type Project,
     type ContentSeries,
     type ContentSeriesTemplate,
   } from '$lib/api';
@@ -40,6 +42,8 @@
   let cadenceDays = 1;
   let templateId = '';
   let brandProfileId = '';
+  let projectId = '';
+  let projects: Project[] = [];
   let platforms: string[] = ['facebook', 'instagram'];
   let isGenerating = false;
   let lastResult: { series: ContentSeries; items: ContentItem[] } | null = null;
@@ -66,7 +70,7 @@
       isFeatureEnabled = Boolean(config.features.content_series);
       isAdmin = $fullUser?.role === 'admin';
       if (!isFeatureEnabled) return;
-      await Promise.all([loadTemplates(), loadBrandProfiles(), loadHistory()]);
+      await Promise.all([loadTemplates(), loadBrandProfiles(), loadProjects(), loadHistory()]);
     } catch (err) {
       error = humanizeError(err);
     } finally {
@@ -82,6 +86,12 @@
     const res = await listBrandProfiles();
     brandProfiles = res.profiles;
     if (!brandProfileId && res.active_profile) brandProfileId = res.active_profile.id;
+  }
+
+  async function loadProjects() {
+    // Archived projects are excluded on purpose — you shouldn't be able to
+    // file brand-new content into a project that's been put away.
+    projects = (await listProjects()).filter((p) => p.status !== 'archived');
   }
 
   async function loadHistory() {
@@ -106,6 +116,7 @@
         cadence_days: cadenceDays,
         template_id: templateId || null,
         brand_profile_id: brandProfileId || null,
+        project_id: projectId || null,
         platforms,
       });
       lastResult = result;
@@ -279,6 +290,19 @@
             </select>
           </label>
         </div>
+
+        <label class="text-sm block">
+          <span class="block mb-1 text-dark-900/70 dark:text-dark-100/70">โปรเจ็ค (ไม่บังคับ)</span>
+          <select bind:value={projectId} class="input w-full">
+            <option value="">ไม่ระบุโปรเจ็ค</option>
+            {#each projects as p}
+              <option value={p.id}>{p.name}</option>
+            {/each}
+          </select>
+          <span class="mt-1 block text-xs text-dark-900/50 dark:text-dark-100/50">
+            เลือกโปรเจ็คแล้ว content ทุกชิ้นในชุดนี้จะถูกจัดเข้าโปรเจ็คนั้น กรองดูแยกกันได้ในหน้า Works และ Calendar
+          </span>
+        </label>
 
         <label class="text-sm block">
           <span class="block mb-1 text-dark-900/70 dark:text-dark-100/70">Brand Book / Profile (ไม่บังคับ)</span>
