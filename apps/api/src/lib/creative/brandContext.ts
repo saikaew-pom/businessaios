@@ -2,6 +2,14 @@ import { generateId } from '../crypto';
 import type { Bindings } from '../types';
 import { canonicalJson } from '../media/catalog';
 
+export type BrandProfilePersona = {
+  name: string;
+  age: string;
+  job: string;
+  daily_life: string;
+  complaints: [string, string, string];
+};
+
 export type BrandProfileInput = {
   name?: string;
   business_summary?: string;
@@ -11,6 +19,8 @@ export type BrandProfileInput = {
   offers?: unknown;
   rules?: unknown;
   default_reference_asset_ids?: unknown;
+  persona?: BrandProfilePersona | null;
+  voice_samples?: string[];
   is_default?: boolean;
 };
 
@@ -25,6 +35,8 @@ export type BrandProfileRow = {
   offers_json: string;
   rules_json: string;
   default_reference_asset_ids_json: string;
+  persona_json: string | null;
+  voice_samples_json: string | null;
   schema_version: number;
   is_default: number;
   created_at: number;
@@ -52,6 +64,29 @@ export function validateBrandProfileInput(input: BrandProfileInput, partial = fa
     errors.push('rules_must_be_object');
   }
 
+  if (input.voice_samples !== undefined && !Array.isArray(input.voice_samples)) {
+    errors.push('voice_samples_must_be_array');
+  }
+
+  if (input.persona !== undefined && input.persona !== null) {
+    const p = input.persona;
+    if (typeof p !== 'object' || Array.isArray(p)) {
+      errors.push('persona_must_be_object');
+    } else {
+      // p.name/p.complaints entries are untrusted request-body values, not
+      // guaranteed strings (e.g. a client could send numbers/null/objects) —
+      // guard with typeof before calling .trim()/.length so malformed input
+      // fails validation with a 400 instead of throwing and surfacing as a
+      // 500 from the global error handler.
+      if (typeof p.name !== 'string' || !p.name.trim()) errors.push('persona_name_required');
+      if (!Array.isArray(p.complaints) || p.complaints.length !== 3) {
+        errors.push('persona_complaints_must_be_exactly_3');
+      } else if (p.complaints.some((c) => typeof c !== 'string' || !c.trim() || c.length > 200)) {
+        errors.push('persona_complaint_invalid');
+      }
+    }
+  }
+
   return { ok: errors.length === 0, errors };
 }
 
@@ -72,9 +107,10 @@ export async function createBrandProfile(
     INSERT INTO brand_profiles (
       id, user_id, name, business_summary, audience_json, tone_of_voice_json,
       content_pillars_json, offers_json, rules_json, default_reference_asset_ids_json,
+      persona_json, voice_samples_json,
       schema_version, is_default, created_at, updated_at
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?)
   `).bind(
     id,
     userId,
@@ -86,6 +122,8 @@ export async function createBrandProfile(
     canonicalJson(input.offers || []),
     canonicalJson(input.rules || {}),
     canonicalJson(input.default_reference_asset_ids || []),
+    input.persona ? canonicalJson(input.persona) : null,
+    input.voice_samples ? canonicalJson(input.voice_samples) : null,
     isDefault,
     now,
     now,
@@ -151,16 +189,8 @@ export async function setActiveBrandProfile(
   return { ok: true as const, active_profile: profileId ? await getBrandProfile(env, userId, profileId) : null };
 }
 
-export async function createBrandContextSnapshot(
-  env: Pick<Bindings, 'DB'>,
-  userId: string,
-  profileId?: string | null,
-  now = Date.now(),
-) {
-  const profile = profileId
-    ? await getBrandProfile(env, userId, profileId)
-    : await getActiveBrandProfile(env, userId);
-  const snapshot = profile
+function toSnapshotObject(profile: Awaited<ReturnType<typeof getBrandProfile>>) {
+  return profile
     ? {
         schema_version: profile.schema_version,
         profile_id: profile.id,
@@ -172,8 +202,39 @@ export async function createBrandContextSnapshot(
         offers: profile.offers,
         rules: profile.rules,
         default_reference_asset_ids: profile.default_reference_asset_ids,
+        persona: profile.persona,
+        voice_samples: profile.voice_samples,
       }
     : { schema_version: 1, profile_id: null };
+}
+
+/**
+ * Same snapshot shape as createBrandContextSnapshot, without writing a
+ * brand_context_snapshots row — for call sites that need brand context to
+ * ground a single lightweight AI call (e.g. regenerate-field) where
+ * persisting a new immutable snapshot per call would just bloat that table.
+ */
+export async function getBrandSnapshotObject(
+  env: Pick<Bindings, 'DB'>,
+  userId: string,
+  profileId?: string | null,
+) {
+  const profile = profileId
+    ? await getBrandProfile(env, userId, profileId)
+    : await getActiveBrandProfile(env, userId);
+  return toSnapshotObject(profile);
+}
+
+export async function createBrandContextSnapshot(
+  env: Pick<Bindings, 'DB'>,
+  userId: string,
+  profileId?: string | null,
+  now = Date.now(),
+) {
+  const profile = profileId
+    ? await getBrandProfile(env, userId, profileId)
+    : await getActiveBrandProfile(env, userId);
+  const snapshot = toSnapshotObject(profile);
   const snapshotJson = canonicalJson(snapshot);
   const snapshotHash = await sha256Hex(snapshotJson);
   const id = generateId();
@@ -203,6 +264,47 @@ export async function createBrandContextSnapshot(
   };
 }
 
+/**
+ * Renders a brand context snapshot as a labeled Thai text block instead of
+ * raw `JSON.stringify` — Content Playbook Upgrade Plan §2 item 8 ("Brand
+ * context ถูกส่งเป็น JSON.stringify ดิบ — ควรเป็นบล็อกไทยติดป้ายตามโครง
+ * 3 ชั้น"). The 3 layers follow the playbook's role/context/examples split:
+ * บทบาท (who this brand is) → บริบท (facts to ground generation, incl. the
+ * one persona) → ตัวอย่าง (past posts that worked, the cheapest quality
+ * lever for a model that's weak at free-form writing).
+ */
+export function formatBrandContextBlock(snapshot: any): string {
+  if (!snapshot || !snapshot.profile_id) return 'ไม่มีข้อมูลแบรนด์ (ยังไม่ได้เลือก Brand Profile)';
+
+  const lines: string[] = [];
+
+  lines.push('# บทบาทแบรนด์');
+  lines.push(`ชื่อธุรกิจ: ${snapshot.name || '-'}`);
+  if (snapshot.business_summary) lines.push(`สรุปธุรกิจ: ${snapshot.business_summary}`);
+  if (snapshot.tone_of_voice?.length) lines.push(`โทนเสียง: ${snapshot.tone_of_voice.join(', ')}`);
+
+  lines.push('');
+  lines.push('# บริบท');
+  if (snapshot.audience?.length) lines.push(`กลุ่มเป้าหมาย: ${snapshot.audience.join(', ')}`);
+  const p = snapshot.persona;
+  if (p?.name) {
+    lines.push(`ลูกค้าตัวแทน: ${p.name}${p.age ? ` (${p.age} ปี)` : ''}${p.job ? ` — ${p.job}` : ''}`);
+    if (p.daily_life) lines.push(`ชีวิตประจำวัน: ${p.daily_life}`);
+    if (p.complaints?.length) lines.push(`คำบ่นที่พบบ่อย: ${p.complaints.join(' / ')}`);
+  }
+  if (snapshot.content_pillars?.length) lines.push(`ธีมหลักของแบรนด์: ${JSON.stringify(snapshot.content_pillars)}`);
+  if (snapshot.offers?.length) lines.push(`ข้อเสนอ/จุดขาย: ${snapshot.offers.join(', ')}`);
+  if (snapshot.rules && Object.keys(snapshot.rules).length) lines.push(`กติกาที่ต้องยึด: ${JSON.stringify(snapshot.rules)}`);
+
+  if (snapshot.voice_samples?.length) {
+    lines.push('');
+    lines.push('# ตัวอย่างโพสต์ที่เคยเวิร์ก (เลียนโทน/จังหวะประโยคนี้)');
+    snapshot.voice_samples.forEach((s: string, i: number) => lines.push(`${i + 1}. ${s}`));
+  }
+
+  return lines.join('\n');
+}
+
 function serializeBrandProfile(row: BrandProfileRow) {
   return {
     id: row.id,
@@ -214,6 +316,8 @@ function serializeBrandProfile(row: BrandProfileRow) {
     offers: parseJson(row.offers_json, []),
     rules: parseJson(row.rules_json, {}),
     default_reference_asset_ids: parseJson(row.default_reference_asset_ids_json, []),
+    persona: row.persona_json ? parseJson(row.persona_json, null) : null,
+    voice_samples: row.voice_samples_json ? parseJson(row.voice_samples_json, []) : [],
     schema_version: row.schema_version,
     is_default: row.is_default === 1,
     created_at: row.created_at,

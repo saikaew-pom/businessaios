@@ -176,6 +176,57 @@ describe('auto-applied migrations alone (`wrangler d1 migrations apply`)', () =>
     expect(rows[0].key_hint).toBe('••••5678');
   });
 
+  it('brand_profiles.persona_json/voice_samples_json are usable (020 — brand bootstrap persona)', () => {
+    expect(columnNames(db, 'brand_profiles')).toContain('persona_json');
+    expect(columnNames(db, 'brand_profiles')).toContain('voice_samples_json');
+
+    db.exec(`INSERT OR IGNORE INTO users (id, email, password_hash, plan, created_at, updated_at)
+             VALUES ('u-persona', 'persona@test.com', 'x', 'free', 0, 0)`);
+    const persona = JSON.stringify({
+      name: 'พี่หมู', age: '35', job: 'พนักงานออฟฟิศ',
+      daily_life: 'ตื่นเช้าไปทำงาน กลับบ้านค่ำ ไม่ค่อยมีเวลาทำอาหารเอง',
+      complaints: ['หาของกินสายที่เปิดดึกไม่ได้', 'กลัวอ้วนแต่ก็อยากกินอร่อย', 'สั่งเดลิเวอรี่แพงทุกวันไม่ไหว'],
+    });
+    const voiceSamples = JSON.stringify(['โพสต์เก่าที่เคยขายดี ตัวอย่างที่ 1']);
+    expect(() =>
+      db.exec(`
+        INSERT INTO brand_profiles (
+          id, user_id, name, business_summary, audience_json, tone_of_voice_json,
+          content_pillars_json, offers_json, rules_json, default_reference_asset_ids_json,
+          persona_json, voice_samples_json, created_at, updated_at
+        )
+        VALUES (
+          'brand-persona-1', 'u-persona', 'Brand', '', '[]', '[]', '[]', '[]', '{}', '[]',
+          '${persona}', '${voiceSamples}', 0, 0
+        );
+      `)
+    ).not.toThrow();
+
+    const row = db.prepare('SELECT persona_json, voice_samples_json FROM brand_profiles WHERE id = ?')
+      .get('brand-persona-1') as any;
+    expect(JSON.parse(row.persona_json).complaints).toHaveLength(3);
+    expect(JSON.parse(row.voice_samples_json)).toEqual(['โพสต์เก่าที่เคยขายดี ตัวอย่างที่ 1']);
+  });
+
+  it('brand_profiles created before 020 (NULL persona_json/voice_samples_json) remain valid', () => {
+    db.exec(`INSERT OR IGNORE INTO users (id, email, password_hash, plan, created_at, updated_at)
+             VALUES ('u-legacy', 'legacy@test.com', 'x', 'free', 0, 0)`);
+    expect(() =>
+      db.exec(`
+        INSERT INTO brand_profiles (
+          id, user_id, name, business_summary, audience_json, tone_of_voice_json,
+          content_pillars_json, offers_json, rules_json, default_reference_asset_ids_json,
+          created_at, updated_at
+        )
+        VALUES ('brand-legacy-1', 'u-legacy', 'Brand', '', '[]', '[]', '[]', '[]', '{}', '[]', 0, 0);
+      `)
+    ).not.toThrow();
+    const row = db.prepare('SELECT persona_json, voice_samples_json FROM brand_profiles WHERE id = ?')
+      .get('brand-legacy-1') as any;
+    expect(row.persona_json).toBeNull();
+    expect(row.voice_samples_json).toBeNull();
+  });
+
   it('KNOWN GAP: users/projects columns from 001-v2/002 are wiped by 0003_mvp_clean on a fresh apply', () => {
     // This is intentionally documenting a real, currently-unfixed-by-
     // automation gap, not asserting desired behavior. If this ever starts
