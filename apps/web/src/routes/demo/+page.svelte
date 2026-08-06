@@ -5,14 +5,14 @@
   // Demo walkthrough — full flow Pain → Offer (auto-advance + manual)
   const STEPS = [
     {
-      tool: '🎯 Pain Point Generator',
+      tool: '🎯 หาปัญหาลูกค้า',
       tagline: 'ค้นหาความเจ็บปวดจริง ๆ ของลูกค้า',
       color: '#3b82f6',
       bg: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)',
       duration: 6,
       content: {
         type: 'pain',
-        title: 'ขนมบ้านโกไข่ · Pain Point Canvas',
+        title: 'ขนมบ้านโกไข่ · แผนหาปัญหาลูกค้า',
         summary: 'Pain Point 5 อันดับแรกของคนไทยในกรุงเทพที่คิดถึงขนมใต้',
         items: [
           { rank: 1, pain: 'หาขนมใต้ของจริงยากมากในกรุงเทพ', severity: 9, tags: ['Availability', 'Nostalgia'] },
@@ -24,14 +24,14 @@
       }
     },
     {
-      tool: '👥 Persona Builder',
+      tool: '👥 วาดภาพลูกค้าในฝัน',
       tagline: 'สร้างลูกค้าในอุดมคติที่ชัดเจน',
       color: '#10b981',
       bg: 'linear-gradient(135deg, #10b981 0%, #047857 100%)',
       duration: 6,
       content: {
         type: 'persona',
-        title: 'ขนมบ้านโกไข่ · Persona #1',
+        title: 'ขนมบ้านโกไข่ · ลูกค้าในฝัน #1',
         name: 'น้ำตาไหล — คนใต้ที่อยู่กรุงเทพ',
         summary: 'พนักงานออฟฟิศอายุ 28 ปี ย้ายจากหาดใหญ่มาทำงานในกรุงเทพ 3 ปี รายได้ 45,000 บาท',
         facts: [
@@ -45,14 +45,14 @@
       }
     },
     {
-      tool: '🎯 JTBD Generator',
+      tool: '🎯 เข้าใจว่าลูกค้าจ้างเราทำอะไร',
       tagline: 'เข้าใจงานที่ลูกค้าจ้างผลิตภัณฑ์มาทำ',
       color: '#f97316',
       bg: 'linear-gradient(135deg, #f97316 0%, #c2410c 100%)',
       duration: 7,
       content: {
         type: 'jtbd',
-        title: 'JTBD — Job-to-be-Done',
+        title: 'งานที่ลูกค้า "จ้าง" เราทำ',
         coreQuestion: 'เมื่อคิดถึงบ้าน คนไทยในกรุงเทพ "จ้าง" ขนมใต้มาทำอะไร?',
         primaryJob: 'ช่วยให้รู้สึกเหมือนกลับบ้าน + ลดความคิดถึงบ้าน — ผ่านการกินขนมที่มีรสชาติ authentic + ritual เหมือนตอนอยู่บ้าน',
         forces: [
@@ -64,54 +64,54 @@
       }
     },
     {
-      tool: '💎 Value Proposition Canvas',
+      tool: '💎 เช็คว่าสินค้าตรงใจลูกค้าไหม',
       tagline: 'จับคู่ Value กับ Customer jobs/pains',
       color: '#8b5cf6',
       bg: 'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)',
       duration: 7,
       content: {
         type: 'vpc',
-        title: 'VPC — Fit Analysis',
+        title: 'เช็คว่าสินค้าตรงใจลูกค้าแค่ไหน',
         fitScore: 8,
-        fitLabel: 'Strong Fit',
+        fitLabel: 'เข้ากันดีมาก',
         customerProfile: ['ต้องการขนมใต้ของจริง', 'กลัวขนมไม่สด', 'อยากได้ premium experience'],
         valueMap: ['สูตรโบราณ 50+ ปี', 'ส่งฟรีใน 24 ชม.', 'กล่อง premium'],
         statement: 'สำหรับ คนไทยในกรุงเทพที่คิดถึงบ้าน ขนมบ้านโกไข่ เป็น กล่องขนมใต้สูตรโบราณส่งด่วน 24 ชม. ที่ต่างจากขนมกรุงเทพทั่วไป เพราะ ส่งถึงมือสดใหม่ + รสชาติ authentic เหมือนกลับบ้าน',
       }
     },
     {
-      tool: '📊 Business Model Canvas',
+      tool: '📊 วางแผนธุรกิจทั้งระบบ',
       tagline: 'ออกแบบ Business Model 9 building blocks',
       color: '#6366f1',
       bg: 'linear-gradient(135deg, #6366f1 0%, #4338ca 100%)',
       duration: 7,
       content: {
         type: 'bmc',
-        title: 'BMC — Strategyzer',
+        title: 'แผนธุรกิจทั้งระบบ',
         pattern: 'Multi-channel Retail (Omni-channel) + Partnership Distribution',
         insight: 'ใช้ปั๊ม ปตท. เป็น distribution channel หลัก + ขยายเข้าห้าง + สนามบิน → ลด customer acquisition cost เหลือเกือบ 0',
         blocks: [
-          { name: 'Customer Segments', color: '#3b82f6', count: 4 },
-          { name: 'Value Propositions', color: '#8b5cf6', count: 3 },
-          { name: 'Channels', color: '#14b8a6', count: 7 },
-          { name: 'Customer Relationships', color: '#06b6d4', count: 4 },
-          { name: 'Revenue Streams', color: '#10b981', count: 5 },
-          { name: 'Key Resources', color: '#f59e0b', count: 5 },
-          { name: 'Key Activities', color: '#f97316', count: 5 },
-          { name: 'Key Partnerships', color: '#ec4899', count: 5 },
-          { name: 'Cost Structure', color: '#ef4444', count: 'value-driven' },
+          { name: 'กลุ่มลูกค้า', color: '#3b82f6', count: 4 },
+          { name: 'จุดขาย', color: '#8b5cf6', count: 3 },
+          { name: 'ช่องทาง', color: '#14b8a6', count: 7 },
+          { name: 'ความสัมพันธ์กับลูกค้า', color: '#06b6d4', count: 4 },
+          { name: 'ช่องทางรายได้', color: '#10b981', count: 5 },
+          { name: 'ทรัพยากรหลัก', color: '#f59e0b', count: 5 },
+          { name: 'กิจกรรมหลัก', color: '#f97316', count: 5 },
+          { name: 'พันธมิตรหลัก', color: '#ec4899', count: 5 },
+          { name: 'โครงสร้างต้นทุน', color: '#ef4444', count: 'ตามคุณค่าที่ให้' },
         ]
       }
     },
     {
-      tool: '💎 Million Dollar Offer',
+      tool: '💎 ออกแบบข้อเสนอที่ปฏิเสธยาก',
       tagline: 'สร้างข้อเสนอที่ปฏิเสธไม่ได้',
       color: '#f59e0b',
       bg: 'linear-gradient(135deg, #f59e0b 0%, #b45309 100%)',
       duration: 8,
       content: {
         type: 'offer',
-        title: '🏆 Offer Name (MAGIC Formula)',
+        title: '🏆 ตั้งชื่อข้อเสนอ',
         offerName: 'กล่องคิดถึงบ้าน ขนมใต้โบราณส่งด่วน 24 ชม. สำหรับคนใต้ในกรุงเทพ',
         magic: [
           { letter: 'M', word: 'Magnet', value: 'กล่องคิดถึงบ้าน' },
@@ -199,8 +199,8 @@
 </script>
 
 <svelte:head>
-  <title>Business Smart OS Demo — Full Flow Pain → Offer</title>
-  <meta name="description" content="Self-running demo walkthrough ของ Business Smart OS full chain Pain Point → Million Dollar Offer" />
+  <title>ตัวอย่างการใช้งาน Business Smart OS — ตั้งแต่หาปัญหาลูกค้าจนถึงออกแบบข้อเสนอ</title>
+  <meta name="description" content="ดูตัวอย่างการใช้ Business Smart OS ตั้งแต่ขั้นหาปัญหาลูกค้าไปจนถึงออกแบบข้อเสนอที่ปฏิเสธยาก" />
 </svelte:head>
 
 <div class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
@@ -232,7 +232,7 @@
       <!-- Tool header -->
       <div class="text-center mb-8">
         <div class="inline-block px-4 py-1.5 rounded-full bg-white/10 border border-white/20 text-xs font-semibold mb-3">
-          Step {currentStep + 1} of {STEPS.length} · {isPlaying ? '▶ Playing' : '⏸ Paused'}
+          ขั้นที่ {currentStep + 1} จาก {STEPS.length} · {isPlaying ? '▶ กำลังเล่น' : '⏸ หยุดชั่วคราว'}
         </div>
         <h1 class="text-4xl sm:text-5xl font-black mb-2 drop-shadow-lg">{step.tool}</h1>
         <p class="text-lg text-white/80">{step.tagline}</p>
@@ -286,14 +286,14 @@
 
           {#if step.content.type === 'jtbd'}
             <div class="bg-orange-50 border-2 border-orange-300 rounded-xl p-4 mb-4">
-              <div class="text-xs text-orange-700 font-bold uppercase mb-1">❓ Core Question</div>
+              <div class="text-xs text-orange-700 font-bold uppercase mb-1">❓ คำถามหลัก</div>
               <div class="text-sm font-semibold text-orange-900 italic">"{step.content.coreQuestion}"</div>
             </div>
             <div class="bg-orange-100 border-l-4 border-orange-500 p-3 rounded mb-4">
-              <div class="text-xs text-orange-700 font-bold uppercase mb-1">🎯 Primary Job</div>
+              <div class="text-xs text-orange-700 font-bold uppercase mb-1">🎯 งานหลักที่ลูกค้าต้องการ</div>
               <div class="text-sm text-orange-900">{step.content.primaryJob}</div>
             </div>
-            <div class="text-xs font-bold text-dark-700 uppercase mb-2">⚖️ Forces of Progress</div>
+            <div class="text-xs font-bold text-dark-700 uppercase mb-2">⚖️ แรงผลักดันให้ลูกค้าตัดสินใจ</div>
             <div class="grid grid-cols-2 gap-2">
               {#each step.content.forces as f}
                 <div class="bg-white border border-orange-200 rounded-lg p-2.5">
@@ -310,7 +310,7 @@
           {#if step.content.type === 'vpc'}
             <div class="flex items-center gap-3 mb-4">
               <div class="flex-1 bg-purple-50 border-2 border-purple-300 rounded-xl p-4">
-                <div class="text-xs text-purple-700 font-bold uppercase mb-1">👥 Customer Profile</div>
+                <div class="text-xs text-purple-700 font-bold uppercase mb-1">👥 สิ่งที่ลูกค้าต้องการ</div>
                 <ul class="text-xs text-purple-900 space-y-1">
                   {#each step.content.customerProfile as cp}
                     <li>• {cp}</li>
@@ -319,11 +319,11 @@
               </div>
               <div class="text-3xl font-black text-purple-600">{step.content.fitScore}</div>
               <div class="text-center">
-                <div class="text-xs text-purple-700 font-bold">FIT SCORE</div>
+                <div class="text-xs text-purple-700 font-bold">คะแนนความเข้ากัน</div>
                 <div class="text-xs px-2 py-0.5 rounded-full bg-green-500 text-white font-bold">{step.content.fitLabel}</div>
               </div>
               <div class="flex-1 bg-amber-50 border-2 border-amber-300 rounded-xl p-4">
-                <div class="text-xs text-amber-700 font-bold uppercase mb-1">💎 Value Map</div>
+                <div class="text-xs text-amber-700 font-bold uppercase mb-1">💎 สิ่งที่สินค้าให้ได้</div>
                 <ul class="text-xs text-amber-900 space-y-1">
                   {#each step.content.valueMap as vm}
                     <li>• {vm}</li>
@@ -332,21 +332,21 @@
               </div>
             </div>
             <div class="bg-gradient-to-r from-purple-100 to-amber-100 border-2 border-purple-300 rounded-xl p-4">
-              <div class="text-xs text-purple-800 font-bold uppercase mb-1">📜 Value Proposition Statement</div>
+              <div class="text-xs text-purple-800 font-bold uppercase mb-1">📜 สรุปจุดขายเป็นประโยคเดียว</div>
               <div class="text-sm text-dark-900 italic leading-relaxed">"{step.content.statement}"</div>
             </div>
           {/if}
 
           {#if step.content.type === 'bmc'}
             <div class="bg-indigo-50 border-2 border-indigo-300 rounded-xl p-3 mb-3">
-              <div class="text-xs text-indigo-700 font-bold uppercase">🏷️ Business Model Pattern</div>
+              <div class="text-xs text-indigo-700 font-bold uppercase">🏷️ รูปแบบธุรกิจ</div>
               <div class="text-sm font-semibold text-indigo-900">{step.content.pattern}</div>
             </div>
             <div class="bg-amber-50 border-l-4 border-amber-500 p-3 rounded mb-4">
-              <div class="text-xs text-amber-700 font-bold uppercase">💡 Key Insight</div>
+              <div class="text-xs text-amber-700 font-bold uppercase">💡 ข้อสังเกตสำคัญ</div>
               <div class="text-xs text-amber-900">{step.content.insight}</div>
             </div>
-            <div class="text-xs font-bold text-dark-700 uppercase mb-2">🧩 9 Building Blocks</div>
+            <div class="text-xs font-bold text-dark-700 uppercase mb-2">🧩 องค์ประกอบธุรกิจ 9 ส่วน</div>
             <div class="grid grid-cols-3 gap-1.5">
               {#each step.content.blocks as b}
                 <div class="rounded-lg p-2 text-center" style="background: {b.color}20; border: 1.5px solid {b.color};">
@@ -359,10 +359,10 @@
 
           {#if step.content.type === 'offer'}
             <div class="bg-gradient-to-r from-amber-100 to-yellow-100 border-2 border-amber-400 rounded-xl p-4 mb-4">
-              <div class="text-xs text-amber-700 font-bold uppercase mb-1">🏆 Offer Name</div>
+              <div class="text-xs text-amber-700 font-bold uppercase mb-1">🏆 ชื่อข้อเสนอ</div>
               <div class="text-base font-black text-amber-900">"{step.content.offerName}"</div>
             </div>
-            <div class="text-xs font-bold text-dark-700 uppercase mb-2">✨ MAGIC Formula</div>
+            <div class="text-xs font-bold text-dark-700 uppercase mb-2">✨ สูตรตั้งชื่อข้อเสนอ (MAGIC)</div>
             <div class="grid grid-cols-5 gap-1.5 mb-4">
               {#each step.content.magic as m}
                 <div class="bg-amber-50 border-2 border-amber-300 rounded-lg p-2 text-center">
@@ -372,38 +372,38 @@
                 </div>
               {/each}
             </div>
-            <div class="text-xs font-bold text-dark-700 uppercase mb-2">⚖️ Value Equation Audit</div>
+            <div class="text-xs font-bold text-dark-700 uppercase mb-2">⚖️ เช็คความคุ้มค่าของข้อเสนอ</div>
             <div class="grid grid-cols-4 gap-2 mb-4">
               <div class="bg-green-50 border-2 border-green-300 rounded-lg p-2 text-center">
-                <div class="text-[10px] text-green-700">Dream Outcome</div>
+                <div class="text-[10px] text-green-700">ผลลัพธ์ในฝัน</div>
                 <div class="text-xl font-black text-green-600">{step.content.valueEq?.dreamOutcome ?? 0}/10</div>
               </div>
               <div class="bg-green-50 border-2 border-green-300 rounded-lg p-2 text-center">
-                <div class="text-[10px] text-green-700">Likelihood</div>
+                <div class="text-[10px] text-green-700">ความมั่นใจว่าจะสำเร็จ</div>
                 <div class="text-xl font-black text-green-600">{step.content.valueEq?.perceivedLikelihood ?? 0}/10</div>
               </div>
               <div class="bg-red-50 border-2 border-red-300 rounded-lg p-2 text-center">
-                <div class="text-[10px] text-red-700">Time Delay</div>
+                <div class="text-[10px] text-red-700">ระยะเวลารอผล</div>
                 <div class="text-xl font-black text-red-600">{step.content.valueEq?.timeDelay ?? 0}/10</div>
               </div>
               <div class="bg-red-50 border-2 border-red-300 rounded-lg p-2 text-center">
-                <div class="text-[10px] text-red-700">Effort</div>
+                <div class="text-[10px] text-red-700">ความยากที่ต้องแลก</div>
                 <div class="text-xl font-black text-red-600">{step.content.valueEq?.effortSacrifice ?? 0}/10</div>
               </div>
             </div>
             <div class="grid grid-cols-2 gap-3">
               <div class="bg-emerald-50 border-2 border-emerald-300 rounded-xl p-3">
-                <div class="text-xs text-emerald-700 font-bold uppercase mb-1">💰 Price</div>
+                <div class="text-xs text-emerald-700 font-bold uppercase mb-1">💰 ราคา</div>
                 <div class="text-2xl font-black text-emerald-900">{step.content.price?.value ?? ''}</div>
-                <div class="text-[10px] text-emerald-700 mt-1">Ratio: {step.content.price?.ratio ?? ''} · Anchor: {step.content.price?.anchor ?? ''}</div>
+                <div class="text-[10px] text-emerald-700 mt-1">คุ้มค่า: {step.content.price?.ratio ?? ''} เท่า · ราคาที่ควรจะเป็น: {step.content.price?.anchor ?? ''}</div>
               </div>
               <div class="bg-blue-50 border-2 border-blue-300 rounded-xl p-3">
-                <div class="text-xs text-blue-700 font-bold uppercase mb-1">🛡️ Guarantee</div>
+                <div class="text-xs text-blue-700 font-bold uppercase mb-1">🛡️ การรับประกัน</div>
                 <div class="text-sm font-semibold text-blue-900">"{step.content.guarantee}"</div>
               </div>
             </div>
             <div class="mt-3 bg-amber-50 border-2 border-amber-300 rounded-xl p-3">
-              <div class="text-xs text-amber-700 font-bold uppercase mb-1">📚 Value Stack</div>
+              <div class="text-xs text-amber-700 font-bold uppercase mb-1">📚 สิ่งที่ลูกค้าได้ทั้งหมด</div>
               <ul class="text-xs text-amber-900 space-y-0.5">
                 {#each step.content.valueStack as v, i}
                   <li>{i + 1}. {v}</li>

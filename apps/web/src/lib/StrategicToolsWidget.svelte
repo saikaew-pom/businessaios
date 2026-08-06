@@ -91,11 +91,11 @@
   }
 
   function resetDefault() {
-    if (!confirm('Reset chain เป็นค่า default (Pain → Persona → JTBD → VPC → BMC → Offer)?')) return;
+    if (!confirm('ต้องการรีเซ็ตลำดับกลับเป็นค่าเริ่มต้นไหม (หาปัญหาลูกค้า → วาดภาพลูกค้าในฝัน → เข้าใจงานที่ลูกค้าจ้าง → เช็คจุดขาย → วางแผนธุรกิจ → ออกแบบข้อเสนอ)?')) return;
     resetUserChainOrder();
     chain = [...STRATEGIC_CHAIN];
     isEditing = false;
-    saveMsg = '✓ Reset เป็น default แล้ว';
+    saveMsg = '✓ รีเซ็ตกลับค่าเริ่มต้นแล้ว';
     setTimeout(() => { saveMsg = ''; }, 2000);
   }
 </script>
@@ -107,8 +107,8 @@
         🧭
       </div>
       <div>
-        <h2 class="text-base font-bold text-dark-900 dark:text-dark-50">Strategic Tools</h2>
-        <p class="text-xs text-dark-900/60 dark:text-dark-100/60">3 saves ล่าสุด + tool ถัดไปใน chain</p>
+        <h2 class="text-base font-bold text-dark-900 dark:text-dark-50">เครื่องมือกลยุทธ์</h2>
+        <p class="text-xs text-dark-900/60 dark:text-dark-100/60">งานที่บันทึกไว้ล่าสุด 3 รายการ + เครื่องมือที่ควรทำถัดไป</p>
       </div>
     </div>
     <div class="flex items-center gap-2">
@@ -137,7 +137,7 @@
   {:else if saves.length === 0}
     <div class="text-center py-6 text-dark-900/60 dark:text-dark-100/60">
       <div class="text-3xl mb-2">🚀</div>
-      <div class="text-sm">ยังไม่มี saved tool — เริ่มจาก <a href="/tools/pain-generator" class="text-indigo-600 dark:text-indigo-400 font-semibold hover:underline">Pain Point</a></div>
+      <div class="text-sm">ยังไม่เคยใช้เครื่องมือไหนเลย — เริ่มจาก <a href="/tools/pain-generator" class="text-indigo-600 dark:text-indigo-400 font-semibold hover:underline">หาปัญหาลูกค้า</a></div>
     </div>
   {:else}
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -166,16 +166,16 @@
               class="flex items-center gap-1.5 mt-2 px-2 py-1.5 rounded-md bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/50 dark:to-purple-950/50 border border-indigo-200 dark:border-indigo-800 hover:border-indigo-400 dark:hover:border-indigo-600 transition-colors"
               title="ทำเครื่องมือถัดไป"
             >
-              <span class="text-[10px] text-dark-900/60 dark:text-dark-100/60 font-semibold">NEXT →</span>
+              <span class="text-[10px] text-dark-900/60 dark:text-dark-100/60 font-semibold">ถัดไป →</span>
               <span style="color: {nextTool.color};" class="text-sm">{nextTool.emoji}</span>
               <span class="text-xs font-semibold text-dark-800 dark:text-dark-100">{nextTool.label}</span>
             </a>
           {:else if STRATEGIC_CHAIN.find(t => t.id === save.tool_type)}
             <div class="flex items-center gap-1.5 mt-2 px-2 py-1.5 rounded-md bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-800">
-              <span class="text-[10px] text-green-700 dark:text-green-400 font-semibold">✅ CHAIN COMPLETE</span>
+              <span class="text-[10px] text-green-700 dark:text-green-400 font-semibold">✅ ทำครบตามลำดับแล้ว</span>
             </div>
           {:else}
-            <div class="text-[10px] text-dark-900/50 dark:text-dark-100/50 mt-2 italic">Tactical tool</div>
+            <div class="text-[10px] text-dark-900/50 dark:text-dark-100/50 mt-2 italic">เครื่องมือเสริม</div>
           {/if}
         </div>
       {/each}
@@ -183,14 +183,14 @@
 
     <div class="mt-4 pt-4 border-t border-indigo-100 dark:border-indigo-900">
       <div class="flex items-center justify-between mb-2">
-        <div class="text-[10px] text-dark-900/50 dark:text-dark-100/50 font-semibold uppercase tracking-wide">Strategic Chain Flow</div>
+        <div class="text-[10px] text-dark-900/50 dark:text-dark-100/50 font-semibold uppercase tracking-wide">ลำดับเครื่องมือแนะนำ</div>
         {#if !isEditing}
           <div class="flex items-center gap-2">
             <button onclick={startEdit} class="text-[10px] text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-semibold">
               ✏️ แก้ไขลำดับ
             </button>
             <button onclick={resetDefault} class="text-[10px] text-dark-500 dark:text-dark-300 hover:text-dark-700 dark:hover:text-dark-100 font-semibold">
-              ↺ default
+              ↺ ค่าเริ่มต้น
             </button>
           </div>
         {/if}

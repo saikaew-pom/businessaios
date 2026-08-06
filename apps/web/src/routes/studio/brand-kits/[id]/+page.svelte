@@ -42,14 +42,14 @@
   };
 
   const templatePresets = [
-    { id: 'quote_card', name: 'Quote Card', ratio: '1:1', placeholders: 'headline, author, logo' },
-    { id: 'personal_brand_cover', name: 'Personal Brand Cover', ratio: '16:9', placeholders: 'headline, name, title, portrait, logo' },
-    { id: 'course_launch_poster', name: 'Course Launch Poster', ratio: '4:5', placeholders: 'course_name, price, date, speaker, cta' },
-    { id: 'webinar_banner', name: 'Webinar Banner', ratio: '16:9', placeholders: 'headline, date, time, speaker, cta' },
-    { id: 'podcast_cover', name: 'Podcast Cover', ratio: '1:1', placeholders: 'show_name, episode_title, host, logo' },
-    { id: 'carousel_cover', name: 'Carousel Cover', ratio: '1:1', placeholders: 'headline, list_count, swipe_hint, logo' },
-    { id: 'article_cover', name: 'Article Cover', ratio: '16:9', placeholders: 'headline, category, author, logo' },
-    { id: 'line_oa_broadcast', name: 'LINE OA Broadcast', ratio: '1:1', placeholders: 'headline, tip, cta, logo' },
+    { id: 'quote_card', name: 'การ์ดคำคม', ratio: '1:1', placeholders: 'headline, author, logo' },
+    { id: 'personal_brand_cover', name: 'ปกแบรนด์ส่วนตัว', ratio: '16:9', placeholders: 'headline, name, title, portrait, logo' },
+    { id: 'course_launch_poster', name: 'โปสเตอร์เปิดคอร์ส', ratio: '4:5', placeholders: 'course_name, price, date, speaker, cta' },
+    { id: 'webinar_banner', name: 'แบนเนอร์สัมมนาออนไลน์', ratio: '16:9', placeholders: 'headline, date, time, speaker, cta' },
+    { id: 'podcast_cover', name: 'ปกพอดแคสต์', ratio: '1:1', placeholders: 'show_name, episode_title, host, logo' },
+    { id: 'carousel_cover', name: 'ปกโพสต์สไลด์', ratio: '1:1', placeholders: 'headline, list_count, swipe_hint, logo' },
+    { id: 'article_cover', name: 'ปกบทความ', ratio: '16:9', placeholders: 'headline, category, author, logo' },
+    { id: 'line_oa_broadcast', name: 'ส่งข้อความ LINE OA', ratio: '1:1', placeholders: 'headline, tip, cta, logo' },
   ];
 
   const logoPlacementOptions = [
@@ -249,7 +249,7 @@
         },
       });
       kit = updated;
-      notice = 'บันทึก Brandbook แล้ว';
+      notice = 'บันทึกคู่มือแบรนด์แล้ว';
     } catch (err) {
       error = humanizeError(err);
     } finally {
@@ -264,7 +264,7 @@
     try {
       const exported = await exportBrandKitPdf(kit.id, { language: exportLanguage || defaultLanguage });
       window.open(`${PUBLIC_API_URL}${exported.download_url}`, '_blank', 'noopener,noreferrer');
-      notice = 'สร้าง Brandbook export แล้ว เปิดแท็บใหม่เพื่อ Print / Save PDF';
+      notice = 'สร้างไฟล์คู่มือแบรนด์แล้ว เปิดแท็บใหม่เพื่อพิมพ์หรือบันทึกเป็น PDF';
     } catch (err) {
       error = humanizeError(err);
     } finally {
@@ -347,7 +347,7 @@
       await loadKit();
       uploadName = '';
       clearPendingUpload();
-      notice = role === 'font' ? 'อัปโหลดและผูก font กับ Brandbook แล้ว' : 'อัปโหลดและผูก logo กับ Brandbook แล้ว';
+      notice = role === 'font' ? 'อัปโหลดและผูกฟอนต์กับคู่มือแบรนด์แล้ว' : 'อัปโหลดและผูกโลโก้กับคู่มือแบรนด์แล้ว';
     } catch (err) {
       error = humanizeError(err);
     } finally {
@@ -356,7 +356,7 @@
   }
 
   async function removeLinkedAsset(asset: BrandKitAsset) {
-    if (!kit || !confirm(`Remove "${asset.original_filename || asset.asset_id}" from this Brandbook?`)) return;
+    if (!kit || !confirm(`ต้องการลบ "${asset.original_filename || asset.asset_id}" ออกจากคู่มือแบรนด์นี้ใช่ไหม?`)) return;
     error = '';
     try {
       await detachBrandKitAsset(kit.id, asset.id);
@@ -386,7 +386,7 @@
         },
       });
       await loadKit();
-      notice = 'นำ asset ออกจาก Brandbook แล้ว';
+      notice = 'นำไฟล์ออกจากคู่มือแบรนด์แล้ว';
     } catch (err) {
       error = humanizeError(err);
     }
@@ -405,7 +405,7 @@
         mode: 'complete',
       });
       applySmartWriting(res.output || {});
-      notice = `AI เขียน draft ให้แล้ว ใช้ ${res.meta?.credits_used ?? 0} credits เหลือ ${res.meta?.credits_remaining ?? '-'} credits — ตรวจทานแล้วกด Save Brandbook`;
+      notice = `AI เขียน draft ให้แล้ว ใช้ ${res.meta?.credits_used ?? 0} credits เหลือ ${res.meta?.credits_remaining ?? '-'} credits — ตรวจทานแล้วกดบันทึกคู่มือแบรนด์`;
     } catch (err) {
       error = humanizeError(err);
     } finally {
@@ -478,8 +478,8 @@
     moodboardCopySamples = [
       {
         id: 'ig_caption',
-        channel: 'Instagram photo caption',
-        title: 'IG Photo Caption',
+        channel: 'แคปชันรูปภาพ Instagram',
+        title: 'แคปชันรูป IG',
         body: pair(
           `${brandTh} ไม่ได้สอนให้คุณใช้ AI ทุกตัว แต่ช่วยให้คุณเห็นว่า workflow ไหนในธุรกิจควรเริ่มก่อน\n\n${promiseTh}\n\nคำถามง่าย ๆ คือ งานซ้ำเรื่องไหนที่ทีมคุณยังเสียเวลาทุกวัน?`,
           `${brandEn} does not try to teach every AI tool. It helps business owners identify which workflow should start first.\n\n${promiseEn}\n\nA useful question: which repetitive task is still taking time from your team every day?`,
@@ -488,8 +488,8 @@
       },
       {
         id: 'facebook_post',
-        channel: 'Facebook post',
-        title: 'Facebook Education Post',
+        channel: 'โพสต์ Facebook',
+        title: 'โพสต์ให้ความรู้ Facebook',
         body: pair(
           `หลายธุรกิจเริ่มใช้ AI จากการลองถาม ChatGPT แต่หยุดอยู่แค่นั้น เพราะยังไม่มีระบบที่ทีมใช้ซ้ำได้\n\n${brandTh} จึงเน้นการทำงานทีละขั้น: เลือก workflow, สร้าง prompt, ทดลองกับงานจริง, แล้วปรับให้ทีมใช้ต่อได้\n\n${thTagline}`,
           `Many businesses start AI by asking ChatGPT a few questions, then stop because there is no repeatable workflow for the team.\n\n${brandEn} focuses on a step-by-step process: choose a workflow, create prompts, test with real work, and make it reusable for the team.\n\n${enTagline}`,
@@ -498,8 +498,8 @@
       },
       {
         id: 'line_broadcast',
-        channel: 'LINE OA broadcast',
-        title: 'LINE OA Broadcast',
+        channel: 'ข้อความ LINE OA',
+        title: 'ข้อความ LINE OA',
         body: pair(
           `สวัสดีครับ วันนี้ลองเลือกงานซ้ำในธุรกิจของคุณมา 1 งาน เช่น ตอบแชท สรุปยอด หรือคิดคอนเทนต์ แล้วถามว่า AI จะช่วยลดเวลาได้ตรงไหน\n\nถ้าคุณยังไม่แน่ใจว่าจะเริ่มจากงานไหน ${brandTh} ช่วยวาง workflow แรกให้ได้`,
           `Hello, today try choosing one repetitive task in your business, such as replying to chats, summarizing sales, or planning content. Then ask where AI can reduce time.\n\nIf you are not sure where to start, ${brandEn} can help map the first workflow.`,
@@ -508,8 +508,8 @@
       },
       {
         id: 'ad_headline',
-        channel: 'Ad headline',
-        title: 'Ad Headline / CTA',
+        channel: 'หัวข้อโฆษณา',
+        title: 'หัวข้อโฆษณา',
         body: pair(
           `${thTagline}\nสำหรับเจ้าของธุรกิจที่อยากใช้ AI กับงานจริง ไม่ใช่แค่ลองเล่น`,
           `${enTagline}\nFor business owners who want to use AI in real work, not just experiment with tools.`,
@@ -518,8 +518,8 @@
       },
       {
         id: 'brochure_intro',
-        channel: 'Brochure intro',
-        title: 'Brochure Intro',
+        channel: 'เกริ่นโบรชัวร์',
+        title: 'เกริ่นโบรชัวร์',
         body: pair(
           `${brandTh} คือเวิร์กช็อปและโค้ชแบบจับมือทำสำหรับ${audienceLabelTh}\n\nจุดสำคัญไม่ใช่การรู้จักเครื่องมือให้เยอะที่สุด แต่คือการสร้างระบบเล็ก ๆ ที่ใช้ซ้ำได้จริงในงานขาย คอนเทนต์ แอดมิน และการวิเคราะห์ลูกค้า`,
           `${brandEn} is a hands-on AI coaching and workshop experience for ${audienceLabelEn}.\n\nThe goal is not to know the most tools, but to build small reusable systems for sales, content, admin, and customer analysis.`,
@@ -587,7 +587,7 @@
     ];
 
     if (kit) await saveKit();
-    notice = 'สร้าง Brand Moodboard และบันทึกเข้า Brandbook แล้ว';
+    notice = 'สร้างตัวอย่างงานแบรนด์และบันทึกเข้าคู่มือแบรนด์แล้ว';
   }
 
   async function makeDefault() {
@@ -601,10 +601,10 @@
   }
 
   async function archiveCurrentKit() {
-    if (!kit || !confirm(`Archive "${kit.name}"?`)) return;
+    if (!kit || !confirm(`ต้องการเก็บ "${kit.name}" เข้าคลังใช่ไหม?`)) return;
     try {
       kit = await archiveBrandKit(kit.id);
-      notice = 'Archive แล้ว';
+      notice = 'เก็บเข้าคลังแล้ว';
     } catch (err) {
       error = humanizeError(err);
     }
@@ -614,14 +614,14 @@
     if (!kit) return;
     try {
       kit = await restoreBrandKit(kit.id);
-      notice = 'Restore แล้ว';
+      notice = 'กู้คืนแล้ว';
     } catch (err) {
       error = humanizeError(err);
     }
   }
 
   async function deleteForever() {
-    if (!kit || !confirm(`Delete forever "${kit.name}"? การลบนี้ย้อนกลับไม่ได้`)) return;
+    if (!kit || !confirm(`ต้องการลบ "${kit.name}" ถาวรใช่ไหม? การลบนี้ย้อนกลับไม่ได้`)) return;
     try {
       await deleteBrandKit(kit.id);
       goto('/studio/brand-kits');
@@ -854,46 +854,46 @@
   function humanizeError(err: unknown) {
     const message = err instanceof Error ? err.message : String(err || '');
     const map: Record<string, string> = {
-      feature_disabled: 'Brand Kit Composition ยังไม่เปิดใช้งานบน environment นี้',
-      brand_kit_not_found: 'ไม่พบ Brand Kit นี้',
-      brand_kit_not_active: 'Brand Kit นี้ถูก archive อยู่ ต้อง restore ก่อน',
-      name_required: 'กรุณาใส่ชื่อ Brand Kit',
+      feature_disabled: 'ฟีเจอร์การประกอบชุดแบรนด์ยังไม่เปิดใช้งานในระบบนี้',
+      brand_kit_not_found: 'ไม่พบชุดแบรนด์นี้',
+      brand_kit_not_active: 'ชุดแบรนด์นี้ถูกเก็บเข้าคลังอยู่ ต้องกู้คืนก่อน',
+      name_required: 'กรุณาใส่ชื่อชุดแบรนด์',
       unsupported_mime_type: 'ชนิดไฟล์นี้ยังไม่รองรับ',
       invalid_file_size: 'ไฟล์ใหญ่เกินไปหรือขนาดไม่ถูกต้อง',
       email_not_verified: 'กรุณายืนยันอีเมลก่อนใช้ AI Smart Writing',
       insufficient_credits: 'เครดิตไม่เพียงพอสำหรับ AI Smart Writing',
       ai_error: 'AI Smart Writing ยังทำงานไม่สำเร็จ ลองใหม่อีกครั้ง',
-      parse_error: 'AI ส่งผลลัพธ์ไม่ครบรูปแบบ ลอง Generate ใหม่อีกครั้ง',
+      parse_error: 'AI ส่งผลลัพธ์ไม่ครบรูปแบบ ลองสร้างใหม่อีกครั้ง',
     };
     return map[message] || message || 'ทำรายการไม่สำเร็จ';
   }
 </script>
 
 <svelte:head>
-  <title>{kit?.name || 'Brandbook'} — Business Smart OS</title>
+  <title>{kit?.name || 'คู่มือแบรนด์'} — Business Smart OS</title>
 </svelte:head>
 
 <div class="min-h-screen bg-dark-50 dark:bg-dark-950">
   <main class="container-narrow py-6 space-y-5">
     <div class="flex flex-wrap items-end justify-between gap-4">
       <div>
-        <a href="/studio/brand-kits" class="text-sm text-primary-600 dark:text-primary-400 font-semibold">กลับ Brand Kits</a>
-        <h1 class="heading-2 mt-1">{kit?.name || 'Brandbook'}</h1>
+        <a href="/studio/brand-kits" class="text-sm text-primary-600 dark:text-primary-400 font-semibold">กลับชุดแบรนด์ทั้งหมด</a>
+        <h1 class="heading-2 mt-1">{kit?.name || 'คู่มือแบรนด์'}</h1>
         {#if kit}
-          <p class="text-dark-900/60 dark:text-dark-100/60">{kit.lifecycle_status} · {kit.is_default ? 'Default' : 'Custom'} · {kit.brandbook_status}</p>
+          <p class="text-dark-900/60 dark:text-dark-100/60">{kit.lifecycle_status} · {kit.is_default ? 'ค่าเริ่มต้น' : 'กำหนดเอง'} · {kit.brandbook_status}</p>
         {/if}
       </div>
       {#if kit}
         <div class="flex flex-wrap gap-2">
           {#if kit.lifecycle_status === 'active' && !kit.is_default}
-            <button onclick={makeDefault} class="btn-secondary">Set Default</button>
+            <button onclick={makeDefault} class="btn-secondary">ตั้งเป็นค่าเริ่มต้น</button>
           {/if}
           {#if kit.lifecycle_status === 'active'}
-            <button onclick={archiveCurrentKit} class="btn-secondary">Archive</button>
+            <button onclick={archiveCurrentKit} class="btn-secondary">เก็บเข้าคลัง</button>
           {:else}
-            <button onclick={restoreCurrentKit} class="btn-secondary">Restore</button>
+            <button onclick={restoreCurrentKit} class="btn-secondary">กู้คืน</button>
           {/if}
-          <button onclick={deleteForever} class="btn-secondary text-red-600 dark:text-red-300">Delete forever</button>
+          <button onclick={deleteForever} class="btn-secondary text-red-600 dark:text-red-300">ลบถาวร</button>
         </div>
       {/if}
     </div>
@@ -909,32 +909,32 @@
       <div class="py-16 text-center text-dark-900/60 dark:text-dark-100/60">กำลังโหลด...</div>
     {:else if !isFeatureEnabled}
       <div class="rounded-xl border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/30 p-5">
-        <div class="font-semibold text-amber-900 dark:text-amber-200">Brand Kit ยังปิดอยู่</div>
+        <div class="font-semibold text-amber-900 dark:text-amber-200">ชุดแบรนด์ยังปิดใช้งานอยู่</div>
       </div>
     {:else if kit}
       <div class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_18rem]">
         <section class="space-y-5">
           <section class="rounded-xl border border-dark-100 dark:border-dark-700 bg-white dark:bg-dark-800 p-4 space-y-4">
-            <h2 class="font-bold text-dark-900 dark:text-dark-50">Basics</h2>
+            <h2 class="font-bold text-dark-900 dark:text-dark-50">ข้อมูลพื้นฐาน</h2>
             <div class="grid md:grid-cols-2 gap-3">
               <label class="block">
-                <span class="mb-1 block text-sm font-semibold">Brand Kit name</span>
+                <span class="mb-1 block text-sm font-semibold">ชื่อชุดแบรนด์</span>
                 <input bind:value={name} class="input" />
               </label>
               <label class="block">
-                <span class="mb-1 block text-sm font-semibold">Brandbook language</span>
+                <span class="mb-1 block text-sm font-semibold">ภาษาของคู่มือแบรนด์</span>
                 <select bind:value={defaultLanguage} class="input">
-                  <option value="th">Thai</option>
-                  <option value="en">English</option>
-                  <option value="th-en">Thai + English</option>
+                  <option value="th">ไทย</option>
+                  <option value="en">อังกฤษ</option>
+                  <option value="th-en">ไทย + อังกฤษ</option>
                 </select>
               </label>
               <label class="block">
-                <span class="mb-1 block text-sm font-semibold">Brand name TH</span>
+                <span class="mb-1 block text-sm font-semibold">ชื่อแบรนด์ (ไทย)</span>
                 <input bind:value={brandNameTh} class="input" />
               </label>
               <label class="block">
-                <span class="mb-1 block text-sm font-semibold">Brand name EN</span>
+                <span class="mb-1 block text-sm font-semibold">ชื่อแบรนด์ (อังกฤษ)</span>
                 <input bind:value={brandNameEn} class="input" />
               </label>
             </div>
@@ -944,85 +944,85 @@
                 <textarea bind:value={businessDescriptionTh} rows="4" class="input min-h-28"></textarea>
               </label>
               <label class="block">
-                <span class="mb-1 block text-sm font-semibold">Business description</span>
+                <span class="mb-1 block text-sm font-semibold">คำอธิบายธุรกิจ (อังกฤษ)</span>
                 <textarea bind:value={businessDescriptionEn} rows="4" class="input min-h-28"></textarea>
               </label>
             </div>
           </section>
 
           <section class="rounded-xl border border-dark-100 dark:border-dark-700 bg-white dark:bg-dark-800 p-4 space-y-4">
-            <h2 class="font-bold text-dark-900 dark:text-dark-50">Identity</h2>
+            <h2 class="font-bold text-dark-900 dark:text-dark-50">ตัวตนแบรนด์</h2>
             <div class="grid md:grid-cols-2 gap-3">
-              <TextField label="Positioning TH" bind:value={positioningTh} />
-              <TextField label="Positioning EN" bind:value={positioningEn} />
-              <TextField label="Value proposition TH" bind:value={valuePropositionTh} />
-              <TextField label="Value proposition EN" bind:value={valuePropositionEn} />
-              <TextField label="Audience summary TH" bind:value={audienceSummaryTh} />
-              <TextField label="Audience summary EN" bind:value={audienceSummaryEn} />
-              <TextField label="Tagline TH" bind:value={taglineTh} rows={2} />
-              <TextField label="Tagline EN" bind:value={taglineEn} rows={2} />
+              <TextField label="จุดยืนแบรนด์ (ไทย)" bind:value={positioningTh} />
+              <TextField label="จุดยืนแบรนด์ (อังกฤษ)" bind:value={positioningEn} />
+              <TextField label="จุดขาย (ไทย)" bind:value={valuePropositionTh} />
+              <TextField label="จุดขาย (อังกฤษ)" bind:value={valuePropositionEn} />
+              <TextField label="สรุปกลุ่มลูกค้า (ไทย)" bind:value={audienceSummaryTh} />
+              <TextField label="สรุปกลุ่มลูกค้า (อังกฤษ)" bind:value={audienceSummaryEn} />
+              <TextField label="แท็กไลน์ (ไทย)" bind:value={taglineTh} rows={2} />
+              <TextField label="แท็กไลน์ (อังกฤษ)" bind:value={taglineEn} rows={2} />
             </div>
           </section>
 
           <section class="rounded-xl border border-dark-100 dark:border-dark-700 bg-white dark:bg-dark-800 p-4 space-y-4">
-            <h2 class="font-bold text-dark-900 dark:text-dark-50">Colors</h2>
+            <h2 class="font-bold text-dark-900 dark:text-dark-50">สี</h2>
             <div class="grid md:grid-cols-4 gap-3">
-              <ColorInput label="Primary" bind:value={primaryColor} />
-              <ColorInput label="Accent" bind:value={accentColor} />
-              <ColorInput label="Background" bind:value={backgroundColor} />
-              <ColorInput label="Text" bind:value={textColor} />
+              <ColorInput label="สีหลัก" bind:value={primaryColor} />
+              <ColorInput label="สีเน้น" bind:value={accentColor} />
+              <ColorInput label="สีพื้นหลัง" bind:value={backgroundColor} />
+              <ColorInput label="สีตัวอักษร" bind:value={textColor} />
             </div>
           </section>
 
           <section class="rounded-xl border border-dark-100 dark:border-dark-700 bg-white dark:bg-dark-800 p-4 space-y-4">
-            <h2 class="font-bold text-dark-900 dark:text-dark-50">Typography</h2>
+            <h2 class="font-bold text-dark-900 dark:text-dark-50">ฟอนต์</h2>
             <div class="grid md:grid-cols-3 gap-3">
               <label class="block">
-                <span class="mb-1 block text-sm font-semibold">Heading font</span>
+                <span class="mb-1 block text-sm font-semibold">ฟอนต์หัวข้อ</span>
                 <input bind:value={headingFont} class="input" />
               </label>
               <label class="block">
-                <span class="mb-1 block text-sm font-semibold">Body font</span>
+                <span class="mb-1 block text-sm font-semibold">ฟอนต์เนื้อหา</span>
                 <input bind:value={bodyFont} class="input" />
               </label>
               <label class="block">
-                <span class="mb-1 block text-sm font-semibold">Accent font</span>
+                <span class="mb-1 block text-sm font-semibold">ฟอนต์เน้น</span>
                 <input bind:value={accentFont} class="input" />
               </label>
             </div>
-            <p class="text-xs text-dark-900/50 dark:text-dark-100/50">Google Fonts selector, uploaded fonts และ AI font matching จะต่อใน phase ถัดไป</p>
+            <p class="text-xs text-dark-900/50 dark:text-dark-100/50">ตัวเลือกฟอนต์จาก Google Fonts, การอัปโหลดฟอนต์เอง และ AI ช่วยจับคู่ฟอนต์ จะเพิ่มในเฟสถัดไป</p>
           </section>
 
           <section class="rounded-xl border border-dark-100 dark:border-dark-700 bg-white dark:bg-dark-800 p-4 space-y-4">
-            <h2 class="font-bold text-dark-900 dark:text-dark-50">Tone of Voice</h2>
+            <h2 class="font-bold text-dark-900 dark:text-dark-50">โทนการพูด</h2>
             <div class="grid md:grid-cols-2 gap-3">
-              <TextField label="Tone summary TH" bind:value={toneSummaryTh} />
-              <TextField label="Tone summary EN" bind:value={toneSummaryEn} />
-              <TextField label="CTA style TH" bind:value={ctaStyleTh} rows={2} />
-              <TextField label="CTA style EN" bind:value={ctaStyleEn} rows={2} />
-              <ListField label="Words to use TH" bind:value={useWordsTh} />
-              <ListField label="Words to use EN" bind:value={useWordsEn} />
-              <ListField label="Words to avoid TH" bind:value={avoidWordsTh} />
-              <ListField label="Words to avoid EN" bind:value={avoidWordsEn} />
+              <TextField label="สรุปโทนเสียง (ไทย)" bind:value={toneSummaryTh} />
+              <TextField label="สรุปโทนเสียง (อังกฤษ)" bind:value={toneSummaryEn} />
+              <TextField label="สไตล์ประโยคชวนทำ (ไทย)" bind:value={ctaStyleTh} rows={2} />
+              <TextField label="สไตล์ประโยคชวนทำ (อังกฤษ)" bind:value={ctaStyleEn} rows={2} />
+              <ListField label="คำที่ควรใช้ (ไทย)" bind:value={useWordsTh} />
+              <ListField label="คำที่ควรใช้ (อังกฤษ)" bind:value={useWordsEn} />
+              <ListField label="คำที่ควรเลี่ยง (ไทย)" bind:value={avoidWordsTh} />
+              <ListField label="คำที่ควรเลี่ยง (อังกฤษ)" bind:value={avoidWordsEn} />
             </div>
           </section>
 
           <section class="rounded-xl border border-dark-100 dark:border-dark-700 bg-white dark:bg-dark-800 p-4 space-y-4">
-            <h2 class="font-bold text-dark-900 dark:text-dark-50">Creative Style</h2>
+            <h2 class="font-bold text-dark-900 dark:text-dark-50">สไตล์ภาพ</h2>
             <div class="grid md:grid-cols-2 gap-3">
-              <ListField label="Visual mood" bind:value={visualMood} />
-              <ListField label="Graphic elements" bind:value={graphicElements} />
-              <TextField label="Lighting" bind:value={lighting} />
-              <TextField label="Composition" bind:value={composition} />
-              <TextField label="People style" bind:value={peopleStyle} />
-              <TextField label="Product style" bind:value={productStyle} />
-              <TextField label="Background style" bind:value={backgroundStyle} />
-              <ListField label="Avoid / negative style" bind:value={avoidStyle} />
+              <ListField label="อารมณ์ภาพ" bind:value={visualMood} />
+              <ListField label="องค์ประกอบกราฟิก" bind:value={graphicElements} />
+              <TextField label="แสง" bind:value={lighting} />
+              <TextField label="องค์ประกอบภาพ" bind:value={composition} />
+              <TextField label="สไตล์คนในภาพ" bind:value={peopleStyle} />
+              <TextField label="สไตล์สินค้าในภาพ" bind:value={productStyle} />
+              <TextField label="สไตล์พื้นหลัง" bind:value={backgroundStyle} />
+              <ListField label="สิ่งที่ควรเลี่ยง" bind:value={avoidStyle} />
             </div>
           </section>
 
           <section class="rounded-xl border border-dark-100 dark:border-dark-700 bg-white dark:bg-dark-800 p-4 space-y-4">
-            <h2 class="font-bold text-dark-900 dark:text-dark-50">Layout Templates</h2>
+            <h2 class="font-bold text-dark-900 dark:text-dark-50">เทมเพลตเลย์เอาต์</h2>
             <div class="grid md:grid-cols-2 gap-3">
               {#each templatePresets as preset}
                 <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-dark-100 p-3 dark:border-dark-700">
@@ -1037,10 +1037,10 @@
           </section>
 
           <section class="rounded-xl border border-dark-100 dark:border-dark-700 bg-white dark:bg-dark-800 p-4 space-y-4">
-            <h2 class="font-bold text-dark-900 dark:text-dark-50">Logo Placement Presets</h2>
+            <h2 class="font-bold text-dark-900 dark:text-dark-50">ตำแหน่งโลโก้</h2>
             <div class="grid md:grid-cols-2 gap-3">
               <label class="block">
-                <span class="mb-1 block text-sm font-semibold">Default</span>
+                <span class="mb-1 block text-sm font-semibold">ค่าเริ่มต้น</span>
                 <select bind:value={logoPlacementDefault} class="input">
                   {#each logoPlacementOptions as option}
                     <option value={option.value}>{option.label}</option>
@@ -1056,7 +1056,7 @@
                 </select>
               </label>
               <label class="block">
-                <span class="mb-1 block text-sm font-semibold">Social media</span>
+                <span class="mb-1 block text-sm font-semibold">โซเชียลมีเดีย</span>
                 <select bind:value={logoPlacementSocial} class="input">
                   {#each logoPlacementOptions as option}
                     <option value={option.value}>{option.label}</option>
@@ -1064,7 +1064,7 @@
                 </select>
               </label>
               <label class="block">
-                <span class="mb-1 block text-sm font-semibold">Ads</span>
+                <span class="mb-1 block text-sm font-semibold">โฆษณา</span>
                 <select bind:value={logoPlacementAds} class="input">
                   {#each logoPlacementOptions as option}
                     <option value={option.value}>{option.label}</option>
@@ -1079,33 +1079,33 @@
           </section>
 
           <section class="rounded-xl border border-dark-100 dark:border-dark-700 bg-white dark:bg-dark-800 p-4 space-y-4">
-            <h2 class="font-bold text-dark-900 dark:text-dark-50">AI Prompt Guide</h2>
+            <h2 class="font-bold text-dark-900 dark:text-dark-50">แนวทางสั่ง AI สร้างภาพ</h2>
             <div class="grid md:grid-cols-2 gap-3">
-              <TextField label="Default prompt style TH" bind:value={aiPromptTh} />
-              <TextField label="Default prompt style EN" bind:value={aiPromptEn} />
-              <TextField label="Negative prompt TH" bind:value={negativePromptTh} />
-              <TextField label="Negative prompt EN" bind:value={negativePromptEn} />
+              <TextField label="สไตล์คำสั่งเริ่มต้น (ไทย)" bind:value={aiPromptTh} />
+              <TextField label="สไตล์คำสั่งเริ่มต้น (อังกฤษ)" bind:value={aiPromptEn} />
+              <TextField label="สิ่งที่ไม่ต้องการในภาพ (ไทย)" bind:value={negativePromptTh} />
+              <TextField label="สิ่งที่ไม่ต้องการในภาพ (อังกฤษ)" bind:value={negativePromptEn} />
             </div>
           </section>
 
           <section class="rounded-xl border border-dark-100 dark:border-dark-700 bg-white dark:bg-dark-800 p-4 space-y-4">
             <div class="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <h2 class="font-bold text-dark-900 dark:text-dark-50">Brand Moodboard & Sample Assets</h2>
-                <p class="mt-1 text-sm text-dark-900/60 dark:text-dark-100/60">สร้างตัวอย่าง copy และ key visual direction จาก Brandbook ปัจจุบัน แล้วบันทึกเป็น brand assets ใน Brandbook</p>
+                <h2 class="font-bold text-dark-900 dark:text-dark-50">ตัวอย่างงานแบรนด์</h2>
+                <p class="mt-1 text-sm text-dark-900/60 dark:text-dark-100/60">สร้างตัวอย่างข้อความและแนวภาพหลักจากคู่มือแบรนด์ปัจจุบัน แล้วบันทึกเป็นไฟล์แบรนด์ในคู่มือแบรนด์</p>
               </div>
               <button onclick={generateBrandMoodboard} disabled={isSaving} class="btn-primary">
-                {isSaving ? 'Generating...' : moodboardCopySamples.length || moodboardVisualSamples.length ? 'Regenerate samples' : 'Generate samples'}
+                {isSaving ? 'กำลังสร้าง...' : moodboardCopySamples.length || moodboardVisualSamples.length ? 'สร้างตัวอย่างใหม่' : 'สร้างตัวอย่าง'}
               </button>
             </div>
 
             {#if moodboardGeneratedAt}
-              <div class="text-xs text-dark-900/50 dark:text-dark-100/50">Generated {new Date(moodboardGeneratedAt).toLocaleString('th-TH')}</div>
+              <div class="text-xs text-dark-900/50 dark:text-dark-100/50">สร้างเมื่อ {new Date(moodboardGeneratedAt).toLocaleString('th-TH')}</div>
             {/if}
 
             {#if moodboardCopySamples.length}
               <div>
-                <h3 class="mb-2 text-sm font-bold text-dark-900 dark:text-dark-50">Sample Copy</h3>
+                <h3 class="mb-2 text-sm font-bold text-dark-900 dark:text-dark-50">ตัวอย่างข้อความ</h3>
                 <div class="grid md:grid-cols-2 gap-3">
                   {#each moodboardCopySamples as sample}
                     <div class="rounded-lg border border-dark-100 p-3 dark:border-dark-700">
@@ -1123,7 +1123,7 @@
 
             {#if moodboardVisualSamples.length}
               <div>
-                <h3 class="mb-2 text-sm font-bold text-dark-900 dark:text-dark-50">Sample Key Visual Directions</h3>
+                <h3 class="mb-2 text-sm font-bold text-dark-900 dark:text-dark-50">ตัวอย่างแนวภาพ</h3>
                 <div class="grid md:grid-cols-2 gap-3">
                   {#each moodboardVisualSamples as sample}
                     <div class="overflow-hidden rounded-lg border border-dark-100 dark:border-dark-700">
@@ -1133,7 +1133,7 @@
                       </div>
                       <div class="space-y-2 p-3">
                         <div class="text-sm font-semibold text-dark-900 dark:text-dark-50">{sample.concept.th}</div>
-                        <div class="text-xs text-dark-900/50 dark:text-dark-100/50">Logo: {placementLabel(sample.logo_placement)}</div>
+                        <div class="text-xs text-dark-900/50 dark:text-dark-100/50">ตำแหน่งโลโก้: {placementLabel(sample.logo_placement)}</div>
                         <div class="max-h-28 overflow-y-auto whitespace-pre-wrap rounded-md bg-dark-50 p-2 text-xs text-dark-900/70 dark:bg-dark-900 dark:text-dark-100/70">{sample.prompt.th}</div>
                       </div>
                     </div>
@@ -1142,76 +1142,76 @@
               </div>
             {:else}
               <div class="rounded-lg border border-dashed border-dark-200 p-4 text-center text-sm text-dark-900/50 dark:border-dark-700 dark:text-dark-100/50">
-                ยังไม่มี sample assets กด Generate samples เพื่อสร้างตัวอย่างงานที่ใช้ mood, tone, colors และ logo placement ของแบรนด์นี้
+                ยังไม่มีตัวอย่างงาน กดสร้างตัวอย่าง เพื่อสร้างตัวอย่างงานที่ใช้อารมณ์ภาพ โทนเสียง สี และตำแหน่งโลโก้ของแบรนด์นี้
               </div>
             {/if}
           </section>
 
           <section class="rounded-xl border border-dark-100 dark:border-dark-700 bg-white dark:bg-dark-800 p-4 space-y-4">
-            <h2 class="font-bold text-dark-900 dark:text-dark-50">Compliance</h2>
-            <TextField label="Disclaimer / legal note" bind:value={disclaimer} />
+            <h2 class="font-bold text-dark-900 dark:text-dark-50">ข้อความคำเตือน</h2>
+            <TextField label="ข้อความคำเตือน/ข้อจำกัดทางกฎหมาย" bind:value={disclaimer} />
           </section>
         </section>
 
         <aside class="space-y-4">
           <div class="rounded-xl border border-dark-100 dark:border-dark-700 bg-white dark:bg-dark-800 p-4">
-            <h2 class="font-bold text-dark-900 dark:text-dark-50">Actions</h2>
+            <h2 class="font-bold text-dark-900 dark:text-dark-50">จัดการ</h2>
             <div class="mt-3 space-y-2">
-              <button onclick={saveKit} disabled={isSaving} class="btn-primary w-full">{isSaving ? 'กำลังบันทึก...' : 'Save Brandbook'}</button>
+              <button onclick={saveKit} disabled={isSaving} class="btn-primary w-full">{isSaving ? 'กำลังบันทึก...' : 'บันทึกคู่มือแบรนด์'}</button>
               <label class="block">
-                <span class="mb-1 block text-sm font-semibold">Export language</span>
+                <span class="mb-1 block text-sm font-semibold">ภาษาที่จะส่งออก</span>
                 <select bind:value={exportLanguage} class="input">
-                  <option value="th">Thai</option>
-                  <option value="en">English</option>
-                  <option value="th-en">Thai + English</option>
+                  <option value="th">ไทย</option>
+                  <option value="en">อังกฤษ</option>
+                  <option value="th-en">ไทย + อังกฤษ</option>
                 </select>
               </label>
-              <button onclick={exportPdf} disabled={isExporting} class="btn-secondary w-full">{isExporting ? 'กำลังสร้าง export...' : 'Export PDF'}</button>
+              <button onclick={exportPdf} disabled={isExporting} class="btn-secondary w-full">{isExporting ? 'กำลังสร้างไฟล์...' : 'ส่งออกเป็น PDF'}</button>
               <button onclick={runSmartBrandbookWriting} disabled={isSmartWriting || isSaving} class="btn-secondary w-full">
-                {isSmartWriting ? 'AI กำลังเขียน...' : 'AI Smart Writing'}
+                {isSmartWriting ? 'AI กำลังเขียน...' : 'ให้ AI ช่วยเขียน'}
               </button>
-              <p class="text-xs text-dark-900/50 dark:text-dark-100/50">ให้ AI เติม/ปรับทุกช่องจากข้อมูลที่มี แล้วค่อยตรวจทานก่อน Save</p>
+              <p class="text-xs text-dark-900/50 dark:text-dark-100/50">ให้ AI เติม/ปรับทุกช่องจากข้อมูลที่มี แล้วค่อยตรวจทานก่อนกดบันทึกคู่มือแบรนด์</p>
             </div>
           </div>
 
           <div class="rounded-xl border border-dark-100 dark:border-dark-700 bg-white dark:bg-dark-800 p-4">
-            <h2 class="font-bold text-dark-900 dark:text-dark-50">Upload Brand Assets</h2>
+            <h2 class="font-bold text-dark-900 dark:text-dark-50">อัปโหลดไฟล์แบรนด์</h2>
             <div class="mt-3 space-y-3">
               <label class="block">
-                <span class="mb-1 block text-sm font-semibold">Save as filename</span>
+                <span class="mb-1 block text-sm font-semibold">บันทึกเป็นชื่อไฟล์</span>
                 <input bind:value={uploadName} placeholder="เช่น primary-logo.png" class="input" />
               </label>
               <label class="block">
-                <span class="mb-1 block text-sm font-semibold">Tags</span>
-                <input bind:value={uploadTags} placeholder="Products, People, Styles, Logo" class="input" />
+                <span class="mb-1 block text-sm font-semibold">แท็ก</span>
+                <input bind:value={uploadTags} placeholder="เช่น สินค้า, คน, สไตล์, โลโก้" class="input" />
               </label>
               <label class="flex items-start gap-2 text-sm">
                 <input type="checkbox" bind:checked={uploadLicenseConfirmed} class="mt-1" />
-                <span>ยืนยันว่ามีสิทธิ์ใช้ไฟล์นี้ใน Brandbook</span>
+                <span>ยืนยันว่ามีสิทธิ์ใช้ไฟล์นี้ในคู่มือแบรนด์</span>
               </label>
               <label class="block">
-                <span class="mb-1 block text-sm font-semibold">License note</span>
+                <span class="mb-1 block text-sm font-semibold">หมายเหตุลิขสิทธิ์</span>
                 <textarea bind:value={uploadLicenseNote} rows="2" class="input"></textarea>
               </label>
               <div class="grid gap-2">
                 <label class="btn-secondary w-full cursor-pointer text-center">
-                  Choose Logo
+                  เลือกโลโก้
                   <input type="file" accept="image/jpeg,image/png,image/webp" class="sr-only" disabled={isUploadingAsset} onchange={(event) => chooseBrandAsset(event, 'logo_primary')} />
                 </label>
                 <label class="btn-secondary w-full cursor-pointer text-center">
-                  Choose Font
+                  เลือกฟอนต์
                   <input type="file" accept=".ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2" class="sr-only" disabled={isUploadingAsset} onchange={(event) => chooseBrandAsset(event, 'font')} />
                 </label>
                 {#if pendingUploadFile}
                   <div class="rounded-lg border border-dark-100 bg-dark-50 p-2 text-xs dark:border-dark-700 dark:bg-dark-900">
                     <div class="font-semibold text-dark-900 dark:text-dark-50">{pendingUploadFile.name}</div>
-                    <div class="text-dark-900/50 dark:text-dark-100/50">{pendingUploadRole === 'font' ? 'Font' : 'Logo'} · แก้ชื่อ/แท็กด้านบนก่อนกด Finish upload</div>
+                    <div class="text-dark-900/50 dark:text-dark-100/50">{pendingUploadRole === 'font' ? 'ฟอนต์' : 'โลโก้'} · แก้ชื่อ/แท็กด้านบนก่อนกดอัปโหลดเสร็จสิ้น</div>
                   </div>
                   <div class="grid grid-cols-2 gap-2">
                     <button onclick={finishBrandAssetUpload} disabled={isUploadingAsset} class="btn-primary w-full">
-                      {isUploadingAsset ? 'Uploading...' : 'Finish upload'}
+                      {isUploadingAsset ? 'กำลังอัปโหลด...' : 'อัปโหลดเสร็จสิ้น'}
                     </button>
-                    <button onclick={clearPendingUpload} disabled={isUploadingAsset} class="btn-secondary w-full">Cancel</button>
+                    <button onclick={clearPendingUpload} disabled={isUploadingAsset} class="btn-secondary w-full">ยกเลิก</button>
                   </div>
                 {/if}
               </div>
@@ -1219,7 +1219,7 @@
           </div>
 
           <div class="rounded-xl border border-dark-100 dark:border-dark-700 bg-white dark:bg-dark-800 p-4">
-            <h2 class="font-bold text-dark-900 dark:text-dark-50">Linked Assets</h2>
+            <h2 class="font-bold text-dark-900 dark:text-dark-50">ไฟล์ที่ผูกไว้</h2>
             <div class="mt-3 space-y-2">
               {#each assets as asset}
                 <div class="flex gap-3 rounded-lg border border-dark-100 p-2 text-sm dark:border-dark-700">
@@ -1246,12 +1246,12 @@
                     onclick={() => removeLinkedAsset(asset)}
                     class="shrink-0 rounded-md border border-red-200 px-2 py-1 text-xs font-semibold text-red-600 hover:bg-red-50 dark:border-red-900 dark:text-red-300 dark:hover:bg-red-950/40"
                   >
-                    Remove
+                    ลบออก
                   </button>
                 </div>
               {:else}
                 <div class="rounded-lg border border-dashed border-dark-200 p-3 text-center text-sm text-dark-900/50 dark:border-dark-700 dark:text-dark-100/50">
-                  ยังไม่มี asset ที่ผูกกับ Brand Kit
+                  ยังไม่มีไฟล์ที่ผูกกับชุดแบรนด์นี้
                 </div>
               {/each}
             </div>

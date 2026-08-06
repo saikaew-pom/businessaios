@@ -62,14 +62,14 @@
     try {
       await addStepAsset(projectId, stepNumber, {
         kind: 'note',
-        title: newNoteTitle.trim() || 'Note',
+        title: newNoteTitle.trim() || 'โน้ต',
         content: newNoteContent.trim(),
       });
       newNoteTitle = '';
       newNoteContent = '';
       await loadAll();
     } catch (err: any) {
-      alert('Error: ' + err.message);
+      alert('เกิดข้อผิดพลาด: ' + err.message);
     } finally {
       isAddingNote = false;
     }
@@ -99,7 +99,7 @@
       newFileTitle = '';
       await loadAll();
     } catch (err: any) {
-      alert('Error: ' + err.message);
+      alert('เกิดข้อผิดพลาด: ' + err.message);
     } finally {
       isUploadingFile = false;
     }
@@ -120,7 +120,7 @@
       linkToolSaveId = '';
       await loadAll();
     } catch (err: any) {
-      alert('Error: ' + err.message);
+      alert('เกิดข้อผิดพลาด: ' + err.message);
     } finally {
       isAddingLink = false;
     }
@@ -194,7 +194,7 @@
             {#each assets.filter(a => a.kind === 'note') as note}
               <div class="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-lg group">
                 <div class="flex items-start justify-between gap-2">
-                  <div class="font-semibold text-sm text-amber-900 dark:text-amber-200">📝 {note.title || 'Note'}</div>
+                  <div class="font-semibold text-sm text-amber-900 dark:text-amber-200">📝 {note.title || 'โน้ต'}</div>
                   <button onclick={() => handleDeleteAsset(note.id)} class="text-xs text-red-600 dark:text-red-400 opacity-0 group-hover:opacity-100">🗑️</button>
                 </div>
                 <div class="text-sm text-dark-900/80 dark:text-dark-100/80 mt-1 whitespace-pre-wrap">{note.content}</div>
@@ -204,8 +204,8 @@
           <details class="bg-dark-50 dark:bg-dark-900 rounded-lg p-3">
             <summary class="text-sm font-semibold cursor-pointer">+ เพิ่มโน้ต</summary>
             <div class="mt-2 space-y-2">
-              <input type="text" bind:value={newNoteTitle} placeholder="ชื่อโน้ต (เช่น 'Focus group feedback')" class="w-full px-3 py-2 text-sm rounded border border-dark-200 dark:border-dark-600" />
-              <textarea bind:value={newNoteContent} rows="3" placeholder="โน้ต/บริบทเพิ่มเติม เช่น pain point ที่ค้นพบ, ข้อจำกัด, ตัวอย่าง" class="w-full px-3 py-2 text-sm rounded border border-dark-200 dark:border-dark-600"></textarea>
+              <input type="text" bind:value={newNoteTitle} placeholder="ชื่อโน้ต (เช่น 'ฟีดแบ็กจากกลุ่มลูกค้า')" class="w-full px-3 py-2 text-sm rounded border border-dark-200 dark:border-dark-600" />
+              <textarea bind:value={newNoteContent} rows="3" placeholder="โน้ต/บริบทเพิ่มเติม เช่น ปัญหาที่ค้นพบ, ข้อจำกัด, ตัวอย่าง" class="w-full px-3 py-2 text-sm rounded border border-dark-200 dark:border-dark-600"></textarea>
               <button type="button" onclick={handleAddNote} disabled={isAddingNote || !newNoteContent.trim()} class="btn-secondary text-sm disabled:opacity-50">
                 {isAddingNote ? '...' : '💾 บันทึกโน้ต'}
               </button>
@@ -232,7 +232,7 @@
           <details class="bg-dark-50 dark:bg-dark-900 rounded-lg p-3">
             <summary class="text-sm font-semibold cursor-pointer">+ อัปโหลดไฟล์ context (text/csv/json ≤ 200KB)</summary>
             <div class="mt-2 space-y-2">
-              <input type="text" bind:value={newFileTitle} placeholder="ชื่อ (optional)" class="w-full px-3 py-2 text-sm rounded border border-dark-200 dark:border-dark-600" />
+              <input type="text" bind:value={newFileTitle} placeholder="ชื่อ (ถ้ามี)" class="w-full px-3 py-2 text-sm rounded border border-dark-200 dark:border-dark-600" />
               <input type="file" accept=".txt,.csv,.json,.md,text/*" onchange={handleFileUpload} disabled={isUploadingFile} class="text-sm" />
               <p class="text-xs text-dark-900/50 dark:text-dark-100/50">รองรับ text, csv, json — เนื้อหาจะถูกส่งให้ระบบอัจฉริยะเป็น context</p>
             </div>

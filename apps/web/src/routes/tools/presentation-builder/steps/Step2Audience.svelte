@@ -64,15 +64,15 @@
 
 <div class="space-y-6">
   <div>
-    <h2 class="text-2xl font-bold mb-2">👥 Audience Profile</h2>
-    <p class="text-sm text-dark-900/60 dark:text-dark-100/60">ระบุผู้ฟัง — ระบบอัจฉริยะ จะสร้าง persona card และ handling strategy</p>
+    <h2 class="text-2xl font-bold mb-2">👥 คนที่จะมาฟังเรา</h2>
+    <p class="text-sm text-dark-900/60 dark:text-dark-100/60">บอกเราว่าใครจะมาฟัง — ระบบอัจฉริยะจะช่วยสรุปว่าเขาเป็นคนแบบไหน และแนะนำวิธีคุยกับเขา</p>
     <button
       type="button"
       onclick={handleAutofill}
       disabled={isAutofilling}
       class="mt-2 text-sm font-semibold text-primary-600 dark:text-primary-400 hover:text-primary-700 disabled:opacity-40 disabled:cursor-not-allowed"
     >
-      {isAutofilling ? '⏳ AI กำลังช่วยกรอก...' : '✨ ให้ AI ช่วยกรอก Audience Profile'}
+      {isAutofilling ? '⏳ AI กำลังช่วยกรอก...' : '✨ ให้ AI ช่วยกรอกข้อมูลผู้ฟัง'}
     </button>
     {#if autofillError}
       <p class="mt-1 text-xs text-red-600 dark:text-red-400">{autofillError}</p>
@@ -92,7 +92,7 @@
     </div>
 
     <div>
-      <label class="block text-sm font-medium text-dark-700 dark:text-dark-200 mb-1">บริบทธุรกิจ (optional)</label>
+      <label class="block text-sm font-medium text-dark-700 dark:text-dark-200 mb-1">บริบทธุรกิจ (ไม่บังคับ)</label>
       <textarea
         bind:value={business_context}
         rows="2"
@@ -102,7 +102,7 @@
     </div>
 
     <div>
-      <label class="block text-sm font-medium text-dark-700 dark:text-dark-200 mb-2">Communication Style * (เลือกได้หลายข้อ)</label>
+      <label class="block text-sm font-medium text-dark-700 dark:text-dark-200 mb-2">ผู้ฟังชอบให้คุยแบบไหน * (เลือกได้หลายข้อ)</label>
       <p class="text-xs text-dark-900/60 dark:text-dark-100/60 mb-3">ผู้ฟังของคุณคิดและตัดสินใจแบบไหน?</p>
       <div class="grid grid-cols-2 gap-3">
         {#if presets}
@@ -124,7 +124,7 @@
     </div>
 
     <div>
-      <label class="block text-sm font-medium text-dark-700 dark:text-dark-200 mb-2">Concerns ที่ผู้ฟังอาจกังวล (เลือกได้หลายข้อ)</label>
+      <label class="block text-sm font-medium text-dark-700 dark:text-dark-200 mb-2">เรื่องที่ผู้ฟังอาจกังวล (เลือกได้หลายข้อ)</label>
       <div class="flex flex-wrap gap-2">
         {#if presets}
           {#each presets.audience_concerns as concern}
@@ -143,9 +143,9 @@
     <div class="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-lg p-3 text-sm text-blue-800 dark:text-blue-300">
       💡 ระบบอัจฉริยะ จะ:
       <ul class="mt-1 ml-4 list-disc text-xs">
-        <li>สร้าง persona card (role, decision_style, motivations, fears)</li>
-        <li>แนะนำ handling strategy (data_density, visual_density, opening approach)</li>
-        <li>วางแผนว่าแต่ละ concern จะถูกตอบใน slide ไหน</li>
+        <li>สรุปว่าผู้ฟังของคุณเป็นคนแบบไหน อยากได้อะไร กลัวอะไร</li>
+        <li>แนะนำวิธีนำเสนอให้เหมาะกับเขา เช่น ควรใส่ข้อมูลเยอะแค่ไหน เปิดเรื่องยังไง</li>
+        <li>วางแผนว่าจะตอบความกังวลแต่ละข้อในสไลด์ไหน</li>
       </ul>
     </div>
 
@@ -154,7 +154,7 @@
       disabled={isGenerating || !audience_role.trim() || communication_styles.length === 0}
       class="w-full bg-primary-600 hover:bg-primary-700 disabled:bg-dark-300 text-white font-semibold py-3 rounded-lg transition"
     >
-      {isGenerating ? '⚙️ ระบบอัจฉริยะ กำลังวิเคราะห์...' : '✨ Generate Persona Card → Step 3'}
+      {isGenerating ? '⚙️ ระบบอัจฉริยะ กำลังวิเคราะห์...' : '✨ สร้างโปรไฟล์ผู้ฟัง แล้วไปขั้นตอนที่ 3'}
     </button>
   </form>
 </div>

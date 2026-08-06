@@ -31,6 +31,7 @@
 
   let selectedPreset = $state<string | null>(null);
   let showPresets = $state(true);
+  let showPrinciple = $state(false);
 
   function applyPreset(p: BrandVoicePreset) {
     selectedPreset = p.id;
@@ -243,8 +244,8 @@
 </script>
 
 <ToolLayout
-  title="Brand Voice Generator"
-  subtitle="สร้าง Brand Voice & Tone ที่จำง่าย ต่างจากคู่แข่ง ใช้ได้จริงทุกแพลตฟอร์ม — ด้วย SPICE Framework"
+  title="หาโทนเสียงแบรนด์"
+  subtitle="หาโทนการพูดของแบรนด์ที่จำง่าย ต่างจากคู่แข่ง ใช้ได้จริงทุกช่องทาง"
   icon="🎙️"
   color="purple"
 >
@@ -254,13 +255,25 @@
       <div class="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/40 dark:to-blue-950/40 border border-purple-200 dark:border-purple-800 rounded-xl p-4">
         <div class="flex items-center justify-between mb-2">
           <div>
-            <div class="font-semibold text-purple-900 dark:text-purple-200">🎯 เริ่มจาก Preset (12 Brand Archetypes)</div>
+            <div class="font-semibold text-purple-900 dark:text-purple-200">🎯 เริ่มจากแบบสำเร็จรูป (12 แบบบุคลิกแบรนด์)</div>
             <div class="text-xs text-purple-700 dark:text-purple-400">คลิกเพื่อเติมข้อมูลอัตโนมัติ แล้วแก้ต่อได้</div>
           </div>
           {#if selectedPreset}
             <button type="button" onclick={clearPreset} class="text-xs text-purple-700 dark:text-purple-400 hover:underline">ล้างค่า</button>
           {/if}
         </div>
+        <button
+          type="button"
+          onclick={() => showPrinciple = !showPrinciple}
+          class="mb-2 text-xs text-purple-700/70 dark:text-purple-300/70 underline decoration-dotted hover:text-purple-700 dark:hover:text-purple-300"
+        >
+          {showPrinciple ? 'ซ่อนหลักการ' : 'ดูหลักการ'}
+        </button>
+        {#if showPrinciple}
+          <div class="mb-3 text-xs text-purple-700/70 dark:text-purple-300/70">
+            ใช้หลักการ SPICE Framework ช่วยออกแบบโทนเสียงแบรนด์ให้ครบทุกมิติ ตั้งแต่บุคลิก คำศัพท์ ไปจนถึงตัวอย่างประโยคใช้จริง
+          </div>
+        {/if}
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {#each BRAND_VOICE_PRESETS as preset}
             <button
@@ -327,34 +340,34 @@
 
       <div class="pt-4 flex items-center justify-end border-t border-dark-100 dark:border-dark-700">
         <button onclick={handleGenerate} disabled={isGenerating} class="btn-primary disabled:opacity-50">
-          {isGenerating ? '⏳ ระบบอัจฉริยะ กำลังคิด...' : '🎙️ สร้าง Brand Voice'}
+          {isGenerating ? '⏳ ระบบอัจฉริยะ กำลังคิด...' : '🎙️ หาโทนเสียงแบรนด์'}
         </button>
       </div>
     </div>
   {:else}
     <div class="space-y-5">
       <div class="bg-gradient-to-br from-purple-500 to-purple-700 text-white rounded-2xl p-6">
-        <div class="text-xs font-bold uppercase tracking-wider opacity-80 mb-1">Voice Summary</div>
+        <div class="text-xs font-bold uppercase tracking-wider opacity-80 mb-1">สรุปโทนเสียงแบรนด์</div>
         <div class="text-xl font-semibold">{output.voice_summary || '—'}</div>
       </div>
 
       {#if output.personality_archetype}
         <div class="bg-white dark:bg-dark-800 border border-dark-100 dark:border-dark-700 rounded-xl p-4">
-          <div class="text-xs font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-1">Personality Archetype</div>
+          <div class="text-xs font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-1">บุคลิกแบรนด์</div>
           <div class="text-lg font-semibold">{output.personality_archetype}</div>
         </div>
       {/if}
 
       {#if output.tone}
         <div class="bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800 rounded-xl p-4">
-          <div class="text-xs font-bold text-purple-700 dark:text-purple-400 uppercase tracking-wider mb-1">Tone</div>
+          <div class="text-xs font-bold text-purple-700 dark:text-purple-400 uppercase tracking-wider mb-1">โทนเสียง</div>
           <div class="font-semibold">{output.tone}</div>
         </div>
       {/if}
 
       {#if output.voice_attributes?.length}
         <div class="bg-white dark:bg-dark-800 border border-dark-100 dark:border-dark-700 rounded-xl p-5">
-          <div class="text-xs font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-3">🎯 Voice Attributes — หมายถึง / ไม่ได้หมายถึง</div>
+          <div class="text-xs font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-3">🎯 ลักษณะโทนเสียง — หมายถึง / ไม่ได้หมายถึง</div>
           <div class="space-y-3">
             {#each output.voice_attributes as attr}
               <div class="bg-dark-50 dark:bg-dark-900 rounded-lg p-3">
@@ -371,7 +384,7 @@
 
       {#if output.voice_dimensions}
         <div class="bg-white dark:bg-dark-800 border border-dark-100 dark:border-dark-700 rounded-xl p-5">
-          <div class="text-xs font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-3">📊 Voice Dimensions</div>
+          <div class="text-xs font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-3">📊 มิติของโทนเสียง</div>
           <div class="space-y-3">
             {#each Object.entries(output.voice_dimensions) as [k, v]}
               {@const score = Number(v)}
@@ -393,13 +406,13 @@
         <div class="grid sm:grid-cols-2 gap-3">
           {#if output.do_list?.length}
             <div class="bg-green-50 dark:bg-green-950/40 border border-green-300 dark:border-green-700 rounded-xl p-4">
-              <div class="text-xs font-bold text-green-700 dark:text-green-400 uppercase tracking-wider mb-2">✅ Do</div>
+              <div class="text-xs font-bold text-green-700 dark:text-green-400 uppercase tracking-wider mb-2">✅ ควรทำ</div>
               <ul class="space-y-1 text-sm">{#each output.do_list as d}<li class="flex gap-2"><span class="text-green-600 dark:text-green-400">✓</span>{d}</li>{/each}</ul>
             </div>
           {/if}
           {#if output.dont_list?.length}
             <div class="bg-red-50 dark:bg-red-950/40 border border-red-300 dark:border-red-700 rounded-xl p-4">
-              <div class="text-xs font-bold text-red-700 dark:text-red-400 uppercase tracking-wider mb-2">❌ Don't</div>
+              <div class="text-xs font-bold text-red-700 dark:text-red-400 uppercase tracking-wider mb-2">❌ ไม่ควรทำ</div>
               <ul class="space-y-1 text-sm">{#each output.dont_list as d}<li class="flex gap-2"><span class="text-red-600 dark:text-red-400">✗</span>{d}</li>{/each}</ul>
             </div>
           {/if}
@@ -408,7 +421,7 @@
 
       {#if output.vocabulary}
         <div class="bg-white dark:bg-dark-800 border border-dark-100 dark:border-dark-700 rounded-xl p-5">
-          <div class="text-xs font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-3">📚 Vocabulary</div>
+          <div class="text-xs font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-3">📚 คำศัพท์ที่ใช้</div>
           <div class="grid sm:grid-cols-2 gap-3">
             {#if output.vocabulary.use_words?.length}
               <div>
@@ -428,7 +441,7 @@
 
       {#if output.sample_phrases}
         <div class="bg-white dark:bg-dark-800 border border-dark-100 dark:border-dark-700 rounded-xl p-5">
-          <div class="text-xs font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-3">💬 Sample Phrases</div>
+          <div class="text-xs font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-3">💬 ตัวอย่างประโยค</div>
           <div class="space-y-3">
             {#each Object.entries(output.sample_phrases) as [context, phrases]}
               {#if Array.isArray(phrases) && phrases.length}
@@ -446,7 +459,7 @@
 
       {#if output.content_examples}
         <div class="bg-white dark:bg-dark-800 border border-dark-100 dark:border-dark-700 rounded-xl p-5">
-          <div class="text-xs font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-3">📝 Content Examples</div>
+          <div class="text-xs font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-3">📝 ตัวอย่างคอนเทนต์</div>
           <div class="space-y-3">
             {#each Object.entries(output.content_examples) as [platform, content]}
               <div class="bg-dark-50 dark:bg-dark-900 rounded-lg p-3">
@@ -460,7 +473,7 @@
 
       {#if output.self_check_list?.length}
         <div class="bg-dark-50 dark:bg-dark-900 border border-dark-200 dark:border-dark-600 rounded-xl p-4">
-          <div class="text-xs font-bold text-dark-900/70 dark:text-dark-100/70 uppercase tracking-wider mb-2">✅ Checklist ก่อนโพสต์</div>
+          <div class="text-xs font-bold text-dark-900/70 dark:text-dark-100/70 uppercase tracking-wider mb-2">✅ เช็คก่อนโพสต์ทุกครั้ง</div>
           <ul class="space-y-1 text-sm">
             {#each output.self_check_list as item}<li class="flex gap-2"><input type="checkbox" class="mt-1" /><span>{item}</span></li>{/each}
           </ul>

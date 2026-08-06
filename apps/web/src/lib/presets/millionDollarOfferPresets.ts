@@ -8,76 +8,76 @@
 export const OFFER_TYPES = [
   {
     id: 'service_one_off',
-    label: '🛎️ Service (ครั้งเดียว)',
+    label: '🛎️ บริการครั้งเดียว',
     desc: 'ให้บริการรายครั้ง เช่น คอร์สเรียน, คลินิก, ที่ปรึกษา',
   },
   {
     id: 'subscription',
-    label: '🔄 Subscription (รายเดือน/ปี)',
-    desc: 'เก็บค่าสมาชิกต่อเนื่อง เช่น SaaS, membership, gym',
+    label: '🔄 สมัครสมาชิกรายเดือน/ปี',
+    desc: 'เก็บค่าสมาชิกต่อเนื่อง เช่น โปรแกรมออนไลน์, ฟิตเนส',
   },
   {
     id: 'product_bundle',
-    label: '📦 Product Bundle (ชุดสินค้า)',
-    desc: 'รวมสินค้าหลายชิ้นเป็นชุด พร้อม bonus',
+    label: '📦 ชุดสินค้ารวม',
+    desc: 'รวมสินค้าหลายชิ้นเป็นชุด พร้อมของแถม',
   },
   {
     id: 'high_ticket',
-    label: '💎 High-Ticket (ราคาสูง)',
-    desc: 'ราคา ≥ 50,000 บาท ต่อ offer เช่น consulting, premium service',
+    label: '💎 สินค้า/บริการราคาสูง',
+    desc: 'ราคา ≥ 50,000 บาท ต่อข้อเสนอ เช่น งานที่ปรึกษา, บริการระดับพรีเมียม',
   },
   {
     id: 'cohort_program',
-    label: '👥 Cohort Program (กลุ่ม)',
-    desc: 'โปรแกรมกลุ่มที่รันพร้อมกัน เช่น bootcamp, accelerator',
+    label: '👥 คอร์สแบบกลุ่ม',
+    desc: 'โปรแกรมกลุ่มที่เริ่มพร้อมกัน เช่น คอร์สเข้มข้น, โปรแกรมเร่งรัดธุรกิจ',
   },
   {
     id: 'course_diy',
-    label: '🎓 DIY Course (เรียนเอง)',
-    desc: 'คอร์สออนไลน์เรียนเอง เช่น video course, ebook bundle',
+    label: '🎓 คอร์สเรียนด้วยตัวเอง',
+    desc: 'คอร์สออนไลน์เรียนเอง เช่น วิดีโอคอร์ส, ชุดอีบุ๊ก',
   },
   {
     id: 'physical_product',
-    label: '🏷️ Physical Product',
-    desc: 'สินค้าจับต้องได้ + bonus accessories',
+    label: '🏷️ สินค้าจับต้องได้',
+    desc: 'สินค้าจับต้องได้ พร้อมของแถม',
   },
 ];
 
 export const DELIVERY_METHODS = [
   {
     id: '1on1',
-    label: '👤 1-on-1 (ตัวต่อตัว)',
+    label: '👤 ตัวต่อตัว',
     desc: 'ให้บริการเฉพาะเจาะจง ลูกค้า 1 คน',
   },
   {
     id: 'small_group',
-    label: '👥 Small Group (3-10 คน)',
-    desc: 'กลุ่มเล็ก ใกล้ชิด มี interaction',
+    label: '👥 กลุ่มเล็ก (3-10 คน)',
+    desc: 'กลุ่มเล็ก ใกล้ชิด มีการพูดคุยโต้ตอบ',
   },
   {
     id: 'cohort',
-    label: '🎪 Cohort (20-100 คน)',
+    label: '🎪 กลุ่มใหญ่ (20-100 คน)',
     desc: 'กลุ่มใหญ่ที่รันพร้อมกัน',
   },
   {
     id: 'self_paced',
-    label: '🎬 Self-Paced (เรียนเอง)',
+    label: '🎬 เรียนด้วยตัวเอง',
     desc: 'วิดีโอ/คอร์สออนไลน์ เรียนเมื่อไหร่ก็ได้',
   },
   {
     id: 'dfy',
-    label: '🛠️ Done-For-You (ทำให้)',
+    label: '🛠️ ทำให้ทั้งหมด',
     desc: 'เราทำให้ทั้งหมด ลูกค้าแค่รอ',
   },
   {
     id: 'dwy',
-    label: '🤝 Done-With-You (ทำด้วยกัน)',
+    label: '🤝 ทำด้วยกัน',
     desc: 'เราทำด้วย แนะนำ ลูกค้าทำเอง',
   },
   {
     id: 'diy',
-    label: '📚 DIY (ทำเอง)',
-    desc: 'ลูกค้าทำเอง เรามี template/guide',
+    label: '📚 ทำเอง',
+    desc: 'ลูกค้าทำเอง เรามีแบบฟอร์ม/คู่มือให้',
   },
 ];
 

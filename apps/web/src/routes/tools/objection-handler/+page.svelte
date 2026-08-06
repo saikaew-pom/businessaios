@@ -45,6 +45,7 @@
   let saveMsg = $state('');
   let isPromoting = $state(false);
   let promoteMsg = $state('');
+  let showPrinciple = $state(false);
 
   $effect(() => {
     listSavedTools({ tool_type: 'million_dollar_offer' }).then(s => { offer_saves = s || []; }).catch(() => {});
@@ -245,21 +246,31 @@ Guarantee: ${s.output?.guarantee?.name || '-'}`;
 </script>
 
 <ToolLayout
-  title="Objection Handler"
-  subtitle="จัดการข้อโต้แย้งลูกค้า — 7 Categories + LAER + Reframing"
+  title="เตรียมคำตอบลูกค้าลังเล"
+  subtitle="เตรียมคำตอบให้พร้อมเวลาลูกค้าต่อรองหรือลังเลใจ"
   icon="🛡️"
   color="rose"
 >
   {#if !output}
     <div class="space-y-5">
       <div class="bg-gradient-to-r from-rose-50 dark:from-rose-950/40 to-pink-50 dark:to-dark-900 border border-rose-200 dark:border-rose-800 rounded-xl p-4">
-        <div class="font-semibold text-rose-900 dark:text-rose-200 mb-1">🛡️ Objection Handler</div>
+        <div class="font-semibold text-rose-900 dark:text-rose-200 mb-1">🛡️ เครื่องมือนี้ช่วยอะไร</div>
         <div class="text-sm text-rose-800 dark:text-rose-300 space-y-1">
-          <div><b>7 Objection Categories:</b> Price · Trust · Need · Time · Authority · Comparison · Risk</div>
-          <div><b>LAER Framework:</b> Listen → Acknowledge → Explore → Respond</div>
-          <div><b>Reframing:</b> Value / Cost of Inaction / Comparison / Risk Reversal / Identity / Time / ROI</div>
-          <div><b>Output:</b> 5-8 objections + response scripts + evidence + bridge to close + FAQ Top 5</div>
+          <div>รวมคำถามที่ลูกค้าลังเลบ่อยๆ (แพงไป ไม่มั่นใจ ยังไม่พร้อม ฯลฯ) แล้วเตรียมบทตอบให้พร้อมล่วงหน้า</div>
+          <div>ได้บทตอบ 5-8 ข้อ พร้อมหลักฐานอ้างอิง ประโยคโน้มน้าวต่อ และคำถามที่ลูกค้าถามบ่อย</div>
         </div>
+        <button
+          type="button"
+          onclick={() => showPrinciple = !showPrinciple}
+          class="mt-2 text-xs text-rose-700/70 dark:text-rose-300/70 underline decoration-dotted hover:text-rose-700 dark:hover:text-rose-300"
+        >
+          {showPrinciple ? 'ซ่อนหลักการ' : 'ดูหลักการ'}
+        </button>
+        {#if showPrinciple}
+          <div class="mt-1.5 text-xs text-rose-700/70 dark:text-rose-300/70">
+            แบ่งข้อโต้แย้งเป็น 7 กลุ่ม (ราคา/ความน่าเชื่อถือ/ความจำเป็น/เวลา/อำนาจตัดสินใจ/เทียบคู่แข่ง/ความเสี่ยง) ตอบด้วยเทคนิค LAER (ฟัง → รับรู้ → สำรวจ → ตอบ) และปรับมุมมองด้วยเทคนิค Reframing
+          </div>
+        {/if}
       </div>
 
       <div>
@@ -294,20 +305,20 @@ Guarantee: ${s.output?.guarantee?.name || '-'}`;
       </div>
 
       <div>
-        <label class="block text-sm font-semibold mb-1.5">Product / Service *</label>
+        <label class="block text-sm font-semibold mb-1.5">สินค้า/บริการของคุณ *</label>
         <textarea bind:value={product_description} rows="3" placeholder="เช่น ขนมบ้านโกไข่ ขนมใต้สูตรโบราณ 28 สาขา" class="w-full px-3 py-2.5 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"></textarea>
       </div>
 
       <div>
-        <label class="block text-sm font-semibold mb-1.5">Features / จุดเด่น</label>
+        <label class="block text-sm font-semibold mb-1.5">จุดเด่น</label>
         <textarea bind:value={product_features} rows="2" placeholder="เช่น 1) สูตรโบราณ 2) วัตถุดิบสด 3) ปั๊ม ปตท." class="w-full px-3 py-2.5 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"></textarea>
       </div>
 
       <!-- Sales Context -->
       <div class="bg-gradient-to-r from-rose-50 dark:from-rose-950/40 to-pink-50 dark:to-dark-900 border-2 border-rose-300 dark:border-rose-700 rounded-xl p-4 space-y-3">
-        <div class="font-semibold text-rose-900 dark:text-rose-200">💬 Sales Context (3 ตัวเลือก)</div>
+        <div class="font-semibold text-rose-900 dark:text-rose-200">💬 บริบทการขาย (เลือกได้ 3 อย่าง)</div>
         <div>
-          <label class="block text-xs font-semibold text-rose-800 dark:text-rose-300 mb-1">💬 Sales Channel</label>
+          <label class="block text-xs font-semibold text-rose-800 dark:text-rose-300 mb-1">💬 ช่องทางขาย</label>
           <select bind:value={sales_channel} class="w-full px-2.5 py-1.5 rounded border border-rose-200 dark:border-rose-800 text-sm">
             <option value="">— เลือก / ปล่อยว่าง —</option>
             {#each SALES_CHANNELS as c}
@@ -316,7 +327,7 @@ Guarantee: ${s.output?.guarantee?.name || '-'}`;
           </select>
         </div>
         <div>
-          <label class="block text-xs font-semibold text-rose-800 dark:text-rose-300 mb-1">💎 Price Position</label>
+          <label class="block text-xs font-semibold text-rose-800 dark:text-rose-300 mb-1">💎 ระดับราคาเทียบตลาด</label>
           <select bind:value={price_position} class="w-full px-2.5 py-1.5 rounded border border-rose-200 dark:border-rose-800 text-sm">
             <option value="">— เลือก / ปล่อยว่าง —</option>
             {#each PRICE_POSITIONS as p}
@@ -325,7 +336,7 @@ Guarantee: ${s.output?.guarantee?.name || '-'}`;
           </select>
         </div>
         <div>
-          <label class="block text-xs font-semibold text-rose-800 dark:text-rose-300 mb-1">⚠️ Top Objection ที่เจอบ่อย (ถ้ามี)</label>
+          <label class="block text-xs font-semibold text-rose-800 dark:text-rose-300 mb-1">⚠️ ข้อลังเลที่เจอบ่อย (ถ้ามี)</label>
           <input type="text" bind:value={known_objection} placeholder="เช่น แพงไป / ขนมใต้ไม่เหมือนเดิม" class="w-full px-2.5 py-1.5 rounded border border-rose-200 dark:border-rose-800 text-sm" />
         </div>
       </div>
@@ -333,10 +344,10 @@ Guarantee: ${s.output?.guarantee?.name || '-'}`;
       <!-- Optional pre-fill -->
       {#if offer_saves.length > 0 || competitor_saves.length > 0 || persona_saves.length > 0}
         <div class="bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-300 dark:border-amber-700 rounded-xl p-3 space-y-2">
-          <div class="font-semibold text-amber-900 dark:text-amber-200 text-sm">🔗 เชื่อม strategic tools ที่เคยวิเคราะห์ไว้ (optional)</div>
+          <div class="font-semibold text-amber-900 dark:text-amber-200 text-sm">🔗 เชื่อมข้อมูลจากเครื่องมืออื่นที่เคยวิเคราะห์ไว้ (ไม่บังคับ)</div>
           {#if offer_saves.length > 0}
             <div>
-              <label class="block text-xs font-semibold text-amber-800 dark:text-amber-300 mb-1">💎 Offer</label>
+              <label class="block text-xs font-semibold text-amber-800 dark:text-amber-300 mb-1">💎 ข้อเสนอ</label>
               <select bind:value={selectedOfferId} class="w-full px-2.5 py-1.5 rounded border border-amber-200 dark:border-amber-800 text-sm">
                 <option value="">— ไม่ใช้ Offer —</option>
                 {#each offer_saves as o}<option value={o.id}>💎 {o.title}</option>{/each}
@@ -345,7 +356,7 @@ Guarantee: ${s.output?.guarantee?.name || '-'}`;
           {/if}
           {#if competitor_saves.length > 0}
             <div>
-              <label class="block text-xs font-semibold text-amber-800 dark:text-amber-300 mb-1">🔍 Competitor</label>
+              <label class="block text-xs font-semibold text-amber-800 dark:text-amber-300 mb-1">🔍 คู่แข่ง</label>
               <select bind:value={selectedCompetitorId} class="w-full px-2.5 py-1.5 rounded border border-amber-200 dark:border-amber-800 text-sm">
                 <option value="">— ไม่ใช้ Competitor —</option>
                 {#each competitor_saves as c}<option value={c.id}>🔍 {c.title}</option>{/each}
@@ -364,7 +375,7 @@ Guarantee: ${s.output?.guarantee?.name || '-'}`;
 
       <div class="pt-4 flex items-center justify-end border-t border-dark-100 dark:border-dark-700">
         <button onclick={handleGenerate} disabled={isGenerating} class="btn-primary disabled:opacity-50">
-          {isGenerating ? '⏳ ระบบอัจฉริยะ กำลังวิเคราะห์ Objections...' : '🛡️ สร้าง Objection Handler'}
+          {isGenerating ? '⏳ ระบบอัจฉริยะ กำลังเตรียมคำตอบ...' : '🛡️ เตรียมคำตอบลูกค้าลังเล'}
         </button>
       </div>
     </div>
@@ -372,7 +383,7 @@ Guarantee: ${s.output?.guarantee?.name || '-'}`;
     <div class="space-y-5">
       {#if output.summary}
         <div class="bg-primary-50 dark:bg-primary-900/40 border-l-4 border-primary-500 p-4 rounded-lg">
-          <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wider mb-1">สรุป Objection Playbook</div>
+          <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wider mb-1">สรุปผล</div>
           <div class="text-dark-900 dark:text-dark-50">{output.summary}</div>
         </div>
       {/if}
@@ -380,7 +391,7 @@ Guarantee: ${s.output?.guarantee?.name || '-'}`;
       <!-- Objections -->
       {#if output.objections?.length}
         <div class="space-y-3">
-          <h3 class="text-lg font-bold text-rose-900 dark:text-rose-200">🎯 Objections ({output.objections.length})</h3>
+          <h3 class="text-lg font-bold text-rose-900 dark:text-rose-200">🎯 ข้อที่ลูกค้ามักลังเล ({output.objections.length})</h3>
           {#each output.objections as o, i}
             <div class="bg-white dark:bg-dark-800 border-2 border-rose-200 dark:border-rose-800 rounded-xl p-4">
               <div class="flex items-center gap-2 mb-2 flex-wrap">
@@ -430,7 +441,7 @@ Guarantee: ${s.output?.guarantee?.name || '-'}`;
 
               {#if o.bridge_to_close}
                 <div class="bg-purple-50 dark:bg-purple-950/40 border-l-4 border-purple-500 dark:border-purple-600 rounded-r p-2 text-xs">
-                  <div class="text-[10px] text-purple-700 dark:text-purple-400 font-bold uppercase mb-0.5">🌉 Bridge to Close:</div>
+                  <div class="text-[10px] text-purple-700 dark:text-purple-400 font-bold uppercase mb-0.5">🌉 ปิดการขายต่อด้วย:</div>
                   <div class="text-purple-900 dark:text-purple-200">{o.bridge_to_close}</div>
                 </div>
               {/if}
@@ -442,7 +453,7 @@ Guarantee: ${s.output?.guarantee?.name || '-'}`;
       <!-- Common Patterns -->
       {#if output.common_patterns?.length}
         <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
-          <div class="font-semibold text-amber-900 dark:text-amber-200 mb-1.5 text-sm">🔁 Common Patterns</div>
+          <div class="font-semibold text-amber-900 dark:text-amber-200 mb-1.5 text-sm">🔁 รูปแบบที่เจอบ่อย</div>
           <ul class="text-sm text-amber-900 dark:text-amber-200 space-y-1">
             {#each output.common_patterns as p}<li>• {p}</li>{/each}
           </ul>
@@ -453,13 +464,13 @@ Guarantee: ${s.output?.guarantee?.name || '-'}`;
       {#if output.do_dont}
         <div class="grid md:grid-cols-2 gap-3">
           <div class="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-lg p-3">
-            <div class="font-semibold text-emerald-900 dark:text-emerald-200 mb-1.5 text-sm">✅ Do</div>
+            <div class="font-semibold text-emerald-900 dark:text-emerald-200 mb-1.5 text-sm">✅ ควรทำ</div>
             <ul class="text-sm text-emerald-900 dark:text-emerald-200 space-y-1">
               {#each (output.do_dont.do || []) as d}<li>✓ {d}</li>{/each}
             </ul>
           </div>
           <div class="bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-lg p-3">
-            <div class="font-semibold text-red-900 dark:text-red-200 mb-1.5 text-sm">❌ Don't</div>
+            <div class="font-semibold text-red-900 dark:text-red-200 mb-1.5 text-sm">❌ ไม่ควรทำ</div>
             <ul class="text-sm text-red-900 dark:text-red-200 space-y-1">
               {#each (output.do_dont.dont || []) as d}<li>✗ {d}</li>{/each}
             </ul>
@@ -470,7 +481,7 @@ Guarantee: ${s.output?.guarantee?.name || '-'}`;
       <!-- FAQ Top 5 -->
       {#if output.faq_top_5?.length}
         <div class="bg-white dark:bg-dark-800 border-2 border-rose-200 dark:border-rose-800 rounded-xl p-4">
-          <h3 class="font-bold text-rose-900 dark:text-rose-200 mb-2 text-sm">❓ FAQ Top 5</h3>
+          <h3 class="font-bold text-rose-900 dark:text-rose-200 mb-2 text-sm">❓ คำถามที่ลูกค้าถามบ่อย</h3>
           <div class="space-y-2">
             {#each output.faq_top_5 as f, i}
               <div class="border-l-4 border-rose-400 dark:border-rose-600 bg-rose-50 dark:bg-rose-950/40 rounded-r p-2 text-xs">
@@ -485,7 +496,7 @@ Guarantee: ${s.output?.guarantee?.name || '-'}`;
       <!-- Next Steps -->
       {#if output.next_steps?.length}
         <div class="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl p-3">
-          <div class="font-bold text-emerald-800 dark:text-emerald-300 uppercase text-xs mb-1.5">➡️ Next Steps</div>
+          <div class="font-bold text-emerald-800 dark:text-emerald-300 uppercase text-xs mb-1.5">➡️ ขั้นตอนต่อไป</div>
           <ul class="text-sm text-emerald-900 dark:text-emerald-200">
             {#each output.next_steps as s}<li>→ {s}</li>{/each}
           </ul>
@@ -509,8 +520,8 @@ Guarantee: ${s.output?.guarantee?.name || '-'}`;
           <button onclick={handleSave} disabled={isSaving} class="text-sm btn-secondary disabled:opacity-50">
             {isSaving ? '...' : (saveId ? '✓ บันทึกแล้ว' : '💾 บันทึก')}
           </button>
-          <button onclick={handlePromote} disabled={isPromoting} class="text-sm btn-secondary disabled:opacity-50" title="บันทึกเป็นโปรเจกต์ (import เข้า step 4, 5, 6)">
-            {isPromoting ? '...' : '📋 เป็น Playbook'}
+          <button onclick={handlePromote} disabled={isPromoting} class="text-sm btn-secondary disabled:opacity-50" title="บันทึกเป็นโปรเจกต์ (ใช้ต่อในขั้นตอน 4, 5, 6)">
+            {isPromoting ? '...' : '📋 ต่อยอดเป็นโปรเจกต์'}
           </button>
           {#if saveId}<CanvasPdfButton saveId={saveId} />{/if}
           <button onclick={() => handleExport('md')} class="text-sm btn-secondary">📥 .md</button>

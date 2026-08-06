@@ -15,6 +15,18 @@
   // plain language; framework jargon (MAGIC, LAER, SCQA, Osterwalder, ...) moves
   // into `principle`, shown only behind a "ดูหลักการ" toggle, not the main copy.
   // `isNew` kept only on the tool that's genuinely newest (was on all 8 before).
+  // `principle` holds the framework citation (SPICE/JTBD/LAER/etc) — kept out
+  // of the main card copy per commitment 3, revealed only via "ดูหลักการ".
+  let expandedPrinciples = $state(new Set<string>());
+  function togglePrinciple(e: MouseEvent, href: string) {
+    e.preventDefault();
+    e.stopPropagation();
+    const next = new Set(expandedPrinciples);
+    if (next.has(href)) next.delete(href);
+    else next.add(href);
+    expandedPrinciples = next;
+  }
+
   const categories = [
     {
       name: 'คิดกลยุทธ์',
@@ -167,7 +179,16 @@
               <div class="text-5xl mb-3">{tool.icon}</div>
               <h3 class="text-lg font-bold mb-1 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition">{tool.title}</h3>
               <p class="text-sm text-dark-900/70 dark:text-dark-100/70 leading-relaxed mb-3">{tool.subtitle}</p>
-              <p class="text-xs text-dark-900/40 dark:text-dark-100/40">{tool.principle}</p>
+              <button
+                type="button"
+                onclick={(e) => togglePrinciple(e, tool.href)}
+                class="text-xs text-dark-900/40 dark:text-dark-100/40 underline decoration-dotted hover:text-dark-900/60 dark:hover:text-dark-100/60"
+              >
+                {expandedPrinciples.has(tool.href) ? 'ซ่อนหลักการ' : 'ดูหลักการ'}
+              </button>
+              {#if expandedPrinciples.has(tool.href)}
+                <p class="mt-1 text-xs text-dark-900/50 dark:text-dark-100/50">{tool.principle}</p>
+              {/if}
               <div class="mt-4 text-sm text-primary-600 dark:text-primary-400 font-semibold flex items-center gap-1 group-hover:gap-2 transition-all">
                 เปิดเครื่องมือ
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>

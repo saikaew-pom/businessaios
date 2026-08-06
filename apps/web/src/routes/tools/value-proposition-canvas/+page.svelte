@@ -45,6 +45,7 @@
   let saveMsg = $state('');
   let isPromoting = $state(false);
   let promoteMsg = $state('');
+  let showPrinciple = $state(false);
 
   // Load JTBD saves on mount
   $effect(() => {
@@ -233,7 +234,7 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
       // Open canvas in new tab with auto-print
       const url = `${PUBLIC_API_URL}${res.download_url}?print=1`;
       const win = window.open(url, '_blank');
-      if (!win) alert('กรุณาอนุญาต popup เพื่อเปิด Canvas');
+      if (!win) alert('กรุณาอนุญาต popup เพื่อเปิดใบสรุป (PDF)');
     } catch (err: any) { alert(err.message); }
   }
 
@@ -271,21 +272,31 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
 </script>
 
 <ToolLayout
-  title="Value Proposition Canvas"
-  subtitle="ออกแบบ Value Proposition ที่ match กับ Customer — Problem-Solution Fit (Osterwalder + Pigneur)"
+  title="เช็คว่าสินค้าคุณตรงใจลูกค้าไหม"
+  subtitle="เทียบสิ่งที่ลูกค้าอยากได้ กับสิ่งที่สินค้าคุณให้ได้จริง แล้วดูว่าตรงกันแค่ไหน"
   icon="💎"
   color="purple"
 >
   {#if !output}
     <div class="space-y-5">
       <div class="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/40 dark:to-pink-950/40 border border-purple-200 dark:border-purple-800 rounded-xl p-4">
-        <div class="font-semibold text-purple-900 dark:text-purple-200 mb-1">💎 Value Proposition Canvas (Osterwalder 2014)</div>
+        <div class="font-semibold text-purple-900 dark:text-purple-200 mb-1">💎 เครื่องมือนี้ช่วยอะไร</div>
         <div class="text-sm text-purple-800 dark:text-purple-300 space-y-1">
-          <div><b>2 ฝั่ง:</b> Customer Profile (Jobs + Pains + Gains) ↔ Value Map (Products + Pain Relievers + Gain Creators)</div>
-          <div><b>Goal:</b> FIT = top pains ถูก relievers + top gains ถูก creators</div>
-          <div><b>3 Types of Fit:</b> Problem-Solution → Product-Market → Business Model</div>
-          <div><b>Bridge:</b> ต่อจาก JTBD (Jobs) → ไปสู่ BMC (Business Model)</div>
+          <div>บอกข้อมูลลูกค้า (ปัญหา + สิ่งที่อยากได้) และข้อมูลสินค้าคุณ (จุดเด่น + วิธีแก้ปัญหา) แล้วระบบจะเทียบให้ว่าตรงกันแค่ไหน</div>
+          <div>ได้ผลลัพธ์เป็นจุดที่สินค้าคุณตอบโจทย์ลูกค้าแล้ว จุดที่ยังขาด และประโยคขายที่เอาไปใช้ต่อได้เลย</div>
         </div>
+        <button
+          type="button"
+          onclick={() => showPrinciple = !showPrinciple}
+          class="mt-2 text-xs text-purple-700/70 dark:text-purple-300/70 underline decoration-dotted hover:text-purple-700 dark:hover:text-purple-300"
+        >
+          {showPrinciple ? 'ซ่อนหลักการ' : 'ดูหลักการ'}
+        </button>
+        {#if showPrinciple}
+          <div class="mt-1.5 text-xs text-purple-700/70 dark:text-purple-300/70">
+            อิงหลักการ Value Proposition Canvas ของ Osterwalder — เทียบฝั่งลูกค้า (Jobs/Pains/Gains) กับฝั่งสินค้าคุณ (Products/Pain Relievers/Gain Creators) เพื่อหาว่า "Fit" กันแค่ไหน
+          </div>
+        {/if}
       </div>
 
       <div>
@@ -326,7 +337,7 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
 
       <!-- Customer profile (mini) -->
       <div class="bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-950/40 dark:to-blue-950/40 border border-cyan-200 dark:border-cyan-800 rounded-xl p-4">
-        <div class="font-semibold text-cyan-900 dark:text-cyan-200 mb-2">👤 Customer (สำหรับ Customer Profile)</div>
+        <div class="font-semibold text-cyan-900 dark:text-cyan-200 mb-2">👤 ข้อมูลลูกค้า</div>
         <div class="grid sm:grid-cols-3 gap-3">
           <div>
             <label class="block text-xs font-semibold text-cyan-800 dark:text-cyan-300 mb-1">อายุ</label>
@@ -345,30 +356,30 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
 
       <!-- Product/Service (the heart of Value Map) -->
       <div class="bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-950/40 dark:to-pink-950/40 border-2 border-rose-300 dark:border-rose-700 rounded-xl p-4 space-y-3">
-        <div class="font-semibold text-rose-900 dark:text-rose-200">📦 Product / Service (สำหรับ Value Map) *</div>
+        <div class="font-semibold text-rose-900 dark:text-rose-200">📦 สินค้า/บริการของคุณ *</div>
         <div>
-          <label class="block text-xs font-semibold text-rose-800 dark:text-rose-300 mb-1">📦 Product/Service คืออะไร *</label>
+          <label class="block text-xs font-semibold text-rose-800 dark:text-rose-300 mb-1">📦 สินค้า/บริการของคุณคืออะไร *</label>
           <textarea bind:value={product_description} rows="3" placeholder="เช่น ขนมบ้านโกไข่ เป็นร้านขนมใต้สูตรโบราณ มี 28 สาขาในกรุงเทพ + ภาคใต้ เน้นขนมคุณภาพสูง บรรจุภัณฑ์สวย ขายทั้งหน้าร้าน + ออนไลน์" class="w-full px-2.5 py-1.5 rounded border border-rose-200 dark:border-rose-800 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"></textarea>
         </div>
         <div>
-          <label class="block text-xs font-semibold text-rose-800 dark:text-rose-300 mb-1">✨ Features / จุดเด่น</label>
-          <textarea bind:value={product_features} rows="2" placeholder="เช่น 1) สูตรโบราณจากครอบครัว 2) ใช้วัตถุดิบสดใหม่ทุกวัน 3) บรรจุภัณฑ์ premium 4) ส่งฟรีในกรุงเทพ 5) มีหน้าร้านให้สัมผัส 28 สาขา" class="w-full px-2.5 py-1.5 rounded border border-rose-200 dark:border-rose-800 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"></textarea>
+          <label class="block text-xs font-semibold text-rose-800 dark:text-rose-300 mb-1">✨ จุดเด่น/ฟีเจอร์เด่น</label>
+          <textarea bind:value={product_features} rows="2" placeholder="เช่น 1) สูตรโบราณจากครอบครัว 2) ใช้วัตถุดิบสดใหม่ทุกวัน 3) บรรจุภัณฑ์อย่างดี 4) ส่งฟรีในกรุงเทพ 5) มีหน้าร้านให้สัมผัส 28 สาขา" class="w-full px-2.5 py-1.5 rounded border border-rose-200 dark:border-rose-800 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"></textarea>
         </div>
       </div>
 
       <!-- Customer Context (for Customer Profile) -->
       <div class="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/40 border border-amber-200 dark:border-amber-800 rounded-xl p-4 space-y-3">
-        <div class="font-semibold text-amber-900 dark:text-amber-200">🧠 Customer Context (สำหรับ Customer Profile)</div>
+        <div class="font-semibold text-amber-900 dark:text-amber-200">🧠 บริบทของลูกค้า</div>
         <div>
-          <label class="block text-xs font-semibold text-amber-800 dark:text-amber-300 mb-1">😰 Main Problem — ลูกค้าเจอปัญหาอะไร</label>
+          <label class="block text-xs font-semibold text-amber-800 dark:text-amber-300 mb-1">😰 ลูกค้าเจอปัญหาอะไร</label>
           <textarea bind:value={main_problem} rows="2" placeholder="เช่น อยากกินขนมใต้แท้ในกรุงเทพ แต่หาซื้อยาก กลัวได้ของไม่สด" class="w-full px-2.5 py-1.5 rounded border border-amber-200 dark:border-amber-800 text-sm"></textarea>
         </div>
         <div>
-          <label class="block text-xs font-semibold text-amber-800 dark:text-amber-300 mb-1">🛠 Current Solutions — ตอนนี้ใช้อะไรอยู่</label>
+          <label class="block text-xs font-semibold text-amber-800 dark:text-amber-300 mb-1">🛠 ตอนนี้ลูกค้าแก้ปัญหานี้ด้วยอะไร</label>
           <textarea bind:value={current_solutions} rows="2" placeholder="เช่น ซื้อขนมจากห้าง แต่รสไม่ใช่ขนมใต้แท้ / สั่งออนไลน์แต่รอนาน" class="w-full px-2.5 py-1.5 rounded border border-amber-200 dark:border-amber-800 text-sm"></textarea>
         </div>
         <div>
-          <label class="block text-xs font-semibold text-amber-800 dark:text-amber-300 mb-1">✨ Desired Outcome — ลูกค้าอยากได้อะไร</label>
+          <label class="block text-xs font-semibold text-amber-800 dark:text-amber-300 mb-1">✨ ลูกค้าอยากได้อะไรสุดท้าย</label>
           <textarea bind:value={desired_outcome} rows="2" placeholder="เช่น ได้กินขนมใต้แท้รสชาติเหมือนอยู่บ้าน สะดวก ราคาไม่แพง ได้ความภูมิใจ" class="w-full px-2.5 py-1.5 rounded border border-amber-200 dark:border-amber-800 text-sm"></textarea>
         </div>
       </div>
@@ -376,14 +387,14 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
       <!-- Optional JTBD pre-fill -->
       {#if jtbd_saves.length > 0}
         <div class="bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/40 dark:to-yellow-950/40 border border-amber-300 dark:border-amber-700 rounded-xl p-3">
-          <div class="font-semibold text-amber-900 dark:text-amber-200 mb-2 text-sm">🔗 เชื่อม JTBD ที่เคยวิเคราะห์ไว้ (optional — แนะนำ)</div>
+          <div class="font-semibold text-amber-900 dark:text-amber-200 mb-2 text-sm">🔗 เชื่อมข้อมูลจาก "เข้าใจว่าลูกค้าจ้างเราทำอะไร" ที่เคยวิเคราะห์ไว้ (ไม่บังคับ — แนะนำ)</div>
           <select bind:value={selectedJtbdId} class="w-full px-3 py-2 rounded border border-amber-200 dark:border-amber-800 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
-            <option value="">— ไม่ใช้ JTBD —</option>
+            <option value="">— ไม่ใช้ —</option>
             {#each jtbd_saves as jtbd}
               <option value={jtbd.id}>📋 {jtbd.title} ({new Date(jtbd.created_at).toLocaleDateString('th-TH')})</option>
             {/each}
           </select>
-          <div class="text-xs text-amber-700 dark:text-amber-400 mt-1.5">ถ้าเลือก ระบบจะ pre-fill Customer Profile จาก JTBD ที่เคยวิเคราะห์ไว้</div>
+          <div class="text-xs text-amber-700 dark:text-amber-400 mt-1.5">ถ้าเลือก ระบบจะเติมข้อมูลลูกค้าให้อัตโนมัติจากที่เคยวิเคราะห์ไว้</div>
         </div>
       {/if}
 
@@ -404,7 +415,7 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
           disabled={isGenerating}
           class="btn-primary disabled:opacity-50"
         >
-          {isGenerating ? '⏳ ระบบอัจฉริยะ กำลังออกแบบ VPC...' : '💎 ออกแบบ Value Proposition'}
+          {isGenerating ? '⏳ ระบบอัจฉริยะ กำลังวิเคราะห์...' : '💎 เช็คว่าตรงใจลูกค้าไหม'}
         </button>
       </div>
     </div>
@@ -413,7 +424,7 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
     <div class="space-y-5">
       {#if output.summary}
         <div class="bg-primary-50 dark:bg-primary-900/40 border-l-4 border-primary-500 p-4 rounded-lg">
-          <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wider mb-1">สรุป VPC</div>
+          <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wider mb-1">สรุปผล</div>
           <div class="text-dark-900 dark:text-dark-50">{output.summary}</div>
         </div>
       {/if}
@@ -421,7 +432,7 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
       <!-- Customer Segment -->
       {#if output.customer_segment}
         <div class="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/40 dark:to-cyan-950/40 border-l-4 border-blue-500 dark:border-blue-600 p-3 rounded">
-          <div class="text-xs font-bold text-blue-700 dark:text-blue-400 uppercase mb-1">👤 Customer Segment</div>
+          <div class="text-xs font-bold text-blue-700 dark:text-blue-400 uppercase mb-1">👤 กลุ่มลูกค้า</div>
           <div class="text-sm font-semibold text-blue-900 dark:text-blue-200">{output.customer_segment.name || '-'}</div>
           <div class="text-xs text-blue-800 dark:text-blue-300 mt-0.5">{output.customer_segment.description || '-'}</div>
         </div>
@@ -432,12 +443,11 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
         <!-- Customer Profile -->
         <div class="space-y-3">
           <h3 class="font-semibold text-lg flex items-center gap-2">
-            <span>👤 Customer Profile</span>
-            <span class="text-xs text-dark-900/50 dark:text-dark-100/50">(right circle)</span>
+            <span>👤 ฝั่งลูกค้า</span>
           </h3>
           {#if output.customer_profile?.jobs?.length}
             <div class="bg-white dark:bg-dark-800 border-2 border-blue-200 dark:border-blue-800 rounded-lg p-3">
-              <div class="text-xs font-bold text-blue-700 dark:text-blue-400 uppercase mb-2">🔧 Jobs (3-{output.customer_profile.jobs.length})</div>
+              <div class="text-xs font-bold text-blue-700 dark:text-blue-400 uppercase mb-2">🔧 สิ่งที่ลูกค้าอยากทำให้สำเร็จ ({output.customer_profile.jobs.length})</div>
               <div class="space-y-1.5">
                 {#each output.customer_profile.jobs as j}
                   <div class="bg-blue-50 dark:bg-blue-950/40 rounded p-2 text-xs">
@@ -453,7 +463,7 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
           {/if}
           {#if output.customer_profile?.pains?.length}
             <div class="bg-white dark:bg-dark-800 border-2 border-red-200 dark:border-red-800 rounded-lg p-3">
-              <div class="text-xs font-bold text-red-700 dark:text-red-400 uppercase mb-2">😰 Pains (3-{output.customer_profile.pains.length})</div>
+              <div class="text-xs font-bold text-red-700 dark:text-red-400 uppercase mb-2">😰 ปัญหาที่ลูกค้าเจอ ({output.customer_profile.pains.length})</div>
               <div class="space-y-1.5">
                 {#each output.customer_profile.pains as p}
                   <div class="bg-red-50 dark:bg-red-950/40 rounded p-2 text-xs">
@@ -470,7 +480,7 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
           {/if}
           {#if output.customer_profile?.gains?.length}
             <div class="bg-white dark:bg-dark-800 border-2 border-emerald-200 dark:border-emerald-800 rounded-lg p-3">
-              <div class="text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase mb-2">✨ Gains (3-{output.customer_profile.gains.length})</div>
+              <div class="text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase mb-2">✨ สิ่งที่ลูกค้าอยากได้เพิ่ม ({output.customer_profile.gains.length})</div>
               <div class="space-y-1.5">
                 {#each output.customer_profile.gains as g}
                   <div class="bg-emerald-50 dark:bg-emerald-950/40 rounded p-2 text-xs">
@@ -489,12 +499,11 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
         <!-- Value Map -->
         <div class="space-y-3">
           <h3 class="font-semibold text-lg flex items-center gap-2">
-            <span>🗺️ Value Map</span>
-            <span class="text-xs text-dark-900/50 dark:text-dark-100/50">(left square)</span>
+            <span>🗺️ ฝั่งสินค้าคุณ</span>
           </h3>
           {#if output.value_map?.products_services?.length}
             <div class="bg-white dark:bg-dark-800 border-2 border-purple-200 dark:border-purple-800 rounded-lg p-3">
-              <div class="text-xs font-bold text-purple-700 dark:text-purple-400 uppercase mb-2">📦 Products & Services (3-{output.value_map.products_services.length})</div>
+              <div class="text-xs font-bold text-purple-700 dark:text-purple-400 uppercase mb-2">📦 สินค้า/บริการของคุณ ({output.value_map.products_services.length})</div>
               <div class="space-y-1.5">
                 {#each output.value_map.products_services as ps}
                   <div class="bg-purple-50 dark:bg-purple-950/40 rounded p-2 text-xs">
@@ -510,7 +519,7 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
           {/if}
           {#if output.value_map?.pain_relievers?.length}
             <div class="bg-white dark:bg-dark-800 border-2 border-orange-200 dark:border-orange-800 rounded-lg p-3">
-              <div class="text-xs font-bold text-orange-700 dark:text-orange-400 uppercase mb-2">💊 Pain Relievers (3-{output.value_map.pain_relievers.length})</div>
+              <div class="text-xs font-bold text-orange-700 dark:text-orange-400 uppercase mb-2">💊 สิ่งที่ช่วยแก้ปัญหาลูกค้า ({output.value_map.pain_relievers.length})</div>
               <div class="space-y-1.5">
                 {#each output.value_map.pain_relievers as r}
                   <div class="bg-orange-50 dark:bg-orange-950/40 rounded p-2 text-xs">
@@ -529,7 +538,7 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
           {/if}
           {#if output.value_map?.gain_creators?.length}
             <div class="bg-white dark:bg-dark-800 border-2 border-teal-200 dark:border-teal-800 rounded-lg p-3">
-              <div class="text-xs font-bold text-teal-700 dark:text-teal-400 uppercase mb-2">🎁 Gain Creators (3-{output.value_map.gain_creators.length})</div>
+              <div class="text-xs font-bold text-teal-700 dark:text-teal-400 uppercase mb-2">🎁 สิ่งที่เพิ่มความพอใจให้ลูกค้า ({output.value_map.gain_creators.length})</div>
               <div class="space-y-1.5">
                 {#each output.value_map.gain_creators as c}
                   <div class="bg-teal-50 dark:bg-teal-950/40 rounded p-2 text-xs">
@@ -553,9 +562,9 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
       {#if output.fit_analysis}
         {@const fa = output.fit_analysis}
         <div class="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-950/40 dark:to-purple-950/40 border-2 border-indigo-300 dark:border-indigo-700 rounded-2xl p-5">
-          <h3 class="font-semibold text-lg mb-3 text-indigo-900 dark:text-indigo-200">⚖️ Fit Analysis</h3>
+          <h3 class="font-semibold text-lg mb-3 text-indigo-900 dark:text-indigo-200">⚖️ สรุปว่าตรงกันแค่ไหน</h3>
           <div class="flex items-center gap-3 mb-3">
-            <div class="text-xs font-bold text-indigo-700 dark:text-indigo-400">Overall Fit:</div>
+            <div class="text-xs font-bold text-indigo-700 dark:text-indigo-400">คะแนนความตรงกัน:</div>
             <span class="px-3 py-1 rounded-lg border-2 text-sm font-bold {fitScoreColor(fa.overall_fit_score || 0)}">
               {fa.overall_fit_score || '-'}/10 — {fa.fit_verdict || '-'}
             </span>
@@ -564,7 +573,7 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
           <div class="grid sm:grid-cols-2 gap-3 mb-3">
             {#if fa.matched_pains?.length}
               <div class="bg-white dark:bg-dark-800 border border-emerald-300 dark:border-emerald-700 rounded p-2.5">
-                <div class="text-xs font-bold text-emerald-800 dark:text-emerald-300 mb-1.5">✅ Matched Pains ({fa.matched_pains.length})</div>
+                <div class="text-xs font-bold text-emerald-800 dark:text-emerald-300 mb-1.5">✅ ปัญหาที่แก้ได้แล้ว ({fa.matched_pains.length})</div>
                 <ul class="space-y-0.5 text-xs text-emerald-900 dark:text-emerald-200">
                   {#each fa.matched_pains as m}
                     <li>• <b>{m.pain}</b> → {m.reliever} [{m.strength}]</li>
@@ -574,7 +583,7 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
             {/if}
             {#if fa.matched_gains?.length}
               <div class="bg-white dark:bg-dark-800 border border-emerald-300 dark:border-emerald-700 rounded p-2.5">
-                <div class="text-xs font-bold text-emerald-800 dark:text-emerald-300 mb-1.5">✅ Matched Gains ({fa.matched_gains.length})</div>
+                <div class="text-xs font-bold text-emerald-800 dark:text-emerald-300 mb-1.5">✅ ความต้องการที่ตอบโจทย์แล้ว ({fa.matched_gains.length})</div>
                 <ul class="space-y-0.5 text-xs text-emerald-900 dark:text-emerald-200">
                   {#each fa.matched_gains as m}
                     <li>• <b>{m.gain}</b> → {m.creator} [{m.strength}]</li>
@@ -584,7 +593,7 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
             {/if}
             {#if fa.uncovered_pains?.length}
               <div class="bg-white dark:bg-dark-800 border border-rose-300 dark:border-rose-700 rounded p-2.5">
-                <div class="text-xs font-bold text-rose-800 dark:text-rose-300 mb-1.5">⚠️ Uncovered Pains ({fa.uncovered_pains.length})</div>
+                <div class="text-xs font-bold text-rose-800 dark:text-rose-300 mb-1.5">⚠️ ปัญหาที่ยังไม่ได้แก้ ({fa.uncovered_pains.length})</div>
                 <ul class="space-y-1 text-xs text-rose-900 dark:text-rose-200">
                   {#each fa.uncovered_pains as u}
                     <li>• <b>{u.pain}</b> [{u.intensity}] → {u.recommendation}</li>
@@ -594,7 +603,7 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
             {/if}
             {#if fa.uncovered_gains?.length}
               <div class="bg-white dark:bg-dark-800 border border-rose-300 dark:border-rose-700 rounded p-2.5">
-                <div class="text-xs font-bold text-rose-800 dark:text-rose-300 mb-1.5">⚠️ Uncovered Gains ({fa.uncovered_gains.length})</div>
+                <div class="text-xs font-bold text-rose-800 dark:text-rose-300 mb-1.5">⚠️ ความต้องการที่ยังไม่ได้ตอบ ({fa.uncovered_gains.length})</div>
                 <ul class="space-y-1 text-xs text-rose-900 dark:text-rose-200">
                   {#each fa.uncovered_gains as u}
                     <li>• <b>{u.gain}</b> [{u.relevance}] → {u.recommendation}</li>
@@ -606,7 +615,7 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
 
           {#if fa.orphans?.length}
             <div class="bg-amber-50 dark:bg-amber-950/40 border-l-4 border-amber-400 dark:border-amber-600 rounded-r p-2.5 text-xs text-amber-900 dark:text-amber-200">
-              <b>🗑️ Orphans (over-engineering):</b>
+              <b>🗑️ สิ่งที่สินค้าคุณมี แต่ลูกค้าไม่ได้ต้องการ:</b>
               <ul class="mt-1 space-y-0.5">
                 {#each fa.orphans as o}
                   <li>• {o}</li>
@@ -620,7 +629,7 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
       <!-- Value Proposition Statement -->
       {#if output.value_proposition_statement}
         <div class="bg-gradient-to-br from-rose-50 to-pink-50 dark:from-rose-950/40 dark:to-pink-950/40 border-2 border-rose-400 dark:border-rose-600 rounded-2xl p-5">
-          <h3 class="font-semibold text-lg mb-2 text-rose-900 dark:text-rose-200">💎 Value Proposition Statement</h3>
+          <h3 class="font-semibold text-lg mb-2 text-rose-900 dark:text-rose-200">💎 ประโยคสรุปจุดขาย</h3>
           <div class="bg-white dark:bg-dark-800 rounded-lg p-4 border border-rose-200 dark:border-rose-800 italic text-rose-900 dark:text-rose-200">
             "{output.value_proposition_statement}"
           </div>
@@ -629,14 +638,14 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
 
       {#if output.elevator_pitch}
         <div class="bg-amber-50 dark:bg-amber-950/40 border-l-4 border-amber-400 dark:border-amber-600 p-3 rounded">
-          <div class="text-xs font-bold text-amber-800 dark:text-amber-300 uppercase mb-1">⏱️ 30-Second Elevator Pitch</div>
+          <div class="text-xs font-bold text-amber-800 dark:text-amber-300 uppercase mb-1">⏱️ พูดสั้นๆ ให้ลูกค้าเข้าใจใน 30 วินาที</div>
           <div class="text-sm italic text-amber-900 dark:text-amber-200">"{output.elevator_pitch}"</div>
         </div>
       {/if}
 
       {#if output.messaging_hierarchy}
         <div class="bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 rounded-xl p-4">
-          <div class="text-xs font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-2">📢 Messaging Hierarchy</div>
+          <div class="text-xs font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-2">📢 ลำดับข้อความที่ควรสื่อสาร</div>
           {#if output.messaging_hierarchy.primary_message}
             <div class="bg-primary-50 dark:bg-primary-900/40 rounded-lg p-2.5 mb-2 text-sm font-semibold">{output.messaging_hierarchy.primary_message}</div>
           {/if}
@@ -658,13 +667,13 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
           <div class="text-xs font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-2">🛠️ เอาไปใช้ยังไง</div>
           {#if output.application_guide.ad_headlines?.length}
             <div class="mb-2">
-              <div class="text-xs font-semibold text-dark-900/60 dark:text-dark-100/60 mb-1">Headline โฆษณา</div>
+              <div class="text-xs font-semibold text-dark-900/60 dark:text-dark-100/60 mb-1">หัวข้อโฆษณา</div>
               <ul class="text-sm space-y-0.5">{#each output.application_guide.ad_headlines as h}<li>• {h}</li>{/each}</ul>
             </div>
           {/if}
           {#if output.application_guide.landing_page_copy}
             <div class="mb-2">
-              <div class="text-xs font-semibold text-dark-900/60 dark:text-dark-100/60 mb-1">Landing Page Copy</div>
+              <div class="text-xs font-semibold text-dark-900/60 dark:text-dark-100/60 mb-1">ข้อความหน้าเว็บขาย</div>
               <div class="text-sm italic">{output.application_guide.landing_page_copy}</div>
             </div>
           {/if}
@@ -687,7 +696,7 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
       <!-- Validation methods -->
       {#if output.validation_methods?.length}
         <div class="bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 rounded-lg p-3">
-          <div class="text-xs font-bold text-dark-900/60 dark:text-dark-100/60 uppercase mb-1.5">🔬 Validation Methods</div>
+          <div class="text-xs font-bold text-dark-900/60 dark:text-dark-100/60 uppercase mb-1.5">🔬 วิธีตรวจสอบว่าใช้ได้จริง</div>
           <ul class="space-y-0.5 text-sm text-dark-900/80 dark:text-dark-100/80">
             {#each output.validation_methods as v}
               <li>• {v}</li>
@@ -699,7 +708,7 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
       <!-- Next steps -->
       {#if output.next_steps?.length}
         <div class="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-teal-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl p-3">
-          <div class="text-xs font-bold text-emerald-800 dark:text-emerald-300 uppercase mb-1.5">➡️ Next Steps</div>
+          <div class="text-xs font-bold text-emerald-800 dark:text-emerald-300 uppercase mb-1.5">➡️ ขั้นตอนต่อไป</div>
           <ul class="space-y-0.5 text-sm text-emerald-900 dark:text-emerald-200">
             {#each output.next_steps as s}
               <li class="flex gap-1.5"><span>→</span>{s}</li>
@@ -728,13 +737,13 @@ Top pains: ${(save?.output?.related_jobs || []).slice(0, 3).map((r: any) => r.jo
           <button onclick={handleSave} disabled={isSaving} class="text-sm btn-secondary disabled:opacity-50">
             {isSaving ? '...' : (saveId ? '✓ บันทึกแล้ว' : '💾 บันทึก')}
           </button>
-          <button onclick={handlePromote} disabled={isPromoting} class="text-sm btn-secondary disabled:opacity-50" title="บันทึกเป็นโปรเจกต์ (import เข้า step 1, 2, 4, 5)">
-            {isPromoting ? '...' : '📋 เป็น Playbook'}
+          <button onclick={handlePromote} disabled={isPromoting} class="text-sm btn-secondary disabled:opacity-50" title="บันทึกเป็นโปรเจกต์ (ใช้ต่อในขั้นตอน 1, 2, 4, 5)">
+            {isPromoting ? '...' : '📋 ต่อยอดเป็นโปรเจกต์'}
           </button>
           {#if saveId}<CanvasPdfButton saveId={saveId} />{/if}
           <button onclick={() => handleExport('md')} class="text-sm btn-secondary">📥 .md</button>
           <button onclick={() => handleExport('json')} class="text-sm btn-secondary">📥 .json</button>
-          <button onclick={handleCanvasPDF} class="text-sm btn-primary" title="เปิด One-page Canvas PDF (A3 landscape)">🎨 Canvas PDF</button>
+          <button onclick={handleCanvasPDF} class="text-sm btn-primary" title="เปิดไฟล์ PDF สรุปหน้าเดียว (ขนาด A3 แนวนอน)">🎨 พิมพ์เป็น PDF หน้าเดียว</button>
         </div>
       </div>
       {#if promoteMsg}

@@ -26,6 +26,7 @@
   let promoteMsg = $state('');
 
   let selectedCategories = $state<string[]>([]);
+  let showPrinciple = $state(false);
 
   function toggleCategory(cat: PainPointCategory) {
     if (selectedCategories.includes(cat.id)) {
@@ -247,22 +248,31 @@
 </script>
 
 <ToolLayout
-  title="Pain Point Generator"
-  subtitle="หา Pain Point และ Unmet Need ของลูกค้า ด้วย SPICE Framework — เรียงตามความรุนแรง ความถี่ และโอกาสทางธุรกิจ"
+  title="หาปัญหาลูกค้า"
+  subtitle="ช่วยคุณหาว่าลูกค้าเจอปัญหาอะไรที่ยังไม่มีใครแก้ให้ดีพอ เรียงตามความรุนแรงและโอกาสทางธุรกิจ"
   icon="🎯"
   color="blue"
 >
   {#if !output}
     <div class="space-y-5">
       <div class="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
-        <div class="font-semibold text-blue-900 dark:text-blue-200 mb-1">📐 SPICE Framework</div>
+        <div class="font-semibold text-blue-900 dark:text-blue-200 mb-1">📐 เครื่องมือนี้ช่วยอะไร</div>
         <div class="text-sm text-blue-800 dark:text-blue-300 space-y-1">
-          <div><b>S</b>ituation — กลุ่มเป้าหมาย + หมวดสินค้า</div>
-          <div><b>P</b>ersona — สวมบทบาทนักวิเคราะห์ Unmet Need</div>
-          <div><b>I</b>nstruction — วิเคราะห์ Pain Point ที่ยังแก้ไม่ตรงจุด</div>
-          <div><b>C</b>riteria — เรียงตามความรุนแรง/ความถี่</div>
-          <div><b>E</b>xample — Pain Point ต้องใหญ่พอเป็นโอกาสธุรกิจ</div>
+          <div>บอกกลุ่มเป้าหมายและสินค้าของคุณ แล้วระบบจะช่วยหาว่าลูกค้ากลุ่มนี้เจอปัญหาอะไรที่ยังไม่มีใครแก้ให้ดีพอ</div>
+          <div>ได้ปัญหาเรียงตามความรุนแรง ความถี่ และขนาดโอกาสทางธุรกิจ พร้อมจุดที่คุณเข้าไปช่วยได้</div>
         </div>
+        <button
+          type="button"
+          onclick={() => showPrinciple = !showPrinciple}
+          class="mt-2 text-xs text-blue-700/70 dark:text-blue-300/70 underline decoration-dotted hover:text-blue-700 dark:hover:text-blue-300"
+        >
+          {showPrinciple ? 'ซ่อนหลักการ' : 'ดูหลักการ'}
+        </button>
+        {#if showPrinciple}
+          <div class="mt-1.5 text-xs text-blue-700/70 dark:text-blue-300/70">
+            อิงหลักการ SPICE Framework — กำหนดสถานการณ์ สวมบทบาทนักวิเคราะห์ปัญหาลูกค้า แล้วจัดอันดับตามความรุนแรงและโอกาสทางธุรกิจ
+          </div>
+        {/if}
       </div>
 
       <div>
@@ -288,8 +298,8 @@
       <!-- Pain category preset -->
       <div class="bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-950/40 dark:to-orange-950/40 border border-red-200 dark:border-red-800 rounded-xl p-4">
         <div class="mb-2">
-          <div class="font-semibold text-red-900 dark:text-red-200">🎯 เลือกหมวด Pain Point ที่เน้น <span class="text-xs font-normal text-red-700 dark:text-red-400">(เลือกได้หลายข้อ / ไม่เลือกก็ได้)</span></div>
-          <div class="text-xs text-red-700 dark:text-red-400">ระบบอัจฉริยะ จะเน้น pain points ในหมวดที่เลือก — เลือก 0 ข้อถ้าอยากให้ ระบบอัจฉริยะ วิเคราะห์กว้างๆ</div>
+          <div class="font-semibold text-red-900 dark:text-red-200">🎯 เลือกหมวดปัญหาที่อยากเน้น <span class="text-xs font-normal text-red-700 dark:text-red-400">(เลือกได้หลายข้อ / ไม่เลือกก็ได้)</span></div>
+          <div class="text-xs text-red-700 dark:text-red-400">ระบบอัจฉริยะ จะเน้นปัญหาในหมวดที่เลือก — ไม่เลือกเลยถ้าอยากให้ ระบบอัจฉริยะ วิเคราะห์กว้างๆ</div>
         </div>
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {#each PAIN_POINT_CATEGORIES as cat}
@@ -343,7 +353,7 @@
           disabled={isGenerating}
           class="btn-primary disabled:opacity-50"
         >
-          {isGenerating ? '⏳ ระบบอัจฉริยะ กำลังวิเคราะห์...' : '🎯 วิเคราะห์ Pain Points'}
+          {isGenerating ? '⏳ ระบบอัจฉริยะ กำลังวิเคราะห์...' : '🎯 หาปัญหาลูกค้า'}
         </button>
       </div>
     </div>
@@ -359,7 +369,7 @@
 
       {#if output.persona_insight}
         <div class="bg-white dark:bg-dark-800 border border-dark-100 dark:border-dark-700 rounded-xl p-4">
-          <div class="text-xs font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-2">🔍 Persona Insight</div>
+          <div class="text-xs font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-2">🔍 ข้อมูลเชิงลึกเกี่ยวกับลูกค้า</div>
           <div class="text-sm leading-relaxed">{output.persona_insight}</div>
         </div>
       {/if}
@@ -372,7 +382,7 @@
       {/if}
 
       <div class="space-y-3">
-        <h3 class="font-semibold text-lg">🎯 Pain Points (เรียงตามความรุนแรง)</h3>
+        <h3 class="font-semibold text-lg">🎯 ปัญหาที่พบ (เรียงตามความรุนแรง)</h3>
         {#each (output.pain_points || []) as pp, i}
           <div class={`rounded-xl border-2 p-5 ${pillarColor(pp.severity)}`}>
             <div class="flex items-start justify-between gap-3 mb-2">
@@ -410,14 +420,14 @@
 
       {#if output.priority_pick}
         <div class="bg-primary-50 dark:bg-primary-900/40 border-2 border-primary-500 rounded-xl p-4">
-          <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wider mb-1">🥇 เริ่มตรงนี้ก่อน — Pain Point #{output.priority_pick.rank}</div>
+          <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wider mb-1">🥇 เริ่มตรงนี้ก่อน — ปัญหาอันดับ #{output.priority_pick.rank}</div>
           <div class="text-sm text-dark-900 dark:text-dark-50">{output.priority_pick.why}</div>
         </div>
       {/if}
 
       {#if output.quick_wins?.length}
         <div class="bg-green-50 dark:bg-green-950/40 border border-green-300 dark:border-green-700 rounded-xl p-4">
-          <div class="text-xs font-bold text-green-700 dark:text-green-400 uppercase tracking-wider mb-2">⚡ Quick Wins (แก้ได้เร็ว)</div>
+          <div class="text-xs font-bold text-green-700 dark:text-green-400 uppercase tracking-wider mb-2">⚡ ทำง่าย เห็นผลเร็ว</div>
           <ul class="space-y-1 text-sm">
             {#each output.quick_wins as q}<li class="flex gap-2"><span class="text-green-600 dark:text-green-400">→</span>{q}</li>{/each}
           </ul>
@@ -426,7 +436,7 @@
 
       {#if output.moonshots?.length}
         <div class="bg-purple-50 dark:bg-purple-950/40 border border-purple-300 dark:border-purple-700 rounded-xl p-4">
-          <div class="text-xs font-bold text-purple-700 dark:text-purple-400 uppercase tracking-wider mb-2">🚀 Moonshots (payoff สูง แต่ใช้เวลา)</div>
+          <div class="text-xs font-bold text-purple-700 dark:text-purple-400 uppercase tracking-wider mb-2">🚀 เป้าหมายใหญ่ (ได้ผลมาก แต่ต้องใช้เวลา)</div>
           <ul class="space-y-1 text-sm">
             {#each output.moonshots as m}<li class="flex gap-2"><span class="text-purple-600 dark:text-purple-400">→</span>{m}</li>{/each}
           </ul>

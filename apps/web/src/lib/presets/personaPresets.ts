@@ -54,7 +54,7 @@ export const PERSONA_PRESETS: PersonaPreset[] = [
     channels: ['Instagram', 'Facebook', 'LINE', 'TikTok', 'LINE MAN'],
     preferred_messages: 'สั้น กระชับ มี visual สวย ชัดเจน',
     preferred_offers: 'โปรโมชั่นช่วงเที่ยง, subscription, ของพร้อมส่ง',
-    industries: ['F&B delivery', 'คาเฟ่', 'fashion', 'beauty', 'SaaS productivity', 'fitness'],
+    industries: ['ส่งอาหาร', 'คาเฟ่', 'แฟชั่น', 'ความงาม', 'โปรแกรมออนไลน์เพื่อการทำงาน', 'ฟิตเนส'],
   },
 
   {
@@ -83,7 +83,7 @@ export const PERSONA_PRESETS: PersonaPreset[] = [
     channels: ['Facebook', 'LINE Official', 'YouTube', 'TikTok'],
     preferred_messages: 'ตรงๆ เข้าใจง่าย เห็นผลจริง ไม่เวอร์',
     preferred_offers: 'เครื่องมือช่วยงาน, คอร์สออนไลน์, ที่ปรึกษาฟรี, เคสจริง',
-    industries: ['SME tools', 'POS', 'accounting', 'marketing services', 'B2B SaaS', 'logistics'],
+    industries: ['เครื่องมือช่วยธุรกิจ SME', 'ระบบขายหน้าร้าน (POS)', 'บัญชี', 'บริการด้านการตลาด', 'ซอฟต์แวร์สำหรับธุรกิจ', 'ขนส่ง'],
   },
 
   {
@@ -112,7 +112,7 @@ export const PERSONA_PRESETS: PersonaPreset[] = [
     channels: ['TikTok', 'Instagram', 'Twitter', 'Shopee', 'LINE'],
     preferred_messages: 'สั้น ตลก ตรง มี meme, influencer review',
     preferred_offers: 'ส่วนลดนักศึกษา, ผ่อน, free trial, ของถูก',
-    industries: ['fashion', 'beauty', 'food delivery', 'streaming', 'mobile games', 'budget F&B'],
+    industries: ['แฟชั่น', 'ความงาม', 'ส่งอาหาร', 'ดูหนังฟังเพลงออนไลน์', 'เกมมือถือ', 'ร้านอาหารราคาประหยัด'],
   },
 
   {
@@ -141,7 +141,7 @@ export const PERSONA_PRESETS: PersonaPreset[] = [
     channels: ['Facebook', 'LINE', 'Instagram', 'YouTube', 'Pantip'],
     preferred_messages: 'อบอุ่น น่าเชื่อถือ มีรีวิวจากคุณแม่ด้วยกัน',
     preferred_offers: 'ส่วนลด, free shipping, ทดลองฟรี, bundle',
-    industries: ['baby products', 'kids education', 'healthy food', 'mom groups', 'childcare services'],
+    industries: ['สินค้าเด็กอ่อน', 'การศึกษาเด็ก', 'อาหารเพื่อสุขภาพ', 'กลุ่มคุณแม่', 'บริการรับเลี้ยงเด็ก'],
   },
 
   {
@@ -170,7 +170,7 @@ export const PERSONA_PRESETS: PersonaPreset[] = [
     channels: ['Instagram', 'Facebook Groups', 'YouTube', 'LINE', 'Podcast'],
     preferred_messages: 'อ้างอิงวิทยาศาสตร์ โปร่งใส ไม่ขายฝัน',
     preferred_offers: 'ตัวอย่างฟรี, subscription, ส่วนลดเมื่อซื้อซ้ำ, content ฟรี',
-    industries: ['organic food', 'supplements', 'fitness', 'wellness apps', 'healthy restaurants'],
+    industries: ['อาหารออร์แกนิก', 'อาหารเสริม', 'ฟิตเนส', 'แอปดูแลสุขภาพ', 'ร้านอาหารสุขภาพ'],
   },
 
   {
@@ -199,7 +199,7 @@ export const PERSONA_PRESETS: PersonaPreset[] = [
     channels: ['Facebook', 'LINE', 'TV', 'หนังสือพิมพ์', 'เพื่อนบอกต่อ'],
     preferred_messages: 'ช้าๆ อธิบายชัดเจน พูดสุภาพ มี call center',
     preferred_offers: 'ส่วนลดผู้สูงอายุ, ผ่อน 0%, ส่งฟรี',
-    industries: ['health supplements', 'health insurance', 'TV shopping', 'local community', 'F&B'],
+    industries: ['อาหารเสริมสุขภาพ', 'ประกันสุขภาพ', 'ทีวีช้อปปิ้ง', 'ชุมชนท้องถิ่น', 'ร้านอาหาร'],
   },
 
   {
@@ -228,7 +228,7 @@ export const PERSONA_PRESETS: PersonaPreset[] = [
     channels: ['YouTube', 'Twitch', 'TikTok', 'Facebook Gaming', 'LINE Gaming'],
     preferred_messages: 'เร็ว ตรง มี spec ชัด เห็นรีวิวก่อน',
     preferred_offers: 'pre-order, bundle, ส่วนลด early bird, ผ่อน 0%',
-    industries: ['gaming hardware', 'mobile games', 'streaming services', 'tech accessories'],
+    industries: ['อุปกรณ์เกม', 'เกมมือถือ', 'บริการสตรีมมิ่ง', 'อุปกรณ์เสริมไอที'],
   },
 
   {
@@ -257,7 +257,7 @@ export const PERSONA_PRESETS: PersonaPreset[] = [
     channels: ['Instagram', 'Behance', 'LinkedIn', 'Facebook', 'Twitter'],
     preferred_messages: 'มี case study, มี data, ตรงกับ niche, design ดี',
     preferred_offers: 'free trial, lifetime deal, educational content, community',
-    industries: ['SaaS productivity', 'creative tools', 'online courses', 'finance apps', 'co-working spaces'],
+    industries: ['โปรแกรมออนไลน์เพื่อการทำงาน', 'เครื่องมือสายครีเอทีฟ', 'คอร์สออนไลน์', 'แอปการเงิน', 'พื้นที่ทำงานร่วม'],
   },
 ];
 

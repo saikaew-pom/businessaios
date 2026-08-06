@@ -65,11 +65,11 @@
   }
 
   async function handleArchive(id: string) {
-    if (!confirm('Archive project นี้? สามารถ restore กลับมาได้จากหน้า Archive')) return;
+    if (!confirm('ต้องการเก็บโปรเจกต์นี้เข้าคลังไหม? กู้คืนได้ภายหลังจากหน้าคลังเก็บ')) return;
     projectMenu = null;
     try {
       await deleteProject(id, false);
-      actionMessage = '✓ Archive แล้ว';
+      actionMessage = '✓ เก็บเข้าคลังแล้ว';
       await loadProjects();
       setTimeout(() => actionMessage = '', 3000);
     } catch (err: any) {
@@ -81,7 +81,7 @@
     projectMenu = null;
     try {
       await restoreProject(id);
-      actionMessage = '✓ Restore แล้ว — กลับมาเป็น draft';
+      actionMessage = '✓ กู้คืนแล้ว — กลับมาเป็น draft';
       await loadProjects();
       setTimeout(() => actionMessage = '', 3000);
     } catch (err: any) {
@@ -90,11 +90,11 @@
   }
 
   async function handleReset(id: string, name: string) {
-    if (!confirm(`Reset "${name}"?\n\nข้อมูลทั้งหมด (step 1-7) จะถูกลบ แต่ชื่อโปรเจกต์และ exports จะยังอยู่\n\nลบแล้วลบเลย ไม่สามารถ undo ได้`)) return;
+    if (!confirm(`เริ่มโปรเจกต์ "${name}" ใหม่?\n\nข้อมูลทั้งหมด (step 1-7) จะถูกลบ แต่ชื่อโปรเจกต์และ exports จะยังอยู่\n\nลบแล้วลบเลย ไม่สามารถ undo ได้`)) return;
     projectMenu = null;
     try {
       await resetProject(id);
-      actionMessage = '✓ Reset แล้ว — เริ่ม step 1 ใหม่';
+      actionMessage = '✓ เริ่มใหม่แล้ว — กลับไปขั้นที่ 1';
       await loadProjects();
       setTimeout(() => actionMessage = '', 3000);
     } catch (err: any) {
@@ -189,7 +189,7 @@
 </script>
 
 <svelte:head>
-  <title>Dashboard — Business Smart OS</title>
+  <title>แผนของฉัน — Business Smart OS</title>
 </svelte:head>
 
 <div class="min-h-screen bg-dark-50 dark:bg-dark-950 dark:text-dark-50">
@@ -258,7 +258,7 @@
           <div class="flex items-center gap-4">
             <div class="text-3xl">📥</div>
             <div class="flex-1">
-              <div class="font-bold text-lg">Content Inbox</div>
+              <div class="font-bold text-lg">กล่องคอนเทนต์รอตรวจ</div>
               <div class="text-sm text-dark-900/60 dark:text-dark-100/60">รีวิวโพสต์จาก calendar ก่อนส่งไปสร้าง creative หรือ schedule</div>
             </div>
             <svg class="w-5 h-5 text-dark-900/40 transition group-hover:translate-x-1 dark:text-dark-100/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
@@ -268,7 +268,7 @@
           <div class="flex items-center gap-4">
             <div class="text-3xl">🗂️</div>
             <div class="flex-1">
-              <div class="font-bold text-lg">Works</div>
+              <div class="font-bold text-lg">งานทั้งหมด</div>
               <div class="text-sm text-dark-900/60 dark:text-dark-100/60">ดูสถานะงาน creative และคอนเทนต์ทั้งหมดในที่เดียว</div>
             </div>
             <svg class="w-5 h-5 text-dark-900/40 transition group-hover:translate-x-1 dark:text-dark-100/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
@@ -307,10 +307,10 @@
             <label class="block text-sm font-medium mb-1.5">ประเภทโปรเจกต์</label>
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {#each [
-                { value: 'playbook', label: '📊 Playbook', desc: '7-step ครบ' },
-                { value: 'brand_voice', label: '🎙️ Brand Voice', desc: 'เสียงแบรนด์' },
-                { value: 'pain_points', label: '🎯 Pain Points', desc: 'Pain point' },
-                { value: 'persona', label: '👥 Persona', desc: 'Customer persona' },
+                { value: 'playbook', label: '📊 แผนครบระบบ', desc: 'ครบ 7 ขั้นตอน' },
+                { value: 'brand_voice', label: '🎙️ โทนแบรนด์', desc: 'เสียงแบรนด์' },
+                { value: 'pain_points', label: '🎯 ปัญหาลูกค้า', desc: 'หาปัญหาลูกค้า' },
+                { value: 'persona', label: '👥 ลูกค้าในฝัน', desc: 'วาดภาพลูกค้าในฝัน' },
               ] as opt}
                 <button
                   type="button"
@@ -371,7 +371,7 @@
         <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-primary-50 dark:bg-primary-900/40 flex items-center justify-center">
           <span class="text-3xl">{kindFilter ? ({ brand_voice: '🎙️', pain_points: '🎯', persona: '👥', competitor_analysis: '🔍', jtbd_generator: '🎯', value_proposition_canvas: '💎', business_model_canvas: '📊', million_dollar_offer: '💎', objection_handler: '🛡️', hook_library: '🎣' } as any)[kindFilter] || '📋' : '📋'}</span>
         </div>
-        <h3 class="font-semibold mb-2">ยังไม่มีโปรเจกต์{kindFilter ? `ประเภท ${({ brand_voice: 'Brand Voice', pain_points: 'Pain Points', persona: 'Persona', competitor_analysis: 'Competitor', jtbd_generator: 'JTBD', value_proposition_canvas: 'VPC', business_model_canvas: 'BMC', million_dollar_offer: 'Offer', objection_handler: 'Objections', hook_library: 'Hooks' } as any)[kindFilter] || ''}` : ''}</h3>
+        <h3 class="font-semibold mb-2">ยังไม่มีโปรเจกต์{kindFilter ? `ประเภท ${({ brand_voice: 'โทนแบรนด์', pain_points: 'ปัญหาลูกค้า', persona: 'ลูกค้าในฝัน', competitor_analysis: 'คู่แข่ง', jtbd_generator: 'งานลูกค้าจ้าง', value_proposition_canvas: 'จุดขาย', business_model_canvas: 'แผนธุรกิจ', million_dollar_offer: 'ข้อเสนอ', objection_handler: 'คำตอบลูกค้า', hook_library: 'ประโยคเปิด' } as any)[kindFilter] || ''}` : ''}</h3>
         <p class="text-sm text-dark-900/60 dark:text-dark-100/60 mb-6">เริ่มสร้างโปรเจกต์แรกของคุณ</p>
         <button onclick={openCreate} class="btn-primary">+ สร้างโปรเจกต์แรก</button>
       </div>
@@ -382,37 +382,37 @@
           ทั้งหมด
         </button>
         <button onclick={() => { kindFilter = 'playbook'; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === 'playbook' ? 'bg-primary-600 text-white' : 'bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 hover:border-primary-300'}">
-          📊 Playbook
+          📊 แผนครบระบบ
         </button>
         <button onclick={() => { kindFilter = 'brand_voice'; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === 'brand_voice' ? 'bg-primary-600 text-white' : 'bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 hover:border-primary-300'}">
-          🎙️ Brand Voice
+          🎙️ โทนแบรนด์
         </button>
         <button onclick={() => { kindFilter = 'pain_points'; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === 'pain_points' ? 'bg-primary-600 text-white' : 'bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 hover:border-primary-300'}">
-          🎯 Pain Points
+          🎯 ปัญหาลูกค้า
         </button>
         <button onclick={() => { kindFilter = 'persona'; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === 'persona' ? 'bg-primary-600 text-white' : 'bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 hover:border-primary-300'}">
-          👥 Persona
+          👥 ลูกค้าในฝัน
         </button>
         <button onclick={() => { kindFilter = 'competitor_analysis'; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === 'competitor_analysis' ? 'bg-primary-600 text-white' : 'bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 hover:border-primary-300'}">
-          🔍 Competitor
+          🔍 คู่แข่ง
         </button>
         <button onclick={() => { kindFilter = 'jtbd_generator'; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === 'jtbd_generator' ? 'bg-primary-600 text-white' : 'bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 hover:border-primary-300'}">
-          🎯 JTBD
+          🎯 งานลูกค้าจ้าง
         </button>
         <button onclick={() => { kindFilter = 'value_proposition_canvas'; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === 'value_proposition_canvas' ? 'bg-primary-600 text-white' : 'bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 hover:border-primary-300'}">
-          💎 VPC
+          💎 จุดขาย
         </button>
         <button onclick={() => { kindFilter = 'business_model_canvas'; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === 'business_model_canvas' ? 'bg-primary-600 text-white' : 'bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 hover:border-primary-300'}">
-          📊 BMC
+          📊 แผนธุรกิจ
         </button>
         <button onclick={() => { kindFilter = 'million_dollar_offer'; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === 'million_dollar_offer' ? 'bg-primary-600 text-white' : 'bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 hover:border-primary-300'}">
-          💎 Offer
+          💎 ข้อเสนอ
         </button>
         <button onclick={() => { kindFilter = 'objection_handler'; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === 'objection_handler' ? 'bg-primary-600 text-white' : 'bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 hover:border-primary-300'}">
-          🛡️ Objections
+          🛡️ คำตอบลูกค้า
         </button>
         <button onclick={() => { kindFilter = 'hook_library'; loadProjects(); }} class="text-sm px-3 py-1.5 rounded-full {kindFilter === 'hook_library' ? 'bg-primary-600 text-white' : 'bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 hover:border-primary-300'}">
-          🎣 Hooks
+          🎣 ประโยคเปิด
         </button>
       </div>
       <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -425,7 +425,7 @@
                   {kindMeta.icon}
                 </div>
                 <div class="flex flex-col items-end gap-1">
-                  <span class="text-xs px-2 py-0.5 rounded-full bg-{kindMeta.color}-50 text-{kindMeta.color}-700">{({ playbook: 'Playbook', brand_voice: 'Brand Voice', pain_points: 'Pain Points', persona: 'Persona', competitor_analysis: 'Competitor', jtbd_generator: 'JTBD', value_proposition_canvas: 'VPC', business_model_canvas: 'BMC' } as any)[project.kind || 'playbook']}</span>
+                  <span class="text-xs px-2 py-0.5 rounded-full bg-{kindMeta.color}-50 text-{kindMeta.color}-700">{({ playbook: 'แผนครบระบบ', brand_voice: 'โทนแบรนด์', pain_points: 'ปัญหาลูกค้า', persona: 'ลูกค้าในฝัน', competitor_analysis: 'คู่แข่ง', jtbd_generator: 'งานลูกค้าจ้าง', value_proposition_canvas: 'จุดขาย', business_model_canvas: 'แผนธุรกิจ' } as any)[project.kind || 'playbook']}</span>
                   {#if project.status === 'completed'}
                     <span class="text-xs px-2 py-0.5 rounded-full bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-400">เสร็จ</span>
                   {:else}
@@ -464,13 +464,13 @@
                     onclick={(e) => { e.stopPropagation(); handleReset(project.id, project.name); }}
                     class="w-full text-left px-3 py-2 hover:bg-dark-50 dark:hover:bg-dark-700 flex items-center gap-2"
                   >
-                    <span>🔄</span> Reset ใหม่
+                    <span>🔄</span> เริ่มใหม่
                   </button>
                   <button
                     onclick={(e) => { e.stopPropagation(); handleArchive(project.id); }}
                     class="w-full text-left px-3 py-2 hover:bg-dark-50 dark:hover:bg-dark-700 flex items-center gap-2 text-amber-700 dark:text-amber-400"
                   >
-                    <span>📦</span> Archive
+                    <span>📦</span> เก็บเข้าคลัง
                   </button>
                   <button
                     onclick={(e) => { e.stopPropagation(); if (confirm('ลบถาวร "' + project.name + '" ?\n\n⚠️ ลบแล้วไม่สามารถ undo')) handlePermanentDelete(project.id, project.name); }}
@@ -500,7 +500,7 @@
             class="flex items-center gap-2 text-sm font-semibold text-dark-900/70 dark:text-dark-100/70 hover:text-dark-900 dark:hover:text-dark-50"
           >
             <span>{showArchive ? '▼' : '▶'}</span>
-            <span>📦 Archive ({archivedProjects.length})</span>
+            <span>📦 คลังเก็บ ({archivedProjects.length})</span>
           </button>
 
           {#if showArchive}
@@ -513,14 +513,14 @@
                   </div>
                   <p class="text-xs text-dark-900/60 dark:text-dark-100/60 mb-3">{p.industry || 'ไม่ระบุอุตสาหกรรม'}</p>
                   <div class="text-xs text-dark-900/50 dark:text-dark-100/50 mb-3">
-                    Archived {formatDate(p.updated_at)}
+                    เก็บเมื่อ {formatDate(p.updated_at)}
                   </div>
                   <div class="flex gap-2">
                     <button
                       onclick={() => handleRestore(p.id)}
                       class="flex-1 text-xs px-2 py-1.5 rounded bg-primary-600 text-white hover:bg-primary-700"
                     >
-                      ↩ Restore
+                      ↩ กู้คืน
                     </button>
                     <button
                       onclick={() => handlePermanentDelete(p.id, p.name)}

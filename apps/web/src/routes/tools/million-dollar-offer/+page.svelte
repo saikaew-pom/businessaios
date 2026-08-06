@@ -51,6 +51,7 @@
   let saveMsg = $state('');
   let isPromoting = $state(false);
   let promoteMsg = $state('');
+  let showPrinciple = $state(false);
 
   $effect(() => {
     listSavedTools({ tool_type: 'value_proposition_canvas' }).then(s => { vpc_saves = s || []; }).catch(() => {});
@@ -176,7 +177,7 @@ Products: ${(s.output?.value_map?.products_services || []).slice(0, 3).map((p: a
       });
       output = res.output;
     } catch (err: any) {
-      error = err.message || 'Smart Engine error';
+      error = err.message || 'ระบบอัจฉริยะขัดข้อง ลองใหม่อีกครั้ง';
     } finally {
       isGenerating = false;
     }
@@ -267,7 +268,7 @@ Products: ${(s.output?.value_map?.products_services || []).slice(0, 3).map((p: a
       const res = await exportSavedTool(saveId, 'pdf');
       const url = `${PUBLIC_API_URL}${res.download_url}?print=1`;
       const win = window.open(url, '_blank');
-      if (!win) alert('กรุณาอนุญาต popup เพื่อเปิด Canvas');
+      if (!win) alert('กรุณาอนุญาต popup เพื่อเปิดใบสรุป (PDF)');
     } catch (err: any) { alert(err.message); }
   }
 
@@ -287,20 +288,31 @@ Products: ${(s.output?.value_map?.products_services || []).slice(0, 3).map((p: a
 </script>
 
 <ToolLayout
-  title="Million Dollar Offer"
-  subtitle="ออกแบบ Offer ระดับพรีเมียม — Value Equation + 7 Components + Trim & Stack"
+  title="ข้อเสนอที่ลูกค้าปฏิเสธยาก"
+  subtitle="ช่วยคุณออกแบบข้อเสนอที่ลูกค้าปฏิเสธยาก"
   icon="💎"
   color="amber"
 >
   {#if !output}
     <div class="space-y-5">
       <div class="bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/40 dark:to-yellow-950/40 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
-        <div class="font-semibold text-amber-900 dark:text-amber-200 mb-1">💎 Million Dollar Offer</div>
+        <div class="font-semibold text-amber-900 dark:text-amber-200 mb-1">💎 ออกแบบข้อเสนอที่ปฏิเสธยาก</div>
         <div class="text-sm text-amber-800 dark:text-amber-300 space-y-1">
-          <div><b>Value Equation:</b> Value = (Dream Outcome × Perceived Likelihood) / (Time Delay × Effort & Sacrifice)</div>
-          <div><b>7 Components:</b> Dream Outcome + Value Stack + Trim & Stack + Pricing + Guarantee + Scarcity/Urgency + MAGIC Name</div>
-          <div><b>Goal:</b> Offer ที่ลูกค้ารู้สึก foolish to refuse</div>
-          <div><b>ต่อจาก:</b> VPC (Customer Profile) → Offer (สร้างข้อเสนอที่แพ้ไม่ได้)</div>
+          <div>ช่วยคุณคิดข้อเสนอที่ลูกค้าเห็นแล้วรู้สึกว่า "พลาดไม่ได้" — คุ้มจนปฏิเสธไม่ลง</div>
+          <div>ได้จุดขายหลัก ของแถมที่ช่วยปิดข้อกังวล ราคาที่แนะนำ การรับประกัน และชื่อข้อเสนอที่จำง่าย</div>
+          <div>ต่อยอดได้จาก: ผลจากเช็คสินค้าตรงใจลูกค้าไหม → ข้อเสนอที่ลูกค้าปฏิเสธยาก</div>
+          <button
+            type="button"
+            onclick={() => (showPrinciple = !showPrinciple)}
+            class="text-xs text-amber-700/70 dark:text-amber-400/70 underline decoration-dotted hover:text-amber-700 dark:hover:text-amber-400"
+          >
+            {showPrinciple ? 'ซ่อนหลักการ' : 'ดูหลักการ'}
+          </button>
+          {#if showPrinciple}
+            <div class="text-xs text-amber-700/80 dark:text-amber-400/80 pt-1">
+              Value Equation (Alex Hormozi): มูลค่าที่ลูกค้ารู้สึก = (ผลลัพธ์ในฝัน × ความเชื่อว่าจะสำเร็จ) ÷ (เวลาที่ต้องรอ × ความยากลำบาก) — ประกอบด้วย 7 ส่วน: Dream Outcome, Value Stack, Trim & Stack, Pricing, Guarantee, Scarcity/Urgency, MAGIC Name
+            </div>
+          {/if}
         </div>
       </div>
 
@@ -336,20 +348,20 @@ Products: ${(s.output?.value_map?.products_services || []).slice(0, 3).map((p: a
       </div>
 
       <div>
-        <label class="block text-sm font-semibold mb-1.5">Product / Service *</label>
+        <label class="block text-sm font-semibold mb-1.5">สินค้า/บริการ *</label>
         <textarea bind:value={product_description} rows="3" placeholder="เช่น ขนมบ้านโกไข่ ขนมใต้สูตรโบราณ 28 สาขา" class="w-full px-3 py-2.5 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"></textarea>
       </div>
 
       <div>
-        <label class="block text-sm font-semibold mb-1.5">Features / จุดเด่น</label>
+        <label class="block text-sm font-semibold mb-1.5">จุดเด่นของสินค้า</label>
         <textarea bind:value={product_features} rows="2" placeholder="เช่น 1) สูตรโบราณ 2) วัตถุดิบสด 3) ปั๊ม ปตท." class="w-full px-3 py-2.5 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"></textarea>
       </div>
 
       <!-- Offer Context (3 dropdowns) -->
       <div class="bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/40 dark:to-yellow-950/40 border-2 border-amber-300 dark:border-amber-700 rounded-xl p-4 space-y-3">
-        <div class="font-semibold text-amber-900 dark:text-amber-200">💎 Offer Context (3 ตัวเลือก)</div>
+        <div class="font-semibold text-amber-900 dark:text-amber-200">💎 รายละเอียดข้อเสนอ (3 อย่าง — ไม่บังคับ)</div>
         <div>
-          <label class="block text-xs font-semibold text-amber-800 dark:text-amber-300 mb-1">🎯 Offer Type</label>
+          <label class="block text-xs font-semibold text-amber-800 dark:text-amber-300 mb-1">🎯 ประเภทข้อเสนอ</label>
           <select bind:value={offer_type} class="w-full px-2.5 py-1.5 rounded border border-amber-200 dark:border-amber-800 text-sm">
             <option value="">— เลือก / ปล่อยว่าง —</option>
             {#each OFFER_TYPES as t}
@@ -358,7 +370,7 @@ Products: ${(s.output?.value_map?.products_services || []).slice(0, 3).map((p: a
           </select>
         </div>
         <div>
-          <label class="block text-xs font-semibold text-amber-800 dark:text-amber-300 mb-1">🚚 Delivery Method</label>
+          <label class="block text-xs font-semibold text-amber-800 dark:text-amber-300 mb-1">🚚 วิธีส่งมอบสินค้า/บริการ</label>
           <select bind:value={delivery_method} class="w-full px-2.5 py-1.5 rounded border border-amber-200 dark:border-amber-800 text-sm">
             <option value="">— เลือก / ปล่อยว่าง —</option>
             {#each DELIVERY_METHODS as d}
@@ -367,20 +379,20 @@ Products: ${(s.output?.value_map?.products_services || []).slice(0, 3).map((p: a
           </select>
         </div>
         <div>
-          <label class="block text-xs font-semibold text-amber-800 dark:text-amber-300 mb-1">💵 Current Price (ราคาปัจจุบัน)</label>
+          <label class="block text-xs font-semibold text-amber-800 dark:text-amber-300 mb-1">💵 ราคาปัจจุบัน</label>
           <input type="text" bind:value={current_price} placeholder="เช่น 350 บาท/ชิ้น" class="w-full px-2.5 py-1.5 rounded border border-amber-200 dark:border-amber-800 text-sm" />
         </div>
       </div>
 
       <!-- Customer Insight (3 inputs) -->
       <div class="bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-950/40 dark:to-pink-950/40 border border-rose-200 dark:border-rose-800 rounded-xl p-4 space-y-3">
-        <div class="font-semibold text-rose-900 dark:text-rose-200">💡 Customer Insight (optional — แนะนำ)</div>
+        <div class="font-semibold text-rose-900 dark:text-rose-200">💡 ข้อมูลลูกค้าเพิ่มเติม (ไม่บังคับ แต่แนะนำ)</div>
         <div>
-          <label class="block text-xs font-semibold text-rose-800 dark:text-rose-300 mb-1">🎯 Dream Outcome — ลูกค้าฝันถึงอะไร</label>
+          <label class="block text-xs font-semibold text-rose-800 dark:text-rose-300 mb-1">🎯 ลูกค้าฝันถึงอะไร</label>
           <input type="text" bind:value={dream_outcome_hint} placeholder="เช่น ได้กินขนมใต้แท้ในกรุงเทพ" class="w-full px-2.5 py-1.5 rounded border border-rose-200 dark:border-rose-800 text-sm" />
         </div>
         <div>
-          <label class="block text-xs font-semibold text-rose-800 dark:text-rose-300 mb-1">⚠️ Biggest Objection — ข้อโต้แย้งใหญ่สุด</label>
+          <label class="block text-xs font-semibold text-rose-800 dark:text-rose-300 mb-1">⚠️ ข้อกังวลที่ใหญ่ที่สุดของลูกค้า</label>
           <input type="text" bind:value={biggest_objection} placeholder="เช่น กลัวขนมไม่สด / ขนส่งช้า" class="w-full px-2.5 py-1.5 rounded border border-rose-200 dark:border-rose-800 text-sm" />
         </div>
         <div>
@@ -388,7 +400,7 @@ Products: ${(s.output?.value_map?.products_services || []).slice(0, 3).map((p: a
           <input type="text" bind:value={current_result_time} placeholder="เช่น 2-3 วัน" class="w-full px-2.5 py-1.5 rounded border border-rose-200 dark:border-rose-800 text-sm" />
         </div>
         <div>
-          <label class="block text-xs font-semibold text-rose-800 dark:text-rose-300 mb-1">🛡️ Current Guarantee (ถ้ามี)</label>
+          <label class="block text-xs font-semibold text-rose-800 dark:text-rose-300 mb-1">🛡️ การรับประกันตอนนี้ (ถ้ามี)</label>
           <input type="text" bind:value={current_guarantee} placeholder="เช่น คืนเงิน 7 วัน" class="w-full px-2.5 py-1.5 rounded border border-rose-200 dark:border-rose-800 text-sm" />
         </div>
       </div>
@@ -396,12 +408,12 @@ Products: ${(s.output?.value_map?.products_services || []).slice(0, 3).map((p: a
       <!-- Optional pre-fill -->
       {#if vpc_saves.length > 0 || jtbd_saves.length > 0 || competitor_saves.length > 0}
         <div class="bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/40 dark:to-yellow-950/40 border border-amber-300 dark:border-amber-700 rounded-xl p-3 space-y-2">
-          <div class="font-semibold text-amber-900 dark:text-amber-200 text-sm">🔗 เชื่อม strategic tools ที่เคยวิเคราะห์ไว้ (optional)</div>
+          <div class="font-semibold text-amber-900 dark:text-amber-200 text-sm">🔗 ใช้ข้อมูลจากเครื่องมืออื่นที่เคยทำไว้ (ไม่บังคับ)</div>
           {#if vpc_saves.length > 0}
             <div>
-              <label class="block text-xs font-semibold text-amber-800 dark:text-amber-300 mb-1">💎 VPC</label>
+              <label class="block text-xs font-semibold text-amber-800 dark:text-amber-300 mb-1">💎 ผลจากเช็คสินค้าตรงใจลูกค้าไหม</label>
               <select bind:value={selectedVpcId} class="w-full px-2.5 py-1.5 rounded border border-amber-200 dark:border-amber-800 text-sm">
-                <option value="">— ไม่ใช้ VPC —</option>
+                <option value="">— ไม่ใช้ —</option>
                 {#each vpc_saves as v}
                   <option value={v.id}>💎 {v.title}</option>
                 {/each}
@@ -410,9 +422,9 @@ Products: ${(s.output?.value_map?.products_services || []).slice(0, 3).map((p: a
           {/if}
           {#if competitor_saves.length > 0}
             <div>
-              <label class="block text-xs font-semibold text-amber-800 dark:text-amber-300 mb-1">🔍 Competitor</label>
+              <label class="block text-xs font-semibold text-amber-800 dark:text-amber-300 mb-1">🔍 ผลจากส่องคู่แข่ง</label>
               <select bind:value={selectedCompetitorId} class="w-full px-2.5 py-1.5 rounded border border-amber-200 dark:border-amber-800 text-sm">
-                <option value="">— ไม่ใช้ Competitor —</option>
+                <option value="">— ไม่ใช้ —</option>
                 {#each competitor_saves as c}
                   <option value={c.id}>🔍 {c.title}</option>
                 {/each}
@@ -423,7 +435,7 @@ Products: ${(s.output?.value_map?.products_services || []).slice(0, 3).map((p: a
       {/if}
 
       <div>
-        <label class="block text-sm font-semibold mb-1.5">โน้ตเพิ่มเติม <span class="text-dark-900/50 dark:text-dark-100/50 font-normal">(optional)</span></label>
+        <label class="block text-sm font-semibold mb-1.5">โน้ตเพิ่มเติม <span class="text-dark-900/50 dark:text-dark-100/50 font-normal">(ไม่บังคับ)</span></label>
         <textarea bind:value={user_notes} rows="2" placeholder="อะไรก็ได้ที่อยากให้ ระบบอัจฉริยะ รู้เพิ่ม..." class="w-full px-3 py-2.5 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500"></textarea>
       </div>
 
@@ -433,7 +445,7 @@ Products: ${(s.output?.value_map?.products_services || []).slice(0, 3).map((p: a
 
       <div class="pt-4 flex items-center justify-end border-t border-dark-100 dark:border-dark-700">
         <button onclick={handleGenerate} disabled={isGenerating} class="btn-primary disabled:opacity-50">
-          {isGenerating ? '⏳ ระบบอัจฉริยะ กำลังออกแบบ Offer...' : '💎 ออกแบบ Million Dollar Offer'}
+          {isGenerating ? '⏳ ระบบอัจฉริยะ กำลังออกแบบข้อเสนอ...' : '💎 ออกแบบข้อเสนอ'}
         </button>
       </div>
     </div>
@@ -442,7 +454,7 @@ Products: ${(s.output?.value_map?.products_services || []).slice(0, 3).map((p: a
       <!-- Summary -->
       {#if output.summary}
         <div class="bg-primary-50 dark:bg-primary-900/40 border-l-4 border-primary-500 dark:border-primary-600 p-4 rounded-lg">
-          <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wider mb-1">สรุป Offer</div>
+          <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wider mb-1">สรุปข้อเสนอ</div>
           <div class="text-dark-900 dark:text-dark-50">{output.summary}</div>
         </div>
       {/if}
@@ -459,7 +471,7 @@ Products: ${(s.output?.value_map?.products_services || []).slice(0, 3).map((p: a
       {#if output.value_equation_audit}
         {@const ve = output.value_equation_audit}
         <div class="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/40 border-2 border-amber-300 dark:border-amber-700 rounded-2xl p-4">
-          <h3 class="font-semibold text-amber-900 dark:text-amber-200 mb-3">⚖️ Value Equation Audit</h3>
+          <h3 class="font-semibold text-amber-900 dark:text-amber-200 mb-3">⚖️ เช็คมูลค่าที่ลูกค้ารู้สึก 4 ด้าน</h3>
           <div class="grid grid-cols-2 gap-2 mb-3">
             <div class="bg-white dark:bg-dark-800 rounded-lg p-2 text-center">
               <div class="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold uppercase">↑ เพิ่ม</div>
@@ -470,10 +482,10 @@ Products: ${(s.output?.value_map?.products_services || []).slice(0, 3).map((p: a
           </div>
           <div class="grid sm:grid-cols-2 gap-3">
             {#each [
-              { key: 'dream_outcome', label: '🎯 Dream Outcome', dir: '↑' },
-              { key: 'perceived_likelihood', label: '💪 Perceived Likelihood', dir: '↑' },
-              { key: 'time_delay', label: '⏱️ Time Delay', dir: '↓' },
-              { key: 'effort_sacrifice', label: '💪 Effort & Sacrifice', dir: '↓' },
+              { key: 'dream_outcome', label: '🎯 ผลลัพธ์ในฝัน', dir: '↑' },
+              { key: 'perceived_likelihood', label: '💪 ความเชื่อว่าจะสำเร็จ', dir: '↑' },
+              { key: 'time_delay', label: '⏱️ เวลาที่ต้องรอ', dir: '↓' },
+              { key: 'effort_sacrifice', label: '💪 ความยากลำบากที่ต้องแลก', dir: '↓' },
             ] as lever}
               {@const item = ve[lever.key] || {}}
               <div class="bg-white dark:bg-dark-800 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
@@ -490,7 +502,7 @@ Products: ${(s.output?.value_map?.products_services || []).slice(0, 3).map((p: a
           </div>
           {#if ve.binding_constraint}
             <div class="mt-3 bg-red-50 dark:bg-red-950/40 border-l-4 border-red-500 dark:border-red-600 rounded p-2.5 text-xs">
-              <div class="font-bold text-red-800 dark:text-red-300">⚠️ Binding Constraint:</div>
+              <div class="font-bold text-red-800 dark:text-red-300">⚠️ จุดที่ฉุดรั้งมากที่สุด:</div>
               <div class="text-red-900 dark:text-red-200 mt-0.5">{ve.binding_constraint}</div>
             </div>
           {/if}
@@ -501,24 +513,24 @@ Products: ${(s.output?.value_map?.products_services || []).slice(0, 3).map((p: a
       {#if output.starving_crowd}
         {@const sc = output.starving_crowd}
         <div class="bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-950/40 dark:to-pink-950/40 border border-rose-200 dark:border-rose-800 rounded-xl p-3">
-          <div class="font-semibold text-rose-900 dark:text-rose-200 mb-2">🎯 Starving Crowd (ตลาดที่หิวโหย + มีเงิน)</div>
+          <div class="font-semibold text-rose-900 dark:text-rose-200 mb-2">🎯 กลุ่มลูกค้าที่พร้อมจ่าย (อยากได้มาก + มีเงินจ่าย)</div>
           <div class="text-sm text-rose-900 dark:text-rose-200 mb-2"><b>{sc.who}</b></div>
           <div class="text-xs text-rose-800 dark:text-rose-300 mb-2 italic">{sc.why_starving}</div>
           <div class="grid grid-cols-4 gap-1">
             <div class="bg-white dark:bg-dark-800 rounded p-1.5 text-center">
-              <div class="text-[10px] text-rose-700 dark:text-rose-400">Pain</div>
+              <div class="text-[10px] text-rose-700 dark:text-rose-400">เจ็บปวด</div>
               <div class="text-sm font-bold {leverColor(sc.pain_level || 0)} rounded">{sc.pain_level || '-'}</div>
             </div>
             <div class="bg-white dark:bg-dark-800 rounded p-1.5 text-center">
-              <div class="text-[10px] text-rose-700 dark:text-rose-400">$</div>
+              <div class="text-[10px] text-rose-700 dark:text-rose-400">มีเงินจ่าย</div>
               <div class="text-sm font-bold {leverColor(sc.purchasing_power || 0)} rounded">{sc.purchasing_power || '-'}</div>
             </div>
             <div class="bg-white dark:bg-dark-800 rounded p-1.5 text-center">
-              <div class="text-[10px] text-rose-700 dark:text-rose-400">Target</div>
+              <div class="text-[10px] text-rose-700 dark:text-rose-400">เข้าถึงง่าย</div>
               <div class="text-sm font-bold {leverColor(sc.targetability || 0)} rounded">{sc.targetability || '-'}</div>
             </div>
             <div class="bg-white dark:bg-dark-800 rounded p-1.5 text-center">
-              <div class="text-[10px] text-rose-700 dark:text-rose-400">Growth</div>
+              <div class="text-[10px] text-rose-700 dark:text-rose-400">โตได้อีก</div>
               <div class="text-sm font-bold {leverColor(sc.growth_potential || 0)} rounded">{sc.growth_potential || '-'}</div>
             </div>
           </div>
@@ -529,18 +541,18 @@ Products: ${(s.output?.value_map?.products_services || []).slice(0, 3).map((p: a
       {#if output.dream_outcome}
         {@const dr = output.dream_outcome}
         <div class="bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-950/40 dark:to-yellow-950/40 border-2 border-amber-400 dark:border-amber-700 rounded-2xl p-4">
-          <h3 class="font-semibold text-amber-900 dark:text-amber-200 mb-2">🎯 Dream Outcome</h3>
+          <h3 class="font-semibold text-amber-900 dark:text-amber-200 mb-2">🎯 ผลลัพธ์ในฝันของลูกค้า</h3>
           <div class="bg-white dark:bg-dark-800 rounded-lg p-3 text-sm text-amber-900 dark:text-amber-200 font-semibold">"{dr.specific_description || '-'}"</div>
-          {#if dr.by_when}<div class="text-xs text-amber-800 dark:text-amber-300 mt-2">⏱️ <b>By when:</b> {dr.by_when}</div>{/if}
-          {#if dr.sensory_detail}<div class="text-xs text-amber-800 dark:text-amber-300 mt-1">👁️ <b>Sensory:</b> {dr.sensory_detail}</div>{/if}
-          {#if dr.owns}<div class="text-xs text-amber-800 dark:text-amber-300 mt-1">👤 <b>Owns by:</b> {dr.owns}</div>{/if}
+          {#if dr.by_when}<div class="text-xs text-amber-800 dark:text-amber-300 mt-2">⏱️ <b>ภายในเมื่อไร:</b> {dr.by_when}</div>{/if}
+          {#if dr.sensory_detail}<div class="text-xs text-amber-800 dark:text-amber-300 mt-1">👁️ <b>ความรู้สึกที่จับต้องได้:</b> {dr.sensory_detail}</div>{/if}
+          {#if dr.owns}<div class="text-xs text-amber-800 dark:text-amber-300 mt-1">👤 <b>ใครเป็นคนพิสูจน์ผลลัพธ์นี้:</b> {dr.owns}</div>{/if}
         </div>
       {/if}
 
       <!-- Obstacles & Solutions -->
       {#if output.obstacles_and_solutions?.length}
         <div class="bg-white dark:bg-dark-800 border-2 border-rose-200 dark:border-rose-800 rounded-xl p-3">
-          <h3 class="font-semibold text-rose-900 dark:text-rose-200 mb-2 text-sm">🚧 Obstacles & Solutions ({output.obstacles_and_solutions.length})</h3>
+          <h3 class="font-semibold text-rose-900 dark:text-rose-200 mb-2 text-sm">🚧 อุปสรรค กับวิธีแก้ ({output.obstacles_and_solutions.length})</h3>
           <div class="space-y-1.5">
             {#each output.obstacles_and_solutions as o}
               <div class="bg-rose-50 dark:bg-rose-950/40 rounded p-2 text-xs">
@@ -560,13 +572,13 @@ Products: ${(s.output?.value_map?.products_services || []).slice(0, 3).map((p: a
       <!-- Value Stack -->
       {#if output.value_stack?.length}
         <div class="bg-white dark:bg-dark-800 border-2 border-amber-200 dark:border-amber-800 rounded-xl p-3">
-          <h3 class="font-semibold text-amber-900 dark:text-amber-200 mb-2 text-sm">📚 Value Stack ({output.value_stack.length})</h3>
+          <h3 class="font-semibold text-amber-900 dark:text-amber-200 mb-2 text-sm">📚 รายการที่ลูกค้าได้ ({output.value_stack.length})</h3>
           <div class="space-y-1.5">
             {#each output.value_stack as v}
               <div class="rounded p-2 text-xs {v.is_core ? 'bg-amber-100 dark:bg-amber-950/40 border-2 border-amber-400 dark:border-amber-700' : 'bg-amber-50 dark:bg-amber-950/40'}">
                 <div class="flex items-center gap-1.5 mb-0.5 flex-wrap">
-                  <span class="px-1.5 py-0.5 rounded text-[10px] border {v.is_core ? 'bg-amber-500 text-white border-amber-500' : 'bg-white dark:bg-dark-800 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-700'}">{v.is_core ? '⭐ Core' : '🎁 Bonus'}</span>
-                  <span class="text-[10px] text-amber-700 dark:text-amber-400">cost: {v.cost_to_deliver}</span>
+                  <span class="px-1.5 py-0.5 rounded text-[10px] border {v.is_core ? 'bg-amber-500 text-white border-amber-500' : 'bg-white dark:bg-dark-800 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-700'}">{v.is_core ? '⭐ รายการหลัก' : '🎁 ของแถม'}</span>
+                  <span class="text-[10px] text-amber-700 dark:text-amber-400">ต้นทุน: {v.cost_to_deliver}</span>
                   <span class="ml-auto text-sm font-bold text-amber-700 dark:text-amber-400">{v.perceived_value}</span>
                 </div>
                 <div class="font-semibold text-amber-900 dark:text-amber-200">{v.name}</div>
@@ -582,26 +594,26 @@ Products: ${(s.output?.value_map?.products_services || []).slice(0, 3).map((p: a
       {#if output.pricing}
         {@const pr = output.pricing}
         <div class="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-teal-950/40 border-2 border-emerald-300 dark:border-emerald-700 rounded-2xl p-4">
-          <h3 class="font-semibold text-emerald-900 dark:text-emerald-200 mb-2">💰 Pricing</h3>
+          <h3 class="font-semibold text-emerald-900 dark:text-emerald-200 mb-2">💰 ราคา</h3>
           <div class="flex items-center gap-3 mb-2">
             <div class="bg-white dark:bg-dark-800 rounded-lg p-2 px-3 text-center">
-              <div class="text-[10px] text-emerald-700 dark:text-emerald-400">Recommended</div>
+              <div class="text-[10px] text-emerald-700 dark:text-emerald-400">ราคาแนะนำ</div>
               <div class="text-xl font-bold text-emerald-900 dark:text-emerald-200">{pr.recommended_price || '-'}</div>
             </div>
             <div class="bg-white dark:bg-dark-800 rounded-lg p-2 px-3 text-center border-2 {priceRatioColor(pr.value_to_price_ratio || '0:1')}">
-              <div class="text-[10px]">Ratio</div>
+              <div class="text-[10px]">อัตราคุ้มค่า</div>
               <div class="text-base font-bold">{pr.value_to_price_ratio || '?'}</div>
             </div>
             {#if pr.anchor_price}
               <div class="bg-white dark:bg-dark-800 rounded-lg p-2 px-3 text-center">
-                <div class="text-[10px] text-emerald-700 dark:text-emerald-400">vs Anchor</div>
+                <div class="text-[10px] text-emerald-700 dark:text-emerald-400">เทียบราคาเดิม</div>
                 <div class="text-sm font-bold text-dark-900/60 dark:text-dark-100/60 line-through">{pr.anchor_price}</div>
               </div>
             {/if}
           </div>
           {#if pr.payment_options?.length}
             <div class="mt-2">
-              <div class="text-xs font-bold text-emerald-800 dark:text-emerald-300 mb-1">Payment Options:</div>
+              <div class="text-xs font-bold text-emerald-800 dark:text-emerald-300 mb-1">ตัวเลือกการผ่อนชำระ:</div>
               <div class="grid grid-cols-2 gap-1.5">
                 {#each pr.payment_options as opt}
                   <div class="bg-white dark:bg-dark-800 rounded p-1.5 text-xs text-emerald-900 dark:text-emerald-200">
@@ -621,18 +633,18 @@ Products: ${(s.output?.value_map?.products_services || []).slice(0, 3).map((p: a
       {#if output.guarantee}
         {@const g = output.guarantee}
         <div class="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/40 border-2 border-blue-300 dark:border-blue-700 rounded-2xl p-4">
-          <h3 class="font-semibold text-blue-900 dark:text-blue-200 mb-2">🛡️ Guarantee (ย้าย risk ให้ลูกค้า)</h3>
+          <h3 class="font-semibold text-blue-900 dark:text-blue-200 mb-2">🛡️ การรับประกัน (ให้ลูกค้าอุ่นใจ ไม่ต้องกลัวเสี่ยง)</h3>
           <div class="bg-white dark:bg-dark-800 rounded-lg p-3 border-2 border-blue-200 dark:border-blue-800">
             <div class="text-xs text-blue-700 dark:text-blue-400 font-bold uppercase">{g.type}</div>
             <div class="text-base font-bold text-blue-900 dark:text-blue-200 mt-1">"{g.name || '-'}"</div>
             <div class="text-sm text-blue-800 dark:text-blue-300 mt-1.5">{g.terms || '-'}</div>
-            <div class="text-xs text-blue-700 dark:text-blue-400 mt-1.5">⏱️ {g.duration || '-'} · <b>Risk ที่เรารับ:</b> {g.risk_to_us || '-'}</div>
+            <div class="text-xs text-blue-700 dark:text-blue-400 mt-1.5">⏱️ {g.duration || '-'} · <b>ความเสี่ยงที่เรารับแทนลูกค้า:</b> {g.risk_to_us || '-'}</div>
             {#if g.why_it_works}<div class="text-xs text-emerald-700 dark:text-emerald-400 mt-1.5 italic">✅ {g.why_it_works}</div>{/if}
           </div>
           {#if output.secondary_guarantee?.applicable}
             {@const sg = output.secondary_guarantee}
             <div class="bg-white dark:bg-dark-800 rounded-lg p-3 border-2 border-blue-200 dark:border-blue-800 mt-2">
-              <div class="text-xs text-blue-700 dark:text-blue-400 font-bold uppercase">➕ Stacked: {sg.type}</div>
+              <div class="text-xs text-blue-700 dark:text-blue-400 font-bold uppercase">➕ เพิ่มอีกชั้น: {sg.type}</div>
               <div class="text-sm font-bold text-blue-900 dark:text-blue-200 mt-1">"{sg.name || '-'}"</div>
               <div class="text-xs text-blue-800 dark:text-blue-300 mt-1">{sg.terms || '-'}</div>
               {#if sg.why_it_stacks}<div class="text-xs text-emerald-700 dark:text-emerald-400 mt-1 italic">✅ {sg.why_it_stacks}</div>{/if}
@@ -645,22 +657,22 @@ Products: ${(s.output?.value_map?.products_services || []).slice(0, 3).map((p: a
       {#if output.scarcity_urgency}
         {@const su = output.scarcity_urgency}
         <div class="bg-white dark:bg-dark-800 border-2 border-orange-200 dark:border-orange-800 rounded-xl p-3">
-          <h3 class="font-semibold text-orange-900 dark:text-orange-200 mb-2 text-sm">⏰ Scarcity & Urgency</h3>
+          <h3 class="font-semibold text-orange-900 dark:text-orange-200 mb-2 text-sm">⏰ ความเร่งด่วน (ของมีจำกัด/เวลาจำกัด)</h3>
           <div class="grid sm:grid-cols-2 gap-2">
             <div class="bg-orange-50 dark:bg-orange-950/40 rounded p-2 text-xs">
-              <div class="text-[10px] text-orange-700 dark:text-orange-400 uppercase font-bold">Scarcity</div>
+              <div class="text-[10px] text-orange-700 dark:text-orange-400 uppercase font-bold">ของมีจำกัด</div>
               <div class="text-orange-900 dark:text-orange-200 font-semibold mt-0.5">{su.scarcity_type || '-'}</div>
               <div class="text-orange-800 dark:text-orange-300 mt-0.5">{su.scarcity_details || '-'}</div>
             </div>
             <div class="bg-amber-50 dark:bg-amber-950/40 rounded p-2 text-xs">
-              <div class="text-[10px] text-amber-700 dark:text-amber-400 uppercase font-bold">Urgency</div>
+              <div class="text-[10px] text-amber-700 dark:text-amber-400 uppercase font-bold">เวลาจำกัด</div>
               <div class="text-amber-900 dark:text-amber-200 font-semibold mt-0.5">{su.urgency_type || '-'}</div>
               <div class="text-amber-800 dark:text-amber-300 mt-0.5">{su.urgency_details || '-'}</div>
             </div>
           </div>
           {#if su.is_ethical}
             <div class="mt-2 bg-emerald-50 dark:bg-emerald-950/40 border-l-4 border-emerald-500 dark:border-emerald-600 rounded p-2 text-xs">
-              <div class="font-bold text-emerald-800 dark:text-emerald-300">✅ Ethical (จริง ไม่หลอก)</div>
+              <div class="font-bold text-emerald-800 dark:text-emerald-300">✅ ของจริง ไม่ได้สร้างขึ้นมาหลอกลวง</div>
               {#if su.ethical_note}<div class="text-emerald-800 dark:text-emerald-300 mt-0.5">{su.ethical_note}</div>{/if}
             </div>
           {/if}
@@ -671,7 +683,7 @@ Products: ${(s.output?.value_map?.products_services || []).slice(0, 3).map((p: a
       {#if output.offer_name}
         {@const n = output.offer_name}
         <div class="bg-gradient-to-br from-amber-50 via-yellow-50 to-amber-50 dark:from-amber-950/40 dark:via-yellow-950/40 dark:to-amber-950/40 border-2 border-amber-400 dark:border-amber-700 rounded-2xl p-4">
-          <h3 class="font-semibold text-amber-900 dark:text-amber-200 mb-2 text-center">🏷️ Offer Name (MAGIC formula)</h3>
+          <h3 class="font-semibold text-amber-900 dark:text-amber-200 mb-2 text-center">🏷️ ชื่อข้อเสนอที่จำง่าย</h3>
           <div class="bg-white dark:bg-dark-800 rounded-lg p-3 text-center border-2 border-amber-300 dark:border-amber-700">
             <div class="text-2xl font-bold text-amber-900 dark:text-amber-200">"{n.full_name || '-'}"</div>
           </div>
@@ -708,7 +720,7 @@ Products: ${(s.output?.value_map?.products_services || []).slice(0, 3).map((p: a
       <!-- Next Steps -->
       {#if output.next_steps?.length}
         <div class="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-teal-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl p-3">
-          <div class="text-xs font-bold text-emerald-800 dark:text-emerald-300 uppercase mb-1.5">➡️ Next Steps</div>
+          <div class="text-xs font-bold text-emerald-800 dark:text-emerald-300 uppercase mb-1.5">➡️ ขั้นตอนต่อไป</div>
           <ul class="space-y-0.5 text-sm text-emerald-900 dark:text-emerald-200">
             {#each output.next_steps as s}<li class="flex gap-1.5"><span>→</span>{s}</li>{/each}
           </ul>
@@ -733,13 +745,13 @@ Products: ${(s.output?.value_map?.products_services || []).slice(0, 3).map((p: a
           <button onclick={handleSave} disabled={isSaving} class="text-sm btn-secondary disabled:opacity-50">
             {isSaving ? '...' : (saveId ? '✓ บันทึกแล้ว' : '💾 บันทึก')}
           </button>
-          <button onclick={handlePromote} disabled={isPromoting} class="text-sm btn-secondary disabled:opacity-50" title="บันทึกเป็นโปรเจกต์ (import เข้า step 1, 4, 7)">
-            {isPromoting ? '...' : '📋 เป็น Playbook'}
+          <button onclick={handlePromote} disabled={isPromoting} class="text-sm btn-secondary disabled:opacity-50" title="เอาไปใช้ในโปรเจกต์ (ใส่ให้อัตโนมัติในขั้นตอนที่ 1, 4, 7)">
+            {isPromoting ? '...' : '📋 ทำเป็นแผนงาน'}
           </button>
           {#if saveId}<CanvasPdfButton saveId={saveId} />{/if}
           <button onclick={() => handleExport('md')} class="text-sm btn-secondary">📥 .md</button>
           <button onclick={() => handleExport('json')} class="text-sm btn-secondary">📥 .json</button>
-          <button onclick={handleCanvasPDF} class="text-sm btn-primary" title="เปิด One-page Canvas PDF (A3 landscape)">🎨 Canvas PDF</button>
+          <button onclick={handleCanvasPDF} class="text-sm btn-primary" title="เปิดใบสรุปหน้าเดียว พิมพ์ได้ (ขนาด A3 แนวนอน)">🎨 ใบสรุป (PDF)</button>
         </div>
       </div>
       {#if promoteMsg}<div class="mt-2 text-xs {promoteMsg.startsWith('✓') ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}">{promoteMsg}</div>{/if}

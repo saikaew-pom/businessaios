@@ -28,18 +28,33 @@
     { value: 'line', label: 'LINE' },
   ];
   const FORMAT_OPTIONS = [
-    { value: 'post', label: 'Post' },
-    { value: 'image', label: 'Image' },
-    { value: 'carousel', label: 'Carousel' },
-    { value: 'reel', label: 'Reel' },
-    { value: 'story', label: 'Story' },
+    { value: 'post', label: 'โพสต์' },
+    { value: 'image', label: 'รูปภาพ' },
+    { value: 'carousel', label: 'การ์ดเลื่อน' },
+    { value: 'reel', label: 'รีล' },
+    { value: 'story', label: 'สตอรี่' },
   ];
   const PILLAR_OPTIONS = [
-    { value: 'awareness', label: 'Awareness' },
-    { value: 'education', label: 'Education' },
-    { value: 'social_proof', label: 'Social Proof' },
-    { value: 'conversion', label: 'Conversion' },
+    { value: 'awareness', label: 'ให้คนรู้จักร้าน' },
+    { value: 'education', label: 'ให้ความรู้' },
+    { value: 'social_proof', label: 'รีวิวจากลูกค้าจริง' },
+    { value: 'conversion', label: 'ปิดการขาย' },
   ];
+
+  // Status shown as a plain-Thai badge — same value set used across
+  // /works, /calendar, /inbox; only the on-screen label changes here.
+  const STATUS_LABELS: Record<string, string> = {
+    draft: 'ฉบับร่าง',
+    pending_review: 'รอรีวิว',
+    approved: 'อนุมัติแล้ว',
+    scheduled: 'ตั้งเวลาไว้',
+    published: 'เผยแพร่แล้ว',
+    rejected: 'ส่งกลับแก้',
+    archived: 'เก็บเข้าคลัง',
+  };
+  function statusLabel(status: string) {
+    return STATUS_LABELS[status] || status;
+  }
 
   let { item, onClose, onUpdated }: {
     item: ContentItem | null;
@@ -220,12 +235,12 @@
     const map: Record<string, string> = {
       approve: 'อนุมัติแล้ว',
       reject: 'ส่งกลับแก้แล้ว',
-      revert_to_draft: 'ดึงกลับเป็น draft แล้ว',
+      revert_to_draft: 'ดึงกลับเป็นฉบับร่างแล้ว',
       schedule: 'ตั้งเวลาแล้ว',
       reschedule: 'เปลี่ยนเวลาโพสต์แล้ว',
       unschedule: 'ยกเลิกเวลาที่ตั้งไว้แล้ว',
       manual_publish_ack: 'บันทึกว่าเผยแพร่แล้ว',
-      archive: 'Archive แล้ว',
+      archive: 'เก็บเข้าคลังแล้ว',
     };
     return map[action] || 'ทำรายการแล้ว';
   }
@@ -303,8 +318,8 @@
   <div class="fixed inset-0 z-40 flex flex-col bg-white dark:bg-dark-900">
     <div class="flex shrink-0 items-center justify-between gap-3 border-b border-dark-100 dark:border-dark-700 px-6 py-4">
       <div class="min-w-0">
-        <span class="rounded-full bg-dark-100 dark:bg-dark-700 px-2 py-0.5 text-xs font-semibold text-dark-900 dark:text-dark-50">{item.status}</span>
-        <h2 class="mt-1 truncate text-xl font-bold text-dark-900 dark:text-dark-50">{item.title || 'Content item'}</h2>
+        <span class="rounded-full bg-dark-100 dark:bg-dark-700 px-2 py-0.5 text-xs font-semibold text-dark-900 dark:text-dark-50">{statusLabel(item.status)}</span>
+        <h2 class="mt-1 truncate text-xl font-bold text-dark-900 dark:text-dark-50">{item.title || 'รายการคอนเทนต์'}</h2>
       </div>
       <button type="button" onclick={() => { if (!busy) onClose(); }} disabled={busy} class="shrink-0 text-3xl leading-none text-dark-900/50 dark:text-dark-100/50 hover:text-dark-900 dark:hover:text-dark-50 disabled:opacity-30">&times;</button>
     </div>
@@ -324,11 +339,11 @@
               <img src={assetUrl(item)} alt={item.title} class="w-full aspect-video rounded-lg object-cover bg-dark-100 dark:bg-dark-700" />
             {:else}
               <div class="flex aspect-video w-full items-center justify-center rounded-lg bg-dark-50 dark:bg-dark-800 text-sm text-dark-900/40 dark:text-dark-100/40">
-                ยังไม่มี creative
+                ยังไม่มีภาพประกอบ
               </div>
             {/if}
             <button type="button" onclick={openStudio} disabled={busy} class="btn-secondary w-full">
-              {isActionBusy === 'studio' ? 'กำลังเปิด...' : item.primary_asset_id ? '🎨 เปลี่ยน Creative' : '🎨 สร้าง Creative'}
+              {isActionBusy === 'studio' ? 'กำลังเปิด...' : item.primary_asset_id ? '🎨 เปลี่ยนงานภาพ' : '🎨 สร้างงานภาพ'}
             </button>
           </div>
 
@@ -341,20 +356,20 @@
               </div>
               <div class="grid grid-cols-2 gap-3">
                 <div>
-                  <label class="mb-1 block text-sm font-medium text-dark-700 dark:text-dark-200" for="platform">Platform</label>
+                  <label class="mb-1 block text-sm font-medium text-dark-700 dark:text-dark-200" for="platform">แพลตฟอร์ม</label>
                   <select id="platform" bind:value={platform} class="input">
                     {#each platformOptions as opt}<option value={opt.value}>{opt.label}</option>{/each}
                   </select>
                 </div>
                 <div>
-                  <label class="mb-1 block text-sm font-medium text-dark-700 dark:text-dark-200" for="format">Format</label>
+                  <label class="mb-1 block text-sm font-medium text-dark-700 dark:text-dark-200" for="format">รูปแบบโพสต์</label>
                   <select id="format" bind:value={format} class="input">
                     {#each formatOptions as opt}<option value={opt.value}>{opt.label}</option>{/each}
                   </select>
                 </div>
               </div>
               <div>
-                <label class="mb-1 block text-sm font-medium text-dark-700 dark:text-dark-200" for="pillar">Pillar</label>
+                <label class="mb-1 block text-sm font-medium text-dark-700 dark:text-dark-200" for="pillar">จุดประสงค์ของโพสต์</label>
                 <select id="pillar" bind:value={pillar} class="input">
                   {#each pillarOptions as opt}<option value={opt.value}>{opt.label}</option>{/each}
                 </select>
@@ -365,7 +380,7 @@
               <div class="text-xs font-semibold uppercase tracking-wide text-dark-900/50 dark:text-dark-100/50">เนื้อหา</div>
               <div>
                 <div class="mb-1 flex items-center justify-between gap-2">
-                  <label class="text-sm font-medium text-dark-700 dark:text-dark-200" for="hook">Hook</label>
+                  <label class="text-sm font-medium text-dark-700 dark:text-dark-200" for="hook">ประโยคเปิด</label>
                   <button type="button" onclick={() => regenerateField('hook')} disabled={busy} class="shrink-0 text-xs font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 disabled:opacity-40">
                     {regeneratingField === 'hook' ? '✨ กำลังคิด...' : '✨ AI ช่วยเขียน'}
                   </button>
@@ -374,7 +389,7 @@
               </div>
               <div>
                 <div class="mb-1 flex items-center justify-between gap-2">
-                  <label class="text-sm font-medium text-dark-700 dark:text-dark-200" for="caption">Caption</label>
+                  <label class="text-sm font-medium text-dark-700 dark:text-dark-200" for="caption">แคปชั่น</label>
                   <button type="button" onclick={() => regenerateField('caption')} disabled={busy} class="shrink-0 text-xs font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 disabled:opacity-40">
                     {regeneratingField === 'caption' ? '✨ กำลังคิด...' : '✨ AI ช่วยเขียน'}
                   </button>
@@ -383,7 +398,7 @@
               </div>
               <div>
                 <div class="mb-1 flex items-center justify-between gap-2">
-                  <label class="text-sm font-medium text-dark-700 dark:text-dark-200" for="cta">CTA</label>
+                  <label class="text-sm font-medium text-dark-700 dark:text-dark-200" for="cta">คำชวนให้ลูกค้าทำต่อ</label>
                   <button type="button" onclick={() => regenerateField('cta')} disabled={busy} class="shrink-0 text-xs font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 disabled:opacity-40">
                     {regeneratingField === 'cta' ? '✨ กำลังคิด...' : '✨ AI ช่วยเขียน'}
                   </button>
@@ -392,7 +407,7 @@
               </div>
               <div>
                 <div class="mb-1 flex items-center justify-between gap-2">
-                  <label class="text-sm font-medium text-dark-700 dark:text-dark-200" for="hashtags">Hashtags (คั่นด้วยจุลภาค)</label>
+                  <label class="text-sm font-medium text-dark-700 dark:text-dark-200" for="hashtags">แฮชแท็ก (คั่นด้วยจุลภาค)</label>
                   <button type="button" onclick={() => regenerateField('hashtags')} disabled={busy} class="shrink-0 text-xs font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 disabled:opacity-40">
                     {regeneratingField === 'hashtags' ? '✨ กำลังคิด...' : '✨ AI ช่วยเขียน'}
                   </button>
@@ -401,7 +416,7 @@
               </div>
               <div>
                 <div class="mb-1 flex items-center justify-between gap-2">
-                  <label class="text-sm font-medium text-dark-700 dark:text-dark-200" for="visual">Visual suggestion</label>
+                  <label class="text-sm font-medium text-dark-700 dark:text-dark-200" for="visual">ไอเดียภาพประกอบ</label>
                   <button type="button" onclick={() => regenerateField('visual_suggestion')} disabled={busy} class="shrink-0 text-xs font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 disabled:opacity-40">
                     {regeneratingField === 'visual_suggestion' ? '✨ กำลังคิด...' : '✨ AI ช่วยเขียน'}
                   </button>
@@ -409,7 +424,7 @@
                 <textarea id="visual" bind:value={visualSuggestion} rows="2" class="input"></textarea>
               </div>
               <div>
-                <label class="mb-1 block text-sm font-medium text-dark-700 dark:text-dark-200" for="engagement">Expected engagement</label>
+                <label class="mb-1 block text-sm font-medium text-dark-700 dark:text-dark-200" for="engagement">ผลตอบรับที่คาดว่าจะได้</label>
                 <input id="engagement" bind:value={expectedEngagement} class="input" />
               </div>
             </div>
@@ -423,26 +438,26 @@
               <div class="flex flex-wrap gap-2">
                 {#if ['draft', 'pending_review', 'rejected'].includes(item.status)}
                   <button type="button" onclick={() => runTransition('approve')} disabled={busy} class="btn-primary">
-                    {isActionBusy === 'approve' ? '...' : 'Approve'}
+                    {isActionBusy === 'approve' ? '...' : 'อนุมัติ'}
                   </button>
                 {/if}
                 {#if ['pending_review', 'approved'].includes(item.status)}
-                  <button type="button" onclick={handleReject} disabled={busy} class="btn-ghost">Reject</button>
+                  <button type="button" onclick={handleReject} disabled={busy} class="btn-ghost">ส่งกลับแก้</button>
                 {/if}
                 {#if item.status === 'approved'}
-                  <button type="button" onclick={() => (showScheduleInput = !showScheduleInput)} disabled={busy} class="btn-secondary">Schedule</button>
-                  <button type="button" onclick={handleMarkPublished} disabled={busy} class="btn-secondary">Mark Published</button>
+                  <button type="button" onclick={() => (showScheduleInput = !showScheduleInput)} disabled={busy} class="btn-secondary">ตั้งเวลาโพสต์</button>
+                  <button type="button" onclick={handleMarkPublished} disabled={busy} class="btn-secondary">บันทึกว่าโพสต์แล้ว</button>
                 {/if}
                 {#if item.status === 'scheduled'}
                   <button type="button" onclick={() => (showScheduleInput = !showScheduleInput)} disabled={busy} class="btn-secondary">เปลี่ยนวัน</button>
-                  <button type="button" onclick={() => runTransition('unschedule')} disabled={busy} class="btn-ghost">Unschedule</button>
-                  <button type="button" onclick={handleMarkPublished} disabled={busy} class="btn-secondary">Mark Published</button>
+                  <button type="button" onclick={() => runTransition('unschedule')} disabled={busy} class="btn-ghost">ยกเลิกเวลาที่ตั้งไว้</button>
+                  <button type="button" onclick={handleMarkPublished} disabled={busy} class="btn-secondary">บันทึกว่าโพสต์แล้ว</button>
                 {/if}
                 {#if ['pending_review', 'approved', 'scheduled', 'rejected'].includes(item.status)}
-                  <button type="button" onclick={() => runTransition('revert_to_draft')} disabled={busy} class="btn-ghost">↩ ดึงกลับเป็น Draft</button>
+                  <button type="button" onclick={() => runTransition('revert_to_draft')} disabled={busy} class="btn-ghost">↩ ดึงกลับเป็นฉบับร่าง</button>
                 {/if}
                 {#if !['published', 'archived'].includes(item.status)}
-                  <button type="button" onclick={() => runTransition('archive')} disabled={busy} class="btn-ghost">Archive</button>
+                  <button type="button" onclick={() => runTransition('archive')} disabled={busy} class="btn-ghost">เก็บเข้าคลัง</button>
                 {/if}
               </div>
 

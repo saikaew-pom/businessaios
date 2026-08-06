@@ -237,8 +237,8 @@
 </script>
 
 <ToolLayout
-  title="Persona Builder"
-  subtitle="สร้าง Customer Persona จากข้อมูลสมมติฐาน สำหรับธุรกิจใหม่ที่ยังไม่มีรีวิว/ข้อมูลลูกค้า — พร้อมวิธี validate ด้วยข้อมูลจริง"
+  title="วาดภาพลูกค้าในฝัน"
+  subtitle="ช่วยคุณจินตนาการลูกค้าในฝัน เหมาะกับธุรกิจใหม่ที่ยังไม่มีลูกค้าจริง พร้อมวิธีตรวจสอบด้วยข้อมูลจริงภายหลัง"
   icon="👥"
   color="green"
 >
@@ -256,8 +256,8 @@
         <div class="bg-gradient-to-r from-green-50 to-teal-50 dark:from-green-950/40 dark:to-teal-950/40 border border-green-200 dark:border-green-800 rounded-xl p-4 sm:col-span-2">
           <div class="flex items-center justify-between mb-2">
             <div>
-              <div class="font-semibold text-green-900 dark:text-green-200">👥 เริ่มจาก Persona Template</div>
-              <div class="text-xs text-green-700 dark:text-green-400">8 personas มาตรฐานสำหรับ SME ไทย — คลิกเติมข้อมูลอัตโนมัติ แล้วแก้ต่อได้</div>
+              <div class="font-semibold text-green-900 dark:text-green-200">👥 เริ่มจากแบบลูกค้าสำเร็จรูป</div>
+              <div class="text-xs text-green-700 dark:text-green-400">8 แบบลูกค้ามาตรฐาน เหมาะกับธุรกิจไทยขนาดเล็ก-กลาง — คลิกเติมข้อมูลอัตโนมัติ แล้วแก้ต่อได้</div>
             </div>
             {#if selectedPersona}
               <button type="button" onclick={clearPersona} class="text-xs text-green-700 dark:text-green-400 hover:underline">ล้างค่า</button>
@@ -346,7 +346,7 @@
 
       <div class="pt-4 flex items-center justify-end border-t border-dark-100 dark:border-dark-700">
         <button onclick={handleGenerate} disabled={isGenerating} class="btn-primary disabled:opacity-50">
-          {isGenerating ? '⏳ ระบบอัจฉริยะ กำลังสร้าง Persona...' : '👥 สร้าง Persona'}
+          {isGenerating ? '⏳ ระบบอัจฉริยะ กำลังวาดภาพลูกค้า...' : '👥 วาดภาพลูกค้าในฝัน'}
         </button>
       </div>
     </div>
@@ -408,7 +408,7 @@
 
           {#if persona.pain_points?.length}
             <div class="mb-4">
-              <div class="text-xs font-bold text-red-600 dark:text-red-400 uppercase tracking-wider mb-2">😣 Pain Points (สมมติฐาน)</div>
+              <div class="text-xs font-bold text-red-600 dark:text-red-400 uppercase tracking-wider mb-2">😣 ปัญหาที่คาดว่าลูกค้าเจอ (สมมติฐาน)</div>
               <ul class="space-y-1 text-sm">
                 {#each persona.pain_points as p}<li class="flex gap-2"><span class="text-red-500">•</span>{p}</li>{/each}
               </ul>
@@ -417,7 +417,7 @@
 
           {#if persona.needs?.length}
             <div class="mb-4">
-              <div class="text-xs font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-2">✨ Needs</div>
+              <div class="text-xs font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-2">✨ สิ่งที่ลูกค้าต้องการ</div>
               <ul class="space-y-1 text-sm">
                 {#each persona.needs as n}<li class="flex gap-2"><span class="text-primary-500">→</span>{n}</li>{/each}
               </ul>
@@ -426,7 +426,7 @@
 
           {#if persona.preferred_channels?.length}
             <div class="mb-4">
-              <div class="text-xs font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-2">📱 Preferred Channels</div>
+              <div class="text-xs font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-2">📱 ช่องทางที่ลูกค้าชอบ</div>
               <div class="flex flex-wrap gap-2">
                 {#each persona.preferred_channels as c}<span class="px-3 py-1 bg-primary-50 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 text-sm rounded-full">{c}</span>{/each}
               </div>
@@ -435,14 +435,14 @@
 
           {#if persona.best_message}
             <div class="mb-4 bg-primary-50 dark:bg-primary-900/40 border-l-4 border-primary-500 p-3 rounded">
-              <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wider mb-1">💬 Best Message</div>
+              <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wider mb-1">💬 ข้อความที่ได้ผลที่สุด</div>
               <div class="text-sm">{persona.best_message}</div>
             </div>
           {/if}
 
           {#if persona.best_offer}
             <div class="mb-4 bg-green-50 dark:bg-green-950/40 border-l-4 border-green-500 p-3 rounded">
-              <div class="text-xs font-bold text-green-700 dark:text-green-400 uppercase tracking-wider mb-1">🎯 Best Offer</div>
+              <div class="text-xs font-bold text-green-700 dark:text-green-400 uppercase tracking-wider mb-1">🎯 ข้อเสนอที่ได้ผลที่สุด</div>
               <div class="text-sm">{persona.best_offer}</div>
             </div>
           {/if}
@@ -462,7 +462,7 @@
 
           {#if persona.validation_methods?.length}
             <details class="mt-3 bg-amber-50 dark:bg-amber-950/40 rounded-lg p-3">
-              <summary class="text-xs font-bold text-amber-700 dark:text-amber-400 cursor-pointer">🔍 วิธี validate persona นี้ด้วยข้อมูลจริง</summary>
+              <summary class="text-xs font-bold text-amber-700 dark:text-amber-400 cursor-pointer">🔍 วิธีตรวจสอบลูกค้าคนนี้ด้วยข้อมูลจริง</summary>
               <ul class="mt-2 space-y-1 text-sm text-amber-900 dark:text-amber-200">
                 {#each persona.validation_methods as v}<li>• {v}</li>{/each}
               </ul>
@@ -473,7 +473,7 @@
 
       {#if output.how_to_validate?.length}
         <div class="bg-blue-50 dark:bg-blue-950/40 border border-blue-300 dark:border-blue-700 rounded-xl p-5">
-          <div class="text-xs font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wider mb-2">📋 วิธี collect ข้อมูลจริง</div>
+          <div class="text-xs font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wider mb-2">📋 วิธีเก็บข้อมูลจริง</div>
           <ul class="space-y-1 text-sm text-blue-900 dark:text-blue-200">
             {#each output.how_to_validate as v}<li>• {v}</li>{/each}
           </ul>

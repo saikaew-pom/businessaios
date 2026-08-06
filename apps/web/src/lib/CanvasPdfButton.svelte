@@ -22,7 +22,7 @@
         error = 'กรุณาอนุญาต popup';
       }
     } catch (e: any) {
-      error = e?.message || 'ไม่สามารถเปิด Canvas PDF ได้';
+      error = e?.message || 'ไม่สามารถเปิดใบสรุป (PDF) ได้';
     } finally {
       isOpening = false;
     }
@@ -33,10 +33,10 @@
   onclick={openCanvas}
   disabled={isOpening}
   class="text-sm px-3 py-1.5 rounded bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:opacity-90 disabled:opacity-50 font-semibold flex items-center gap-1.5"
-  title="One-page A3 Canvas PDF (พิมพ์เป็น poster)"
+  title="ใบสรุปหน้าเดียว ขนาด A3 พิมพ์เป็นโปสเตอร์ได้"
 >
   <span>{isOpening ? '⏳' : '🎨'}</span>
-  <span>{isOpening ? 'กำลังสร้าง...' : 'Canvas PDF'}</span>
+  <span>{isOpening ? 'กำลังสร้าง...' : 'ใบสรุป (PDF)'}</span>
 </button>
 
 {#if error}

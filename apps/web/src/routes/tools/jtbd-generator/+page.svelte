@@ -39,6 +39,7 @@
   let saveMsg = $state('');
   let isPromoting = $state(false);
   let promoteMsg = $state('');
+  let showPrinciple = $state(false);
 
   // Auto-load from sessionStorage on page mount (Edit flow)
   $effect(() => {
@@ -257,22 +258,31 @@
 </script>
 
 <ToolLayout
-  title="Job-to-be-Done (JTBD) Generator"
-  subtitle="หา 'job' ที่ลูกค้าจ้างเราทำ — ใช้ 4 Forces of Progress + Decision Timeline + Outcome-Driven Innovation"
+  title='เข้าใจว่าลูกค้า "จ้าง" เราทำอะไร'
+  subtitle="มองข้ามฟีเจอร์ ไปหาว่าลูกค้าอยากให้งานอะไรสำเร็จจริงๆ เมื่อเลือกใช้สินค้าคุณ"
   icon="🎯"
   color="orange"
 >
   {#if !output}
     <div class="space-y-5">
       <div class="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/40 dark:to-purple-950/40 border border-indigo-200 dark:border-indigo-800 rounded-xl p-4">
-        <div class="font-semibold text-indigo-900 dark:text-indigo-200 mb-1">🎯 JTBD Framework (Christensen + Moesta + Ulwick)</div>
+        <div class="font-semibold text-indigo-900 dark:text-indigo-200 mb-1">🎯 เครื่องมือนี้ช่วยอะไร</div>
         <div class="text-sm text-indigo-800 dark:text-indigo-300 space-y-1">
-          <div><b>Core question:</b> "What progress is the customer trying to make?"</div>
-          <div><b>Job statement:</b> When [situation], I want to [motivation], so I can [outcome]</div>
-          <div><b>4 Forces of Progress:</b> Push + Pull > Anxiety + Habit = ลูกค้าเปลี่ยน</div>
-          <div><b>5 Decision Stages:</b> First Thought → Passive → Active → Deciding → First Use</div>
-          <div><b>Outcomes:</b> Importance × Satisfaction = Opportunity</div>
+          <div>หาคำตอบว่า "ลูกค้าอยากให้ชีวิตดีขึ้นแบบไหน" เมื่อมาซื้อสินค้าคุณ — ไม่ใช่แค่ซื้อของ แต่ซื้อเพื่อไปให้ถึงเป้าหมายบางอย่าง</div>
+          <div>ได้แผนที่การตัดสินใจของลูกค้า ตั้งแต่เริ่มคิด จนถึงตัดสินใจซื้อ พร้อมจุดที่ควรเข้าไปช่วยในแต่ละขั้น</div>
         </div>
+        <button
+          type="button"
+          onclick={() => showPrinciple = !showPrinciple}
+          class="mt-2 text-xs text-indigo-700/70 dark:text-indigo-300/70 underline decoration-dotted hover:text-indigo-700 dark:hover:text-indigo-300"
+        >
+          {showPrinciple ? 'ซ่อนหลักการ' : 'ดูหลักการ'}
+        </button>
+        {#if showPrinciple}
+          <div class="mt-1.5 text-xs text-indigo-700/70 dark:text-indigo-300/70">
+            อิงหลักการ Jobs-to-be-Done ของ Christensen, Moesta และ Ulwick — วิเคราะห์แรงผลักดัน 4 อย่าง (แรงดัน/แรงดึงดูด/ความกังวล/ความเคยชิน) และ 5 ขั้นตอนการตัดสินใจของลูกค้า
+          </div>
+        {/if}
       </div>
 
       <div>
@@ -328,7 +338,7 @@
 
       <!-- Customer profile inputs -->
       <div class="bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-950/40 dark:to-blue-950/40 border border-cyan-200 dark:border-cyan-800 rounded-xl p-4">
-        <div class="font-semibold text-cyan-900 dark:text-cyan-200 mb-2">👤 Customer Profile</div>
+        <div class="font-semibold text-cyan-900 dark:text-cyan-200 mb-2">👤 ข้อมูลลูกค้า</div>
         <div class="grid sm:grid-cols-3 gap-3">
           <div>
             <label class="block text-xs font-semibold text-cyan-800 dark:text-cyan-300 mb-1">อายุลูกค้า</label>
@@ -347,7 +357,7 @@
 
       <!-- Deep context inputs (the unique JTBD inputs) -->
       <div class="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/40 border border-amber-200 dark:border-amber-800 rounded-xl p-4 space-y-3">
-        <div class="font-semibold text-amber-900 dark:text-amber-200 mb-1">🧠 Deep Context (ยิ่งกรอก ยิ่งดี)</div>
+        <div class="font-semibold text-amber-900 dark:text-amber-200 mb-1">🧠 บริบทเชิงลึก (ยิ่งกรอก ยิ่งดี)</div>
 
         <div>
           <label class="block text-xs font-semibold text-amber-800 dark:text-amber-300 mb-1">🎯 Core Problem — ลูกค้าเจอปัญหาอะไรบ่อยที่สุด</label>
@@ -392,7 +402,7 @@
           disabled={isGenerating}
           class="btn-primary disabled:opacity-50"
         >
-          {isGenerating ? '⏳ ระบบอัจฉริยะ กำลังวิจัย...' : '🎯 วิเคราะห์ JTBD'}
+          {isGenerating ? '⏳ ระบบอัจฉริยะ กำลังวิจัย...' : '🎯 วิเคราะห์ว่าลูกค้าจ้างเราทำอะไร'}
         </button>
       </div>
     </div>
@@ -401,14 +411,14 @@
     <div class="space-y-5">
       {#if output.summary}
         <div class="bg-primary-50 dark:bg-primary-900/40 border-l-4 border-primary-500 dark:border-primary-600 p-4 rounded-lg">
-          <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wider mb-1">สรุป JTBD</div>
+          <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wider mb-1">สรุปผล</div>
           <div class="text-dark-900 dark:text-dark-50">{output.summary}</div>
         </div>
       {/if}
 
       {#if output.answer_to_core_question}
         <div class="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/40 dark:to-purple-950/40 border-l-4 border-indigo-500 dark:border-indigo-600 p-4 rounded-lg">
-          <div class="text-xs font-bold text-indigo-700 dark:text-indigo-400 uppercase tracking-wider mb-1">💡 Core Question → Answer</div>
+          <div class="text-xs font-bold text-indigo-700 dark:text-indigo-400 uppercase tracking-wider mb-1">💡 คำตอบของคำถามหลัก</div>
           <div class="text-sm italic text-indigo-900 dark:text-indigo-200">"{output.answer_to_core_question}"</div>
         </div>
       {/if}
@@ -416,28 +426,28 @@
       <!-- Primary Job -->
       {#if output.primary_job}
         <div class="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/40 dark:to-amber-950/40 border-2 border-orange-300 dark:border-orange-700 rounded-2xl p-5">
-          <h3 class="font-semibold text-lg mb-3 text-orange-900 dark:text-orange-200">🎯 Primary Job</h3>
+          <h3 class="font-semibold text-lg mb-3 text-orange-900 dark:text-orange-200">🎯 งานหลักที่ลูกค้าต้องการ</h3>
           {#if output.primary_job.job_statement}
             <div class="bg-white dark:bg-dark-800 rounded-lg p-3 mb-3 border border-orange-200 dark:border-orange-800">
-              <div class="text-xs font-bold text-orange-700 dark:text-orange-400 uppercase mb-1">Job Statement</div>
+              <div class="text-xs font-bold text-orange-700 dark:text-orange-400 uppercase mb-1">สรุปเป็นประโยคเดียว</div>
               <div class="text-sm">{output.primary_job.job_statement}</div>
             </div>
           {/if}
           {#if output.primary_job.job_verb_format}
-            <div class="text-xs text-orange-700 dark:text-orange-400 mb-3"><b>Ulwick format:</b> <span class="italic">{output.primary_job.job_verb_format}</span></div>
+            <div class="text-xs text-orange-700 dark:text-orange-400 mb-3"><b>สรุปแบบสั้น:</b> <span class="italic">{output.primary_job.job_verb_format}</span></div>
           {/if}
           {#if output.primary_job.dimensions}
             <div class="grid sm:grid-cols-3 gap-2 text-sm">
               <div class="bg-white dark:bg-dark-800 border border-orange-200 dark:border-orange-800 rounded-lg p-3">
-                <div class="text-xs font-bold text-orange-700 dark:text-orange-400 uppercase mb-1">⚙️ Functional</div>
+                <div class="text-xs font-bold text-orange-700 dark:text-orange-400 uppercase mb-1">⚙️ ด้านการใช้งาน</div>
                 <div class="text-orange-900 dark:text-orange-200">{output.primary_job.dimensions.functional || '-'}</div>
               </div>
               <div class="bg-white dark:bg-dark-800 border border-orange-200 dark:border-orange-800 rounded-lg p-3">
-                <div class="text-xs font-bold text-orange-700 dark:text-orange-400 uppercase mb-1">💗 Emotional</div>
+                <div class="text-xs font-bold text-orange-700 dark:text-orange-400 uppercase mb-1">💗 ด้านความรู้สึก</div>
                 <div class="text-orange-900 dark:text-orange-200">{output.primary_job.dimensions.emotional || '-'}</div>
               </div>
               <div class="bg-white dark:bg-dark-800 border border-orange-200 dark:border-orange-800 rounded-lg p-3">
-                <div class="text-xs font-bold text-orange-700 dark:text-orange-400 uppercase mb-1">👥 Social</div>
+                <div class="text-xs font-bold text-orange-700 dark:text-orange-400 uppercase mb-1">👥 ด้านสังคม</div>
                 <div class="text-orange-900 dark:text-orange-200">{output.primary_job.dimensions.social || '-'}</div>
               </div>
             </div>
@@ -448,17 +458,17 @@
       <!-- Related Jobs -->
       {#if output.related_jobs?.length}
         <div class="space-y-2">
-          <h3 class="font-semibold text-lg">📋 Related Jobs ({output.related_jobs.length})</h3>
+          <h3 class="font-semibold text-lg">📋 งานอื่นที่เกี่ยวข้อง ({output.related_jobs.length})</h3>
           {#each output.related_jobs as r}
             <div class="bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 rounded-lg p-3">
               <div class="font-semibold text-sm text-dark-900 dark:text-dark-50 mb-1">{r.job}</div>
-              {#if r.context}<div class="text-xs text-dark-900/70 dark:text-dark-100/70 mb-1"><b>Context:</b> {r.context}</div>{/if}
+              {#if r.context}<div class="text-xs text-dark-900/70 dark:text-dark-100/70 mb-1"><b>บริบท:</b> {r.context}</div>{/if}
               <div class="flex gap-2 text-xs flex-wrap">
-                <span class="px-2 py-0.5 rounded {intensityColor(r.importance)}">Importance: {intensityLabel(r.importance)}</span>
-                <span class="px-2 py-0.5 rounded {intensityColor(r.satisfaction_current)}">Satisfaction now: {intensityLabel(r.satisfaction_current)}</span>
+                <span class="px-2 py-0.5 rounded {intensityColor(r.importance)}">ความสำคัญ: {intensityLabel(r.importance)}</span>
+                <span class="px-2 py-0.5 rounded {intensityColor(r.satisfaction_current)}">พอใจตอนนี้: {intensityLabel(r.satisfaction_current)}</span>
               </div>
               {#if r.opportunity}
-                <div class="text-xs text-emerald-700 dark:text-emerald-400 mt-1.5"><b>Opportunity:</b> {r.opportunity}</div>
+                <div class="text-xs text-emerald-700 dark:text-emerald-400 mt-1.5"><b>โอกาส:</b> {r.opportunity}</div>
               {/if}
             </div>
           {/each}
@@ -468,7 +478,7 @@
       <!-- Customer Decision Timeline -->
       {#if output.customer_decision_timeline?.length}
         <div class="space-y-2">
-          <h3 class="font-semibold text-lg">⏱️ Customer Decision Timeline (5 Stages)</h3>
+          <h3 class="font-semibold text-lg">⏱️ เส้นทางการตัดสินใจของลูกค้า (5 ขั้น)</h3>
           <div class="relative">
             {#each stageOrder as stage}
               {@const items = output.customer_decision_timeline.filter((it: any) => it.stage === stage)}
@@ -480,21 +490,21 @@
                   </div>
                   <div class="grid sm:grid-cols-2 gap-2 text-xs">
                     {#if t.customer_thinks}
-                      <div><b class="text-dark-900/70 dark:text-dark-100/70">💭 Thinks:</b> {t.customer_thinks}</div>
+                      <div><b class="text-dark-900/70 dark:text-dark-100/70">💭 คิดว่า:</b> {t.customer_thinks}</div>
                     {/if}
                     {#if t.customer_feels}
-                      <div><b class="text-dark-900/70 dark:text-dark-100/70">❤️ Feels:</b> {t.customer_feels}</div>
+                      <div><b class="text-dark-900/70 dark:text-dark-100/70">❤️ รู้สึก:</b> {t.customer_feels}</div>
                     {/if}
                     {#if t.customer_does}
-                      <div><b class="text-dark-900/70 dark:text-dark-100/70">👆 Does:</b> {t.customer_does}</div>
+                      <div><b class="text-dark-900/70 dark:text-dark-100/70">👆 ทำอะไร:</b> {t.customer_does}</div>
                     {/if}
                     {#if t.what_they_need}
-                      <div><b class="text-dark-900/70 dark:text-dark-100/70">🎁 Needs:</b> {t.what_they_need}</div>
+                      <div><b class="text-dark-900/70 dark:text-dark-100/70">🎁 ต้องการ:</b> {t.what_they_need}</div>
                     {/if}
                   </div>
                   {#if t.marketing_opportunity}
                     <div class="mt-2 bg-primary-50 dark:bg-primary-900/40 border-l-2 border-primary-400 dark:border-primary-600 rounded-r p-2 text-xs text-primary-900 dark:text-primary-200">
-                      <b>📣 Marketing opportunity:</b> {t.marketing_opportunity}
+                      <b>📣 โอกาสทางการตลาด:</b> {t.marketing_opportunity}
                     </div>
                   {/if}
                 </div>
@@ -508,10 +518,10 @@
       {#if output.forces_of_progress}
         {@const f = output.forces_of_progress}
         <div class="space-y-3">
-          <h3 class="font-semibold text-lg">⚖️ 4 Forces of Progress</h3>
+          <h3 class="font-semibold text-lg">⚖️ แรงผลักดันให้ลูกค้าเปลี่ยนใจ</h3>
           <div class="grid sm:grid-cols-2 gap-3">
             <div class="bg-red-50 dark:bg-red-950/40 border-2 border-red-200 dark:border-red-800 rounded-lg p-4">
-              <div class="text-xs font-bold text-red-800 dark:text-red-300 uppercase mb-2">⬆️ PUSH (ดันให้เปลี่ยน)</div>
+              <div class="text-xs font-bold text-red-800 dark:text-red-300 uppercase mb-2">⬆️ แรงดัน (อยากเปลี่ยน)</div>
               <ul class="space-y-1.5 text-sm">
                 {#each f.push || [] as p}
                   <li>
@@ -523,7 +533,7 @@
               </ul>
             </div>
             <div class="bg-green-50 dark:bg-green-950/40 border-2 border-green-200 dark:border-green-800 rounded-lg p-4">
-              <div class="text-xs font-bold text-green-800 dark:text-green-300 uppercase mb-2">🧲 PULL (ดึงดูด)</div>
+              <div class="text-xs font-bold text-green-800 dark:text-green-300 uppercase mb-2">🧲 แรงดึงดูด (อยากได้สิ่งใหม่)</div>
               <ul class="space-y-1.5 text-sm">
                 {#each f.pull || [] as p}
                   <li>
@@ -535,7 +545,7 @@
               </ul>
             </div>
             <div class="bg-amber-50 dark:bg-amber-950/40 border-2 border-amber-200 dark:border-amber-800 rounded-lg p-4">
-              <div class="text-xs font-bold text-amber-800 dark:text-amber-300 uppercase mb-2">😟 ANXIETY (ถ่วง)</div>
+              <div class="text-xs font-bold text-amber-800 dark:text-amber-300 uppercase mb-2">😟 ความกังวล (ทำให้ลังเล)</div>
               <ul class="space-y-1.5 text-sm">
                 {#each f.anxiety || [] as p}
                   <li>
@@ -547,7 +557,7 @@
               </ul>
             </div>
             <div class="bg-blue-50 dark:bg-blue-950/40 border-2 border-blue-200 dark:border-blue-800 rounded-lg p-4">
-              <div class="text-xs font-bold text-blue-800 dark:text-blue-300 uppercase mb-2">🛋️ HABIT (comfort zone)</div>
+              <div class="text-xs font-bold text-blue-800 dark:text-blue-300 uppercase mb-2">🛋️ ความเคยชิน (ของเดิมก็โอเค)</div>
               <ul class="space-y-1.5 text-sm">
                 {#each f.habit || [] as p}
                   <li>
@@ -561,9 +571,9 @@
           </div>
           {#if f.verdict}
             <div class="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/40 dark:to-purple-950/40 border-l-4 border-indigo-500 dark:border-indigo-600 p-3 rounded text-sm text-indigo-900 dark:text-indigo-200">
-              <b>⚖️ Verdict:</b> {f.verdict}
+              <b>⚖️ สรุป:</b> {f.verdict}
               {#if f.switch_likelihood}
-                <span class="ml-2 px-2 py-0.5 rounded text-xs {intensityColor(f.switch_likelihood)}">Switch likelihood: {intensityLabel(f.switch_likelihood)}</span>
+                <span class="ml-2 px-2 py-0.5 rounded text-xs {intensityColor(f.switch_likelihood)}">โอกาสที่ลูกค้าจะเปลี่ยนใจ: {intensityLabel(f.switch_likelihood)}</span>
               {/if}
             </div>
           {/if}
@@ -573,12 +583,12 @@
       <!-- Desired Outcomes -->
       {#if output.desired_outcomes?.length}
         <div class="space-y-2">
-          <h3 class="font-semibold text-lg">📏 Desired Outcomes ({output.desired_outcomes.length})</h3>
-          <div class="text-xs text-dark-900/60 dark:text-dark-100/60 mb-2">Score: <b>Opportunity = Importance + max(Importance - Satisfaction, 0)</b></div>
+          <h3 class="font-semibold text-lg">📏 ผลลัพธ์ที่ลูกค้าอยากได้ ({output.desired_outcomes.length})</h3>
+          <div class="text-xs text-dark-900/60 dark:text-dark-100/60 mb-2">คะแนนโอกาส = ความสำคัญ + ส่วนต่างที่ลูกค้ายังไม่พอใจ</div>
           {#each output.desired_outcomes as o}
             <div class="bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 rounded-lg p-3">
               <div class="flex items-start gap-2 mb-2">
-                <span class="px-2 py-0.5 rounded text-xs border {scoreColor(o.opportunity_score)} font-bold">Opp: {o.opportunity_score}/10</span>
+                <span class="px-2 py-0.5 rounded text-xs border {scoreColor(o.opportunity_score)} font-bold">โอกาส: {o.opportunity_score}/10</span>
                 {#if o.category}
                   <span class="px-2 py-0.5 rounded text-xs bg-dark-100 dark:bg-dark-700 text-dark-900/70 dark:text-dark-100/70">{o.category}</span>
                 {/if}
@@ -587,7 +597,7 @@
               <div class="grid grid-cols-2 gap-3 text-xs">
                 <div>
                   <div class="flex items-center gap-1">
-                    <span class="text-dark-900/60 dark:text-dark-100/60 w-20">Importance</span>
+                    <span class="text-dark-900/60 dark:text-dark-100/60 w-20">ความสำคัญ</span>
                     <div class="flex-1 h-1.5 bg-dark-100 dark:bg-dark-700 rounded-full overflow-hidden">
                       <div class="h-full bg-primary-500" style="width:{o.importance * 10}%"></div>
                     </div>
@@ -596,7 +606,7 @@
                 </div>
                 <div>
                   <div class="flex items-center gap-1">
-                    <span class="text-dark-900/60 dark:text-dark-100/60 w-20">Satisfaction</span>
+                    <span class="text-dark-900/60 dark:text-dark-100/60 w-20">พอใจตอนนี้</span>
                     <div class="flex-1 h-1.5 bg-dark-100 dark:bg-dark-700 rounded-full overflow-hidden">
                       <div class="h-full bg-amber-500" style="width:{o.satisfaction_current * 10}%"></div>
                     </div>
@@ -605,7 +615,7 @@
                 </div>
               </div>
               {#if o.why}
-                <div class="text-xs text-dark-900/70 dark:text-dark-100/70 mt-1.5"><b>Why:</b> {o.why}</div>
+                <div class="text-xs text-dark-900/70 dark:text-dark-100/70 mt-1.5"><b>เหตุผล:</b> {o.why}</div>
               {/if}
             </div>
           {/each}
@@ -615,7 +625,7 @@
       <!-- Triggers -->
       {#if output.triggers?.length}
         <div class="space-y-2">
-          <h3 class="font-semibold text-lg">⚡ Triggers ({output.triggers.length})</h3>
+          <h3 class="font-semibold text-lg">⚡ จุดกระตุ้นให้เริ่มมองหา ({output.triggers.length})</h3>
           <div class="grid sm:grid-cols-2 gap-2">
             {#each output.triggers as t}
               <div class="bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 rounded-lg p-3">
@@ -635,9 +645,9 @@
 
       <!-- Job Map (Ulwick 8 steps) -->
       {#if output.job_map?.length}
-        {@const jobMapLabels = ({ define: '1️⃣ Define', locate: '2️⃣ Locate', prepare: '3️⃣ Prepare', confirm: '4️⃣ Confirm', execute: '5️⃣ Execute', monitor: '6️⃣ Monitor', modify: '7️⃣ Modify', conclude: '8️⃣ Conclude' } as Record<string, string>)}
+        {@const jobMapLabels = ({ define: '1️⃣ กำหนดเป้าหมาย', locate: '2️⃣ หาตัวเลือก', prepare: '3️⃣ เตรียมตัว', confirm: '4️⃣ ยืนยันตัดสินใจ', execute: '5️⃣ ลงมือทำ', monitor: '6️⃣ ติดตามผล', modify: '7️⃣ ปรับแก้', conclude: '8️⃣ สรุปจบ' } as Record<string, string>)}
         <div class="space-y-2">
-          <h3 class="font-semibold text-lg">🗺️ Job Map — 8 ขั้นตอนการทำงาน</h3>
+          <h3 class="font-semibold text-lg">🗺️ ขั้นตอนการทำงานของลูกค้า — 8 ขั้นตอน</h3>
           <div class="grid sm:grid-cols-2 gap-2">
             {#each output.job_map as step}
               <div class="bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 rounded-lg p-3">
@@ -654,14 +664,14 @@
       {#if output.hiring_firing_criteria}
         {@const hf = output.hiring_firing_criteria}
         <div class="bg-white dark:bg-dark-800 border-2 border-dark-200 dark:border-dark-600 rounded-xl p-4">
-          <h3 class="font-semibold text-lg mb-3">🔄 Hiring &amp; Firing Criteria</h3>
+          <h3 class="font-semibold text-lg mb-3">🔄 เหตุผลที่เลือกใช้ / เลิกใช้</h3>
           <div class="grid sm:grid-cols-2 gap-3">
             <div class="bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-lg p-3">
-              <div class="text-xs font-bold text-red-800 dark:text-red-300 uppercase mb-1">🔥 Fired (เลิกใช้เดิม) เพราะ</div>
+              <div class="text-xs font-bold text-red-800 dark:text-red-300 uppercase mb-1">🔥 เลิกใช้เจ้าเดิมเพราะ</div>
               <div class="text-sm text-red-900 dark:text-red-200">{hf.fired_because}</div>
             </div>
             <div class="bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-800 rounded-lg p-3">
-              <div class="text-xs font-bold text-green-800 dark:text-green-300 uppercase mb-1">✅ Hired (เลือกใหม่) เพราะ</div>
+              <div class="text-xs font-bold text-green-800 dark:text-green-300 uppercase mb-1">✅ เลือกใช้เจ้าใหม่เพราะ</div>
               <div class="text-sm text-green-900 dark:text-green-200">{hf.hired_because}</div>
             </div>
           </div>
@@ -675,9 +685,9 @@
       {#if output.deep_research_insights}
         {@const ins = output.deep_research_insights}
         <div class="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/40 dark:to-pink-950/40 border-2 border-purple-300 dark:border-purple-700 rounded-2xl p-5">
-          <h3 class="font-semibold text-lg mb-3 text-purple-900 dark:text-purple-200">🧠 Deep Research Insights</h3>
+          <h3 class="font-semibold text-lg mb-3 text-purple-900 dark:text-purple-200">🧠 ข้อมูลเชิงลึกเพิ่มเติม</h3>
           {#if ins.methodology}
-            <div class="text-xs text-purple-800 dark:text-purple-300 italic mb-3">Methodology: {ins.methodology}</div>
+            <div class="text-xs text-purple-800 dark:text-purple-300 italic mb-3">วิธีการวิเคราะห์: {ins.methodology}</div>
           {/if}
           {#if ins.key_insights?.length}
             <div class="space-y-1.5 mb-3">
@@ -693,7 +703,7 @@
           {/if}
           {#if ins.validation_methods?.length}
             <div class="bg-white dark:bg-dark-800 border border-purple-200 dark:border-purple-800 rounded p-3">
-              <div class="text-xs font-bold text-purple-800 dark:text-purple-300 uppercase mb-1.5">🔬 Validation Methods</div>
+              <div class="text-xs font-bold text-purple-800 dark:text-purple-300 uppercase mb-1.5">🔬 วิธีตรวจสอบว่าใช้ได้จริง</div>
               <ul class="space-y-0.5 text-xs text-purple-900 dark:text-purple-200">
                 {#each ins.validation_methods as v}
                   <li>• {v}</li>
@@ -707,7 +717,7 @@
       <!-- Next Steps -->
       {#if output.next_steps?.length}
         <div class="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-teal-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4">
-          <div class="text-xs font-bold text-emerald-800 dark:text-emerald-300 uppercase mb-2">➡️ Next Steps</div>
+          <div class="text-xs font-bold text-emerald-800 dark:text-emerald-300 uppercase mb-2">➡️ ขั้นตอนต่อไป</div>
           <ul class="space-y-1 text-sm text-emerald-900 dark:text-emerald-200">
             {#each output.next_steps as s}
               <li class="flex gap-2"><span class="text-emerald-600 dark:text-emerald-400">→</span>{s}</li>
@@ -736,8 +746,8 @@
           <button onclick={handleSave} disabled={isSaving} class="text-sm btn-secondary disabled:opacity-50">
             {isSaving ? '...' : (saveId ? '✓ บันทึกแล้ว' : '💾 บันทึก')}
           </button>
-          <button onclick={handlePromote} disabled={isPromoting} class="text-sm btn-secondary disabled:opacity-50" title="บันทึกเป็นโปรเจกต์ (import เนื้อหาเข้า step 1, 2, 4)">
-            {isPromoting ? '...' : '📋 เป็น Playbook'}
+          <button onclick={handlePromote} disabled={isPromoting} class="text-sm btn-secondary disabled:opacity-50" title="บันทึกเป็นโปรเจกต์ (ใช้ต่อในขั้นตอน 1, 2, 4)">
+            {isPromoting ? '...' : '📋 ต่อยอดเป็นโปรเจกต์'}
           </button>
           <button onclick={() => handleExport('md')} class="text-sm btn-secondary">📥 .md</button>
           <button onclick={() => handleExport('json')} class="text-sm btn-secondary">📥 .json</button>

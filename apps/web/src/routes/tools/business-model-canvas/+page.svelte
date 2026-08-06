@@ -51,6 +51,7 @@
   let saveMsg = $state('');
   let isPromoting = $state(false);
   let promoteMsg = $state('');
+  let showPrinciple = $state(false);
 
   // Load related saves on mount
   $effect(() => {
@@ -185,7 +186,7 @@ White space: ${s.output?.white_space || '-'}`;
       });
       output = res.output;
     } catch (err: any) {
-      error = err.message || 'Smart Engine error';
+      error = err.message || 'ระบบอัจฉริยะขัดข้อง ลองใหม่อีกครั้ง';
     } finally {
       isGenerating = false;
     }
@@ -261,7 +262,7 @@ White space: ${s.output?.white_space || '-'}`;
       // Open canvas in new tab with auto-print
       const url = `${PUBLIC_API_URL}${res.download_url}?print=1`;
       const win = window.open(url, '_blank');
-      if (!win) alert('กรุณาอนุญาต popup เพื่อเปิด Canvas');
+      if (!win) alert('กรุณาอนุญาต popup เพื่อเปิดใบสรุป (PDF)');
     } catch (err: any) { alert(err.message); }
   }
 
@@ -287,7 +288,7 @@ White space: ${s.output?.white_space || '-'}`;
     return 'bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-700';
   };
   const importanceLabel = (i: string) => {
-    return ({ critical: '🔥 critical', important: '🟡 important', supporting: '🟢 supporting' } as any)[i] || i;
+    return ({ critical: '🔥 สำคัญมาก', important: '🟡 สำคัญ', supporting: '🟢 เสริม' } as any)[i] || i;
   };
   const priorityColor = (p: string) => {
     if (p === 'primary') return 'bg-red-100 dark:bg-red-950/40 text-red-800 dark:text-red-300 border-red-300 dark:border-red-700';
@@ -295,7 +296,7 @@ White space: ${s.output?.white_space || '-'}`;
     return 'bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-700';
   };
   const priorityLabel = (p: string) => {
-    return ({ primary: '⭐ primary', secondary: '🟡 secondary', tertiary: '🟢 tertiary' } as any)[p] || p;
+    return ({ primary: '⭐ กลุ่มหลัก', secondary: '🟡 กลุ่มรอง', tertiary: '🟢 กลุ่มเสริม' } as any)[p] || p;
   };
   const marginColor = (m: string) => {
     if (!m) return 'bg-dark-100 dark:bg-dark-700';
@@ -306,21 +307,33 @@ White space: ${s.output?.white_space || '-'}`;
 </script>
 
 <ToolLayout
-  title="Business Model Canvas"
-  subtitle="ออกแบบ Business Model ครบ 9 Building Blocks — Desirability + Feasibility + Viability (Osterwalder)"
+  title="วางแผนธุรกิจทั้งระบบ"
+  subtitle="ช่วยคุณมองภาพรวมธุรกิจทั้งหมดในหน้าเดียว ไม่ใช่แค่ไอเดียเดียว"
   icon="📊"
   color="indigo"
 >
   {#if !output}
     <div class="space-y-5">
       <div class="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/40 dark:to-purple-950/40 border border-indigo-200 dark:border-indigo-800 rounded-xl p-4">
-        <div class="font-semibold text-indigo-900 dark:text-indigo-200 mb-1">📊 Business Model Canvas (Osterwalder 2010)</div>
+        <div class="font-semibold text-indigo-900 dark:text-indigo-200 mb-1">📊 มองภาพรวมธุรกิจทั้งหมดในหน้าเดียว</div>
         <div class="text-sm text-indigo-800 dark:text-indigo-300 space-y-1">
-          <div><b>9 Building Blocks</b> ใน 3 areas:</div>
-          <div>• <b>Desirability</b> (ลูกค้าอยากได้): Customer Segments + Value Propositions</div>
-          <div>• <b>Feasibility</b> (ทำได้จริง): Channels + Customer Relationships + Key Activities + Key Resources + Key Partnerships</div>
-          <div>• <b>Viability</b> (ทำเงินได้): Revenue Streams + Cost Structure</div>
-          <div><b>ปิดท้าย strategic chain:</b> Pain Point → Persona → JTBD → VPC → <b>BMC</b></div>
+          <div>ช่วยคุณเห็นทั้งภาพว่าธุรกิจนี้อยู่รอดได้ไหม ใน 3 มุม:</div>
+          <div>• <b>ลูกค้าอยากได้ไหม:</b> ใครคือลูกค้า และเราให้คุณค่าอะไรกับเขา</div>
+          <div>• <b>ทำได้จริงไหม:</b> ขายผ่านช่องทางไหน ดูแลลูกค้ายังไง ต้องทำอะไรบ้าง ใช้ทรัพยากร/พาร์ทเนอร์อะไร</div>
+          <div>• <b>ทำเงินได้ไหม:</b> รายได้มาจากไหน ต้นทุนหลักคืออะไร</div>
+          <div>ต่อยอดได้จาก: หาปัญหาลูกค้า → วาดภาพลูกค้าในฝัน → เข้าใจว่าลูกค้า "จ้าง" เราทำอะไร → เช็คว่าสินค้าตรงใจลูกค้าไหม → <b>แผนธุรกิจทั้งระบบ</b></div>
+          <button
+            type="button"
+            onclick={() => (showPrinciple = !showPrinciple)}
+            class="text-xs text-indigo-700/70 dark:text-indigo-400/70 underline decoration-dotted hover:text-indigo-700 dark:hover:text-indigo-400"
+          >
+            {showPrinciple ? 'ซ่อนหลักการ' : 'ดูหลักการ'}
+          </button>
+          {#if showPrinciple}
+            <div class="text-xs text-indigo-700/80 dark:text-indigo-400/80 pt-1">
+              Business Model Canvas (Osterwalder, 2010) — ครบ 9 Building Blocks แบ่งเป็น 3 areas: Desirability (Customer Segments + Value Propositions), Feasibility (Channels + Customer Relationships + Key Activities + Key Resources + Key Partnerships), Viability (Revenue Streams + Cost Structure)
+            </div>
+          {/if}
         </div>
       </div>
 
@@ -356,20 +369,20 @@ White space: ${s.output?.white_space || '-'}`;
       </div>
 
       <div>
-        <label class="block text-sm font-semibold mb-1.5">Product / Service *</label>
+        <label class="block text-sm font-semibold mb-1.5">สินค้า/บริการ *</label>
         <textarea bind:value={product_description} rows="3" placeholder="เช่น ขนมบ้านโกไข่ เป็นร้านขนมใต้สูตรโบราณ 28 สาขา มี 48 รายการ เน้นขนมคุณภาพสูง ขายหน้าร้าน + ออนไลน์" class="w-full px-3 py-2.5 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"></textarea>
       </div>
 
       <div>
-        <label class="block text-sm font-semibold mb-1.5">Features / จุดเด่น</label>
+        <label class="block text-sm font-semibold mb-1.5">จุดเด่นของสินค้า</label>
         <textarea bind:value={product_features} rows="2" placeholder="เช่น 1) สูตรโบราณ 2) วัตถุดิบสดใหม่ 3) หน้าร้าน 28 สาขา 4) ส่งฟรี 5) บรรจุภัณฑ์ premium" class="w-full px-3 py-2.5 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"></textarea>
       </div>
 
       <!-- BMC Deep Context (4 fields) -->
       <div class="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/40 dark:to-purple-950/40 border-2 border-indigo-300 dark:border-indigo-700 rounded-xl p-4 space-y-3">
-        <div class="font-semibold text-indigo-900 dark:text-indigo-200">📊 Business Model Context (4 ตัวเลือก)</div>
+        <div class="font-semibold text-indigo-900 dark:text-indigo-200">📊 รายละเอียดโมเดลธุรกิจ (4 อย่าง — ไม่บังคับ)</div>
         <div>
-          <label class="block text-xs font-semibold text-indigo-800 dark:text-indigo-300 mb-1">💵 Revenue Model</label>
+          <label class="block text-xs font-semibold text-indigo-800 dark:text-indigo-300 mb-1">💵 วิธีทำเงิน</label>
           <select bind:value={revenue_model} class="w-full px-2.5 py-1.5 rounded border border-indigo-200 dark:border-indigo-800 text-sm">
             <option value="">— เลือก / ปล่อยว่างให้ ระบบอัจฉริยะ วิเคราะห์ —</option>
             {#each REVENUE_MODELS as r}
@@ -378,7 +391,7 @@ White space: ${s.output?.white_space || '-'}`;
           </select>
         </div>
         <div>
-          <label class="block text-xs font-semibold text-indigo-800 dark:text-indigo-300 mb-1">🗺️ Geographic Scope</label>
+          <label class="block text-xs font-semibold text-indigo-800 dark:text-indigo-300 mb-1">🗺️ พื้นที่ที่ขาย</label>
           <select bind:value={geographic_scope} class="w-full px-2.5 py-1.5 rounded border border-indigo-200 dark:border-indigo-800 text-sm">
             <option value="">— เลือก / ปล่อยว่าง —</option>
             {#each GEOGRAPHIC_SCOPES as g}
@@ -387,7 +400,7 @@ White space: ${s.output?.white_space || '-'}`;
           </select>
         </div>
         <div>
-          <label class="block text-xs font-semibold text-indigo-800 dark:text-indigo-300 mb-1">📡 Distribution Model</label>
+          <label class="block text-xs font-semibold text-indigo-800 dark:text-indigo-300 mb-1">📡 วิธีขาย/กระจายสินค้า</label>
           <select bind:value={distribution_model} class="w-full px-2.5 py-1.5 rounded border border-indigo-200 dark:border-indigo-800 text-sm">
             <option value="">— เลือก / ปล่อยว่าง —</option>
             {#each DISTRIBUTION_MODELS as d}
@@ -396,7 +409,7 @@ White space: ${s.output?.white_space || '-'}`;
           </select>
         </div>
         <div>
-          <label class="block text-xs font-semibold text-indigo-800 dark:text-indigo-300 mb-1">🌱 Current Stage</label>
+          <label class="block text-xs font-semibold text-indigo-800 dark:text-indigo-300 mb-1">🌱 ช่วงที่ธุรกิจอยู่ตอนนี้</label>
           <select bind:value={current_stage} class="w-full px-2.5 py-1.5 rounded border border-indigo-200 dark:border-indigo-800 text-sm">
             <option value="">— เลือก / ปล่อยว่าง —</option>
             {#each CURRENT_STAGES as s}
@@ -408,7 +421,7 @@ White space: ${s.output?.white_space || '-'}`;
 
       <!-- Financial Focus (optional) -->
       <div class="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/40 border border-amber-200 dark:border-amber-800 rounded-xl p-4 space-y-3">
-        <div class="font-semibold text-amber-900 dark:text-amber-200">💰 Financial Focus (optional — แนะนำ)</div>
+        <div class="font-semibold text-amber-900 dark:text-amber-200">💰 เรื่องเงินๆ ทองๆ (ไม่บังคับ แต่แนะนำ)</div>
         <div>
           <label class="block text-xs font-semibold text-amber-800 dark:text-amber-300 mb-1">🎯 ลงทุนหนักที่สุดเรื่องอะไร</label>
           <input type="text" bind:value={cost_focus} placeholder="เช่น โรงงานผลิต, ค่าเช่าหน้าร้าน, ทีม, การตลาด" class="w-full px-2.5 py-1.5 rounded border border-amber-200 dark:border-amber-800 text-sm" />
@@ -426,12 +439,12 @@ White space: ${s.output?.white_space || '-'}`;
       <!-- Optional: pre-fill from VPC / JTBD / Competitor -->
       {#if vpc_saves.length > 0 || jtbd_saves.length > 0 || competitor_saves.length > 0}
         <div class="bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/40 dark:to-yellow-950/40 border border-amber-300 dark:border-amber-700 rounded-xl p-3 space-y-2">
-          <div class="font-semibold text-amber-900 dark:text-amber-200 text-sm">🔗 เชื่อม strategic tools ที่เคยวิเคราะห์ไว้ (optional — แนะนำ)</div>
+          <div class="font-semibold text-amber-900 dark:text-amber-200 text-sm">🔗 ใช้ข้อมูลจากเครื่องมืออื่นที่เคยทำไว้ (ไม่บังคับ แต่แนะนำ)</div>
           {#if vpc_saves.length > 0}
             <div>
-              <label class="block text-xs font-semibold text-amber-800 dark:text-amber-300 mb-1">💎 VPC (Value Proposition)</label>
+              <label class="block text-xs font-semibold text-amber-800 dark:text-amber-300 mb-1">💎 ผลจากเช็คสินค้าตรงใจลูกค้าไหม</label>
               <select bind:value={selectedVpcId} class="w-full px-2.5 py-1.5 rounded border border-amber-200 dark:border-amber-800 text-sm">
-                <option value="">— ไม่ใช้ VPC —</option>
+                <option value="">— ไม่ใช้ —</option>
                 {#each vpc_saves as v}
                   <option value={v.id}>💎 {v.title} ({new Date(v.created_at).toLocaleDateString('th-TH')})</option>
                 {/each}
@@ -440,9 +453,9 @@ White space: ${s.output?.white_space || '-'}`;
           {/if}
           {#if jtbd_saves.length > 0}
             <div>
-              <label class="block text-xs font-semibold text-amber-800 dark:text-amber-300 mb-1">🎯 JTBD (Job-to-be-Done)</label>
+              <label class="block text-xs font-semibold text-amber-800 dark:text-amber-300 mb-1">🎯 ผลจากเข้าใจว่าลูกค้า "จ้าง" เราทำอะไร</label>
               <select bind:value={selectedJtbdId} class="w-full px-2.5 py-1.5 rounded border border-amber-200 dark:border-amber-800 text-sm">
-                <option value="">— ไม่ใช้ JTBD —</option>
+                <option value="">— ไม่ใช้ —</option>
                 {#each jtbd_saves as j}
                   <option value={j.id}>🎯 {j.title} ({new Date(j.created_at).toLocaleDateString('th-TH')})</option>
                 {/each}
@@ -451,21 +464,21 @@ White space: ${s.output?.white_space || '-'}`;
           {/if}
           {#if competitor_saves.length > 0}
             <div>
-              <label class="block text-xs font-semibold text-amber-800 dark:text-amber-300 mb-1">🔍 Competitor Analysis</label>
+              <label class="block text-xs font-semibold text-amber-800 dark:text-amber-300 mb-1">🔍 ผลจากส่องคู่แข่ง</label>
               <select bind:value={selectedCompetitorId} class="w-full px-2.5 py-1.5 rounded border border-amber-200 dark:border-amber-800 text-sm">
-                <option value="">— ไม่ใช้ Competitor —</option>
+                <option value="">— ไม่ใช้ —</option>
                 {#each competitor_saves as c}
                   <option value={c.id}>🔍 {c.title} ({new Date(c.created_at).toLocaleDateString('th-TH')})</option>
                 {/each}
               </select>
             </div>
           {/if}
-          <div class="text-xs text-amber-700 dark:text-amber-400 mt-1">ถ้าเลือก ระบบจะ pre-fill Customer Segments + Value Propositions จาก tools เหล่านี้</div>
+          <div class="text-xs text-amber-700 dark:text-amber-400 mt-1">ถ้าเลือก ระบบจะกรอกกลุ่มลูกค้ากับจุดขายหลักให้อัตโนมัติจากเครื่องมือเหล่านี้</div>
         </div>
       {/if}
 
       <div>
-        <label class="block text-sm font-semibold mb-1.5">โน้ตเพิ่มเติม <span class="text-dark-900/50 dark:text-dark-100/50 font-normal">(optional)</span></label>
+        <label class="block text-sm font-semibold mb-1.5">โน้ตเพิ่มเติม <span class="text-dark-900/50 dark:text-dark-100/50 font-normal">(ไม่บังคับ)</span></label>
         <textarea bind:value={user_notes} rows="2" placeholder="อะไรก็ได้ที่อยากให้ ระบบอัจฉริยะ รู้เพิ่ม..." class="w-full px-3 py-2.5 rounded-lg border border-dark-200 dark:border-dark-600 focus:outline-none focus:ring-2 focus:ring-primary-500"></textarea>
       </div>
 
@@ -475,7 +488,7 @@ White space: ${s.output?.white_space || '-'}`;
 
       <div class="pt-4 flex items-center justify-end border-t border-dark-100 dark:border-dark-700">
         <button onclick={handleGenerate} disabled={isGenerating} class="btn-primary disabled:opacity-50">
-          {isGenerating ? '⏳ ระบบอัจฉริยะ กำลังออกแบบ BMC...' : '📊 ออกแบบ Business Model'}
+          {isGenerating ? '⏳ ระบบอัจฉริยะ กำลังวางแผนธุรกิจ...' : '📊 วางแผนธุรกิจทั้งระบบ'}
         </button>
       </div>
     </div>
@@ -484,7 +497,7 @@ White space: ${s.output?.white_space || '-'}`;
       <!-- Summary -->
       {#if output.summary}
         <div class="bg-primary-50 dark:bg-primary-900/40 border-l-4 border-primary-500 dark:border-primary-600 p-4 rounded-lg">
-          <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wider mb-1">สรุป Business Model</div>
+          <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wider mb-1">สรุปแผนธุรกิจ</div>
           <div class="text-dark-900 dark:text-dark-50">{output.summary}</div>
         </div>
       {/if}
@@ -492,7 +505,7 @@ White space: ${s.output?.white_space || '-'}`;
       <!-- Executive insight -->
       {#if output.executive_insight}
         <div class="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/40 dark:to-purple-950/40 border-l-4 border-indigo-500 dark:border-indigo-600 p-3 rounded">
-          <div class="text-xs font-bold text-indigo-700 dark:text-indigo-400 uppercase mb-1">💡 Executive Insight</div>
+          <div class="text-xs font-bold text-indigo-700 dark:text-indigo-400 uppercase mb-1">💡 มุมมองสำคัญ</div>
           <div class="text-sm italic text-indigo-900 dark:text-indigo-200">"{output.executive_insight}"</div>
         </div>
       {/if}
@@ -500,7 +513,7 @@ White space: ${s.output?.white_space || '-'}`;
       <!-- Model coherence -->
       {#if output.model_coherence}
         <div class="bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 rounded-lg p-3 text-sm text-dark-900 dark:text-dark-50">
-          <div class="text-xs font-bold text-dark-900/60 dark:text-dark-100/60 uppercase mb-1">🔗 Model Coherence — segment → VP → revenue → resources เชื่อมกันยังไง</div>
+          <div class="text-xs font-bold text-dark-900/60 dark:text-dark-100/60 uppercase mb-1">🔗 ความเชื่อมโยงของแผน — กลุ่มลูกค้า → จุดขาย → รายได้ → ทรัพยากร เชื่อมกันยังไง</div>
           {output.model_coherence}
         </div>
       {/if}
@@ -508,18 +521,18 @@ White space: ${s.output?.white_space || '-'}`;
       <!-- Business Model Pattern badge -->
       {#if output.business_model_pattern}
         <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-sm font-semibold">
-          🏷️ Business Model Pattern: {output.business_model_pattern}
+          🏷️ รูปแบบธุรกิจ: {output.business_model_pattern}
         </div>
       {/if}
 
       <!-- 9 BLOCKS in 3 areas -->
       <!-- DESIRABILITY: CS + VP -->
       <div>
-        <div class="text-xs font-bold text-blue-700 dark:text-blue-400 uppercase mb-2 tracking-wider">🟦 Desirability (ลูกค้าอยากได้ไหม)</div>
+        <div class="text-xs font-bold text-blue-700 dark:text-blue-400 uppercase mb-2 tracking-wider">🟦 ลูกค้าอยากได้ไหม</div>
         <div class="grid lg:grid-cols-2 gap-3">
           <!-- Customer Segments -->
           <div class="bg-white dark:bg-dark-800 border-2 border-blue-200 dark:border-blue-800 rounded-xl p-3">
-            <div class="text-sm font-bold text-blue-700 dark:text-blue-400 mb-2">👥 Customer Segments ({output.customer_segments?.length || 0})</div>
+            <div class="text-sm font-bold text-blue-700 dark:text-blue-400 mb-2">👥 กลุ่มลูกค้า ({output.customer_segments?.length || 0})</div>
             <div class="space-y-1.5">
               {#each output.customer_segments || [] as s}
                 <div class="bg-blue-50 dark:bg-blue-950/40 rounded p-2 text-xs">
@@ -539,7 +552,7 @@ White space: ${s.output?.white_space || '-'}`;
 
           <!-- Value Propositions -->
           <div class="bg-white dark:bg-dark-800 border-2 border-purple-200 dark:border-purple-800 rounded-xl p-3">
-            <div class="text-sm font-bold text-purple-700 dark:text-purple-400 mb-2">💎 Value Propositions ({output.value_propositions?.length || 0})</div>
+            <div class="text-sm font-bold text-purple-700 dark:text-purple-400 mb-2">💎 จุดขายหลักที่มอบให้ลูกค้า ({output.value_propositions?.length || 0})</div>
             <div class="space-y-1.5">
               {#each output.value_propositions || [] as v}
                 <div class="bg-purple-50 dark:bg-purple-950/40 rounded p-2 text-xs">
@@ -560,13 +573,13 @@ White space: ${s.output?.white_space || '-'}`;
 
       <!-- FEASIBILITY: Channels + CR + KR + KA + KP -->
       <div>
-        <div class="text-xs font-bold text-teal-700 dark:text-teal-400 uppercase mb-2 tracking-wider">🟩 Feasibility (ทำได้จริงไหม)</div>
+        <div class="text-xs font-bold text-teal-700 dark:text-teal-400 uppercase mb-2 tracking-wider">🟩 ทำได้จริงไหม</div>
 
         <!-- Channels + CR row -->
         <div class="grid lg:grid-cols-2 gap-3 mb-3">
           <!-- Channels -->
           <div class="bg-white dark:bg-dark-800 border-2 border-teal-200 dark:border-teal-800 rounded-xl p-3">
-            <div class="text-sm font-bold text-teal-700 dark:text-teal-400 mb-2">📡 Channels ({output.channels?.length || 0})</div>
+            <div class="text-sm font-bold text-teal-700 dark:text-teal-400 mb-2">📡 ช่องทางขาย ({output.channels?.length || 0})</div>
             <div class="space-y-1.5">
               {#each output.channels || [] as ch}
                 <div class="bg-teal-50 dark:bg-teal-950/40 rounded p-2 text-xs">
@@ -584,7 +597,7 @@ White space: ${s.output?.white_space || '-'}`;
 
           <!-- Customer Relationships -->
           <div class="bg-white dark:bg-dark-800 border-2 border-cyan-200 dark:border-cyan-800 rounded-xl p-3">
-            <div class="text-sm font-bold text-cyan-700 dark:text-cyan-400 mb-2">🤝 Customer Relationships ({output.customer_relationships?.length || 0})</div>
+            <div class="text-sm font-bold text-cyan-700 dark:text-cyan-400 mb-2">🤝 ความสัมพันธ์กับลูกค้า ({output.customer_relationships?.length || 0})</div>
             <div class="space-y-1.5">
               {#each output.customer_relationships || [] as r}
                 <div class="bg-cyan-50 dark:bg-cyan-950/40 rounded p-2 text-xs">
@@ -605,7 +618,7 @@ White space: ${s.output?.white_space || '-'}`;
         <div class="grid lg:grid-cols-3 gap-3">
           <!-- Key Resources -->
           <div class="bg-white dark:bg-dark-800 border-2 border-amber-200 dark:border-amber-800 rounded-xl p-3">
-            <div class="text-sm font-bold text-amber-700 dark:text-amber-400 mb-2">🔧 Key Resources ({output.key_resources?.length || 0})</div>
+            <div class="text-sm font-bold text-amber-700 dark:text-amber-400 mb-2">🔧 ทรัพยากรสำคัญ ({output.key_resources?.length || 0})</div>
             <div class="space-y-1.5">
               {#each output.key_resources || [] as r}
                 <div class="bg-amber-50 dark:bg-amber-950/40 rounded p-2 text-xs">
@@ -622,7 +635,7 @@ White space: ${s.output?.white_space || '-'}`;
 
           <!-- Key Activities -->
           <div class="bg-white dark:bg-dark-800 border-2 border-orange-200 dark:border-orange-800 rounded-xl p-3">
-            <div class="text-sm font-bold text-orange-700 dark:text-orange-400 mb-2">⚙️ Key Activities ({output.key_activities?.length || 0})</div>
+            <div class="text-sm font-bold text-orange-700 dark:text-orange-400 mb-2">⚙️ กิจกรรมหลัก ({output.key_activities?.length || 0})</div>
             <div class="space-y-1.5">
               {#each output.key_activities || [] as a}
                 <div class="bg-orange-50 dark:bg-orange-950/40 rounded p-2 text-xs">
@@ -639,7 +652,7 @@ White space: ${s.output?.white_space || '-'}`;
 
           <!-- Key Partnerships -->
           <div class="bg-white dark:bg-dark-800 border-2 border-pink-200 dark:border-pink-800 rounded-xl p-3">
-            <div class="text-sm font-bold text-pink-700 dark:text-pink-400 mb-2">🤝 Key Partnerships ({output.key_partnerships?.length || 0})</div>
+            <div class="text-sm font-bold text-pink-700 dark:text-pink-400 mb-2">🤝 พาร์ทเนอร์สำคัญ ({output.key_partnerships?.length || 0})</div>
             <div class="space-y-1.5">
               {#each output.key_partnerships || [] as p}
                 <div class="bg-pink-50 dark:bg-pink-950/40 rounded p-2 text-xs">
@@ -659,11 +672,11 @@ White space: ${s.output?.white_space || '-'}`;
 
       <!-- VIABILITY: Revenue + Cost -->
       <div>
-        <div class="text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase mb-2 tracking-wider">🟨 Viability (ทำเงินได้ไหม)</div>
+        <div class="text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase mb-2 tracking-wider">🟨 ทำเงินได้ไหม</div>
         <div class="grid lg:grid-cols-2 gap-3">
           <!-- Revenue Streams -->
           <div class="bg-white dark:bg-dark-800 border-2 border-emerald-200 dark:border-emerald-800 rounded-xl p-3">
-            <div class="text-sm font-bold text-emerald-700 dark:text-emerald-400 mb-2">💰 Revenue Streams ({output.revenue_streams?.length || 0})</div>
+            <div class="text-sm font-bold text-emerald-700 dark:text-emerald-400 mb-2">💰 ช่องทางรายได้ ({output.revenue_streams?.length || 0})</div>
             <div class="space-y-1.5">
               {#each output.revenue_streams || [] as r}
                 <div class="bg-emerald-50 dark:bg-emerald-950/40 rounded p-2 text-xs">
@@ -684,17 +697,17 @@ White space: ${s.output?.white_space || '-'}`;
           {#if output.cost_structure}
             {@const cs = output.cost_structure}
             <div class="bg-white dark:bg-dark-800 border-2 border-red-200 dark:border-red-800 rounded-xl p-3">
-              <div class="text-sm font-bold text-red-700 dark:text-red-400 mb-2">📊 Cost Structure</div>
+              <div class="text-sm font-bold text-red-700 dark:text-red-400 mb-2">📊 โครงสร้างต้นทุน</div>
               <div class="space-y-2">
                 <div class="flex items-center gap-1.5 flex-wrap text-xs">
                   <span class="px-1.5 py-0.5 rounded text-[10px] border {cs.model === 'value-driven' ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700' : cs.model === 'cost-driven' ? 'bg-red-100 dark:bg-red-950/40 text-red-800 dark:text-red-300 border-red-300 dark:border-red-700' : 'bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-700'}">{cs.model}</span>
-                  <span class="px-1.5 py-0.5 rounded text-[10px] border {marginColor(cs.estimated_margin_profile)}">Margin: {cs.estimated_margin_profile}</span>
-                  {#if cs.economies_of_scale}<span class="px-1.5 py-0.5 rounded text-[10px] bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-700">Scale ✓</span>{/if}
-                  {#if cs.economies_of_scope}<span class="px-1.5 py-0.5 rounded text-[10px] bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-700">Scope ✓</span>{/if}
+                  <span class="px-1.5 py-0.5 rounded text-[10px] border {marginColor(cs.estimated_margin_profile)}">กำไรขั้นต้น: {cs.estimated_margin_profile}</span>
+                  {#if cs.economies_of_scale}<span class="px-1.5 py-0.5 rounded text-[10px] bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-700">ยิ่งทำเยอะยิ่งถูกลง ✓</span>{/if}
+                  {#if cs.economies_of_scope}<span class="px-1.5 py-0.5 rounded text-[10px] bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-700">ทำหลายอย่างร่วมกันคุ้มกว่า ✓</span>{/if}
                 </div>
                 {#if cs.major_fixed_costs?.length}
                   <div>
-                    <div class="text-[10px] font-bold text-red-800 dark:text-red-300 uppercase mb-1">Fixed Costs</div>
+                    <div class="text-[10px] font-bold text-red-800 dark:text-red-300 uppercase mb-1">ต้นทุนคงที่</div>
                     {#each cs.major_fixed_costs as c}
                       <div class="bg-red-50 dark:bg-red-950/40 rounded p-1.5 text-xs text-red-900 dark:text-red-200 mb-0.5">
                         {c.description} <span class="text-[10px] text-red-700/70 dark:text-red-400/70">({c.estimated_share})</span>
@@ -704,7 +717,7 @@ White space: ${s.output?.white_space || '-'}`;
                 {/if}
                 {#if cs.major_variable_costs?.length}
                   <div>
-                    <div class="text-[10px] font-bold text-red-800 dark:text-red-300 uppercase mb-1">Variable Costs</div>
+                    <div class="text-[10px] font-bold text-red-800 dark:text-red-300 uppercase mb-1">ต้นทุนผันแปร</div>
                     {#each cs.major_variable_costs as c}
                       <div class="bg-red-50 dark:bg-red-950/40 rounded p-1.5 text-xs text-red-900 dark:text-red-200 mb-0.5">
                         {c.description} <span class="text-[10px] text-red-700/70 dark:text-red-400/70">({c.estimated_share})</span>
@@ -722,28 +735,28 @@ White space: ${s.output?.white_space || '-'}`;
       {#if output.swot_summary}
         {@const sw = output.swot_summary}
         <div class="bg-gradient-to-br from-slate-50 to-dark-50 dark:from-slate-900/40 dark:to-dark-900/40 border-2 border-slate-300 dark:border-slate-700 rounded-2xl p-4">
-          <div class="font-semibold text-slate-900 dark:text-slate-100 mb-3 flex items-center gap-2">🎯 SWOT Summary</div>
+          <div class="font-semibold text-slate-900 dark:text-slate-100 mb-3 flex items-center gap-2">🎯 สรุปจุดแข็ง-จุดอ่อน-โอกาส-อุปสรรค</div>
           <div class="grid grid-cols-2 gap-2">
             <div class="bg-emerald-50 dark:bg-emerald-950/40 border-l-4 border-emerald-500 dark:border-emerald-600 rounded p-2">
-              <div class="text-xs font-bold text-emerald-800 dark:text-emerald-300 uppercase mb-1">💪 Strengths</div>
+              <div class="text-xs font-bold text-emerald-800 dark:text-emerald-300 uppercase mb-1">💪 จุดแข็ง</div>
               <ul class="text-xs text-emerald-900 dark:text-emerald-200 space-y-0.5">
                 {#each sw.strengths || [] as s}<li>• {s}</li>{/each}
               </ul>
             </div>
             <div class="bg-amber-50 dark:bg-amber-950/40 border-l-4 border-amber-500 dark:border-amber-600 rounded p-2">
-              <div class="text-xs font-bold text-amber-800 dark:text-amber-300 uppercase mb-1">⚠️ Weaknesses</div>
+              <div class="text-xs font-bold text-amber-800 dark:text-amber-300 uppercase mb-1">⚠️ จุดอ่อน</div>
               <ul class="text-xs text-amber-900 dark:text-amber-200 space-y-0.5">
                 {#each sw.weaknesses || [] as w}<li>• {w}</li>{/each}
               </ul>
             </div>
             <div class="bg-blue-50 dark:bg-blue-950/40 border-l-4 border-blue-500 dark:border-blue-600 rounded p-2">
-              <div class="text-xs font-bold text-blue-800 dark:text-blue-300 uppercase mb-1">🚀 Opportunities</div>
+              <div class="text-xs font-bold text-blue-800 dark:text-blue-300 uppercase mb-1">🚀 โอกาส</div>
               <ul class="text-xs text-blue-900 dark:text-blue-200 space-y-0.5">
                 {#each sw.opportunities || [] as o}<li>• {o}</li>{/each}
               </ul>
             </div>
             <div class="bg-red-50 dark:bg-red-950/40 border-l-4 border-red-500 dark:border-red-600 rounded p-2">
-              <div class="text-xs font-bold text-red-800 dark:text-red-300 uppercase mb-1">⚡ Threats</div>
+              <div class="text-xs font-bold text-red-800 dark:text-red-300 uppercase mb-1">⚡ อุปสรรค</div>
               <ul class="text-xs text-red-900 dark:text-red-200 space-y-0.5">
                 {#each sw.threats || [] as t}<li>• {t}</li>{/each}
               </ul>
@@ -755,7 +768,7 @@ White space: ${s.output?.white_space || '-'}`;
       <!-- Key Assumptions -->
       {#if output.key_assumptions?.length}
         <div class="bg-gradient-to-br from-rose-50 to-pink-50 dark:from-rose-950/40 dark:to-pink-950/40 border-2 border-rose-300 dark:border-rose-700 rounded-2xl p-4">
-          <div class="font-semibold text-rose-900 dark:text-rose-200 mb-2 flex items-center gap-2">🧪 Key Assumptions (ต้อง validate)</div>
+          <div class="font-semibold text-rose-900 dark:text-rose-200 mb-2 flex items-center gap-2">🧪 สมมติฐานที่ต้องพิสูจน์</div>
           <div class="space-y-1.5">
             {#each output.key_assumptions as a}
               <div class="bg-white dark:bg-dark-800 border-l-4 {a.risk_level === 'high' ? 'border-red-500 dark:border-red-600' : a.risk_level === 'medium' ? 'border-amber-500 dark:border-amber-600' : 'border-blue-500 dark:border-blue-600'} rounded p-2 text-xs">
@@ -773,7 +786,7 @@ White space: ${s.output?.white_space || '-'}`;
       <!-- Validation Questions -->
       {#if output.validation_questions?.length}
         <div class="bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 rounded-lg p-3">
-          <div class="text-xs font-bold text-dark-900/60 dark:text-dark-100/60 uppercase mb-1.5">❓ Validation Questions (ก่อน scale)</div>
+          <div class="text-xs font-bold text-dark-900/60 dark:text-dark-100/60 uppercase mb-1.5">❓ คำถามที่ควรตอบให้ได้ก่อนขยายธุรกิจ</div>
           <ul class="space-y-0.5 text-sm text-dark-900/80 dark:text-dark-100/80">
             {#each output.validation_questions as v}<li>• {v}</li>{/each}
           </ul>
@@ -783,7 +796,7 @@ White space: ${s.output?.white_space || '-'}`;
       <!-- Next Steps -->
       {#if output.next_steps?.length}
         <div class="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-teal-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl p-3">
-          <div class="text-xs font-bold text-emerald-800 dark:text-emerald-300 uppercase mb-1.5">➡️ Next Steps</div>
+          <div class="text-xs font-bold text-emerald-800 dark:text-emerald-300 uppercase mb-1.5">➡️ ขั้นตอนต่อไป</div>
           <ul class="space-y-0.5 text-sm text-emerald-900 dark:text-emerald-200">
             {#each output.next_steps as s}<li class="flex gap-1.5"><span>→</span>{s}</li>{/each}
           </ul>
@@ -808,13 +821,13 @@ White space: ${s.output?.white_space || '-'}`;
           <button onclick={handleSave} disabled={isSaving} class="text-sm btn-secondary disabled:opacity-50">
             {isSaving ? '...' : (saveId ? '✓ บันทึกแล้ว' : '💾 บันทึก')}
           </button>
-          <button onclick={handlePromote} disabled={isPromoting} class="text-sm btn-secondary disabled:opacity-50" title="บันทึกเป็นโปรเจกต์ (import เข้า step 1, 2, 4, 5, 6, 7)">
-            {isPromoting ? '...' : '📋 เป็น Playbook'}
+          <button onclick={handlePromote} disabled={isPromoting} class="text-sm btn-secondary disabled:opacity-50" title="เอาไปใช้ในโปรเจกต์ (ใส่ให้อัตโนมัติในขั้นตอนที่ 1, 2, 4, 5, 6, 7)">
+            {isPromoting ? '...' : '📋 ทำเป็นแผนงาน'}
           </button>
           {#if saveId}<CanvasPdfButton saveId={saveId} />{/if}
           <button onclick={() => handleExport('md')} class="text-sm btn-secondary">📥 .md</button>
           <button onclick={() => handleExport('json')} class="text-sm btn-secondary">📥 .json</button>
-          <button onclick={handleCanvasPDF} class="text-sm btn-primary" title="เปิด One-page Canvas PDF (A3 landscape)">🎨 Canvas PDF</button>
+          <button onclick={handleCanvasPDF} class="text-sm btn-primary" title="เปิดใบสรุปหน้าเดียว พิมพ์ได้ (ขนาด A3 แนวนอน)">🎨 ใบสรุป (PDF)</button>
         </div>
       </div>
       {#if promoteMsg}<div class="mt-2 text-xs {promoteMsg.startsWith('✓') ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}">{promoteMsg}</div>{/if}

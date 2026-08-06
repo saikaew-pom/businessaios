@@ -47,11 +47,11 @@
   }
 
   async function handlePromoteToPlaybook(save: ToolSave) {
-    if (!confirm(`สร้าง Playbook จาก "${save.title}"?\n\nเนื้อหาจะถูก import ไปยัง step ที่เกี่ยวข้อง:\n• Pain Point → Step 1-3\n• Brand Voice → Step 1\n• Persona → Step 2`)) return;
+    if (!confirm(`ทำเป็นแผนงานจาก "${save.title}"?\n\nเนื้อหาจะถูกใส่ให้อัตโนมัติในขั้นตอนที่เกี่ยวข้อง:\n• หาปัญหาลูกค้า → ขั้นตอน 1-3\n• หาโทนเสียงแบรนด์ → ขั้นตอน 1\n• วาดภาพลูกค้าในฝัน → ขั้นตอน 2`)) return;
     isGenerating = true;
     try {
       const res = await promoteToolToProject(save.id, 'playbook');
-      alert(`✓ สร้าง Playbook สำเร็จ!\n\nImport: ${res.steps_imported?.join(', ') || 'ทั้งหมด'}\n\n→ ไปที่โปรเจกต์?`);
+      alert(`✓ ทำแผนงานสำเร็จ!\n\nใส่ให้แล้วในขั้นตอน: ${res.steps_imported?.join(', ') || 'ทั้งหมด'}\n\n→ ไปที่โปรเจกต์?`);
       window.location.href = `/projects/${res.project_id}`;
     } catch (err: any) { alert(err.message); }
     finally { isGenerating = false; }
@@ -84,14 +84,14 @@
       const url = `${PUBLIC_API_URL}${res.download_url}?print=1`;
       const win = window.open(url, '_blank');
       if (!win) {
-        alert('กรุณาอนุญาต popup เพื่อเปิด Canvas PDF');
+        alert('กรุณาอนุญาต popup เพื่อเปิดใบสรุป (PDF)');
       }
     } catch (err: any) { alert(err.message); }
     finally { isGenerating = false; }
   }
 
   function toolLabel(type: string) {
-    return { pain_generator: '🎯 Pain Point', brand_voice: '🎙️ Brand Voice', persona_builder: '👥 Persona', competitor_analysis: '🔍 Competitor', jtbd_generator: '🎯 JTBD', value_proposition_canvas: '💎 VPC', business_model_canvas: '📊 BMC', million_dollar_offer: '💎 Offer', objection_handler: '🛡️ Objections', hook_library: '🎣 Hooks' }[type] || type;
+    return { pain_generator: '🎯 หาปัญหาลูกค้า', brand_voice: '🎙️ โทนเสียงแบรนด์', persona_builder: '👥 ลูกค้าในฝัน', competitor_analysis: '🔍 ส่องคู่แข่ง', jtbd_generator: '🎯 งานที่ลูกค้าจ้างเราทำ', value_proposition_canvas: '💎 เช็คสินค้าตรงใจลูกค้า', business_model_canvas: '📊 แผนธุรกิจทั้งระบบ', million_dollar_offer: '💎 ข้อเสนอที่ปฏิเสธยาก', objection_handler: '🛡️ คำตอบลูกค้าลังเล', hook_library: '🎣 ประโยคเปิด' }[type] || type;
   }
 
   function formatDate(ts: number) {
@@ -237,7 +237,7 @@
     if (!renderedGroups.length) return '';
     return `
       <section class="section">
-        <h2>Analysis Brief</h2>
+        <h2>สรุปข้อมูลตั้งต้น</h2>
         <p class="muted small">ข้อมูลตั้งต้นที่ใช้วิเคราะห์ ไม่ใช่ผลลัพธ์สุดท้าย</p>
         <div class="brief-grid">${renderedGroups.join('')}</div>
       </section>
@@ -253,56 +253,56 @@
 
     return `
       ${output.summary ? `<section class="section">
-        <h2>Executive Summary</h2>
+        <h2>สรุปภาพรวม</h2>
         <div class="highlight">${escape(output.summary)}</div>
       </section>` : ''}
 
       ${output.answer_to_core_question ? `<section class="section">
-        <h2>Core Question</h2>
+        <h2>คำถามหลัก</h2>
         <div class="quote">${escape(output.answer_to_core_question)}</div>
       </section>` : ''}
 
       ${Object.keys(primary).length ? `<section class="section">
-        <h2>Primary Job</h2>
+        <h2>งานหลักที่ลูกค้าต้องการให้สำเร็จ</h2>
         ${primary.job_statement ? `<div class="job-statement">${escape(primary.job_statement)}</div>` : ''}
         <div class="grid2">
-          ${primary.situation ? `<div class="card"><h3>Situation</h3><p>${escape(primary.situation)}</p></div>` : ''}
-          ${primary.motivation ? `<div class="card"><h3>Motivation</h3><p>${escape(primary.motivation)}</p></div>` : ''}
-          ${primary.expected_outcome ? `<div class="card"><h3>Expected Outcome</h3><p>${escape(primary.expected_outcome)}</p></div>` : ''}
-          ${primary.job_verb_format ? `<div class="card"><h3>Job Verb Format</h3><p>${escape(primary.job_verb_format)}</p></div>` : ''}
+          ${primary.situation ? `<div class="card"><h3>สถานการณ์</h3><p>${escape(primary.situation)}</p></div>` : ''}
+          ${primary.motivation ? `<div class="card"><h3>แรงจูงใจ</h3><p>${escape(primary.motivation)}</p></div>` : ''}
+          ${primary.expected_outcome ? `<div class="card"><h3>ผลลัพธ์ที่คาดหวัง</h3><p>${escape(primary.expected_outcome)}</p></div>` : ''}
+          ${primary.job_verb_format ? `<div class="card"><h3>อธิบายเป็นกริยา</h3><p>${escape(primary.job_verb_format)}</p></div>` : ''}
         </div>
         ${Object.keys(dimensions).length ? `<div class="grid3">
-          ${dimensions.functional ? `<div class="card"><h3>Functional</h3><p>${escape(dimensions.functional)}</p></div>` : ''}
-          ${dimensions.emotional ? `<div class="card"><h3>Emotional</h3><p>${escape(dimensions.emotional)}</p></div>` : ''}
-          ${dimensions.social ? `<div class="card"><h3>Social</h3><p>${escape(dimensions.social)}</p></div>` : ''}
+          ${dimensions.functional ? `<div class="card"><h3>ด้านการใช้งาน</h3><p>${escape(dimensions.functional)}</p></div>` : ''}
+          ${dimensions.emotional ? `<div class="card"><h3>ด้านความรู้สึก</h3><p>${escape(dimensions.emotional)}</p></div>` : ''}
+          ${dimensions.social ? `<div class="card"><h3>ด้านสังคม</h3><p>${escape(dimensions.social)}</p></div>` : ''}
         </div>` : ''}
       </section>` : ''}
 
       ${Array.isArray(output.related_jobs) && output.related_jobs.length ? `<section class="section">
-        <h2>Related Jobs</h2>
+        <h2>งานอื่นที่เกี่ยวข้อง</h2>
         ${output.related_jobs.map((job: any) => `<div class="card">
           <h3>${escape(job.job || '')}</h3>
-          ${job.context ? `<p><strong>Context:</strong> ${escape(job.context)}</p>` : ''}
-          ${job.opportunity ? `<p><strong>Opportunity:</strong> ${escape(job.opportunity)}</p>` : ''}
-          <p class="muted small">${job.importance ? `Importance: ${escape(job.importance)}` : ''}${job.satisfaction_current ? ` · Satisfaction: ${escape(job.satisfaction_current)}` : ''}</p>
+          ${job.context ? `<p><strong>บริบท:</strong> ${escape(job.context)}</p>` : ''}
+          ${job.opportunity ? `<p><strong>โอกาส:</strong> ${escape(job.opportunity)}</p>` : ''}
+          <p class="muted small">${job.importance ? `ความสำคัญ: ${escape(job.importance)}` : ''}${job.satisfaction_current ? ` · ความพอใจตอนนี้: ${escape(job.satisfaction_current)}` : ''}</p>
         </div>`).join('')}
       </section>` : ''}
 
       ${Object.keys(forces).length ? `<section class="section">
-        <h2>Forces of Progress</h2>
+        <h2>แรงผลักดันให้เปลี่ยนใจ</h2>
         <div class="grid2">
-          <div class="card force push"><h3>Push</h3>${renderForceList(forces.push)}</div>
-          <div class="card force pull"><h3>Pull</h3>${renderForceList(forces.pull)}</div>
-          <div class="card force anxiety"><h3>Anxiety</h3>${renderForceList(forces.anxiety)}</div>
-          <div class="card force habit"><h3>Habit</h3>${renderForceList(forces.habit)}</div>
+          <div class="card force push"><h3>ปัจจัยผลัก</h3>${renderForceList(forces.push)}</div>
+          <div class="card force pull"><h3>ปัจจัยดึงดูด</h3>${renderForceList(forces.pull)}</div>
+          <div class="card force anxiety"><h3>ความกังวล</h3>${renderForceList(forces.anxiety)}</div>
+          <div class="card force habit"><h3>ความเคยชิน</h3>${renderForceList(forces.habit)}</div>
         </div>
-        ${forces.verdict ? `<div class="highlight"><strong>Verdict:</strong> ${escape(forces.verdict)}</div>` : ''}
+        ${forces.verdict ? `<div class="highlight"><strong>สรุปผล:</strong> ${escape(forces.verdict)}</div>` : ''}
       </section>` : ''}
 
       ${Array.isArray(output.desired_outcomes) && output.desired_outcomes.length ? `<section class="section">
-        <h2>Desired Outcomes</h2>
+        <h2>ผลลัพธ์ที่ลูกค้าอยากได้</h2>
         <table>
-          <thead><tr><th>Outcome</th><th>Category</th><th>Importance</th><th>Satisfaction</th><th>Opportunity</th></tr></thead>
+          <thead><tr><th>ผลลัพธ์ที่อยากได้</th><th>หมวดหมู่</th><th>ความสำคัญ</th><th>ความพอใจตอนนี้</th><th>โอกาส</th></tr></thead>
           <tbody>
             ${output.desired_outcomes.map((outcome: any) => `<tr>
               <td>
@@ -319,52 +319,52 @@
       </section>` : ''}
 
       ${Array.isArray(output.customer_decision_timeline) && output.customer_decision_timeline.length ? `<section class="section">
-        <h2>Customer Decision Timeline</h2>
+        <h2>เส้นทางการตัดสินใจซื้อ</h2>
         ${output.customer_decision_timeline.map((stage: any) => `<div class="timeline-item">
           <h3>${escape(stage.stage_name_th || stage.stage || '')}</h3>
-          ${stage.customer_thinks ? `<p><strong>Thinks:</strong> ${escape(stage.customer_thinks)}</p>` : ''}
-          ${stage.customer_feels ? `<p><strong>Feels:</strong> ${escape(stage.customer_feels)}</p>` : ''}
-          ${stage.customer_does ? `<p><strong>Does:</strong> ${escape(stage.customer_does)}</p>` : ''}
-          ${stage.what_they_need ? `<p><strong>Needs:</strong> ${escape(stage.what_they_need)}</p>` : ''}
+          ${stage.customer_thinks ? `<p><strong>คิดว่า:</strong> ${escape(stage.customer_thinks)}</p>` : ''}
+          ${stage.customer_feels ? `<p><strong>รู้สึกว่า:</strong> ${escape(stage.customer_feels)}</p>` : ''}
+          ${stage.customer_does ? `<p><strong>ทำอะไร:</strong> ${escape(stage.customer_does)}</p>` : ''}
+          ${stage.what_they_need ? `<p><strong>สิ่งที่ต้องการ:</strong> ${escape(stage.what_they_need)}</p>` : ''}
           ${stage.marketing_opportunity ? `<div class="opportunity">${escape(stage.marketing_opportunity)}</div>` : ''}
         </div>`).join('')}
       </section>` : ''}
 
       ${Array.isArray(output.job_map) && output.job_map.length ? `<section class="section">
-        <h2>Job Map</h2>
+        <h2>แผนที่ขั้นตอนงาน</h2>
         <div class="grid2">
           ${output.job_map.map((step: any) => `<div class="card">
             <h3>${escape(step.step || '')}</h3>
             ${step.customer_action ? `<p>${escape(step.customer_action)}</p>` : ''}
-            ${step.opportunity ? `<p><strong>Opportunity:</strong> ${escape(step.opportunity)}</p>` : ''}
+            ${step.opportunity ? `<p><strong>โอกาส:</strong> ${escape(step.opportunity)}</p>` : ''}
           </div>`).join('')}
         </div>
       </section>` : ''}
 
       ${Object.keys(criteria).length ? `<section class="section">
-        <h2>Hiring & Firing Criteria</h2>
+        <h2>เหตุผลที่เลือกใช้/เลิกใช้</h2>
         <div class="grid2">
-          ${criteria.fired_because ? `<div class="card"><h3>Fired Because</h3><p>${escape(criteria.fired_because)}</p></div>` : ''}
-          ${criteria.hired_because ? `<div class="card"><h3>Hired Because</h3><p>${escape(criteria.hired_because)}</p></div>` : ''}
+          ${criteria.fired_because ? `<div class="card"><h3>เลิกใช้เพราะ</h3><p>${escape(criteria.fired_because)}</p></div>` : ''}
+          ${criteria.hired_because ? `<div class="card"><h3>เลือกใช้เพราะ</h3><p>${escape(criteria.hired_because)}</p></div>` : ''}
         </div>
-        ${criteria.switch_moment ? `<div class="highlight"><strong>Switch Moment:</strong> ${escape(criteria.switch_moment)}</div>` : ''}
+        ${criteria.switch_moment ? `<div class="highlight"><strong>จุดเปลี่ยนใจ:</strong> ${escape(criteria.switch_moment)}</div>` : ''}
       </section>` : ''}
 
       ${Object.keys(insights).length ? `<section class="section">
-        <h2>Deep Research Insights</h2>
+        <h2>ข้อมูลเชิงลึกจากการวิจัย</h2>
         ${insights.methodology ? `<p class="muted">Methodology: ${escape(insights.methodology)}</p>` : ''}
         ${renderList(insights.key_insights)}
-        ${insights.what_most_brands_get_wrong ? `<div class="warning"><strong>What most brands get wrong:</strong> ${escape(insights.what_most_brands_get_wrong)}</div>` : ''}
-        ${Array.isArray(insights.validation_methods) && insights.validation_methods.length ? `<h3>Validation Methods</h3>${renderList(insights.validation_methods)}` : ''}
+        ${insights.what_most_brands_get_wrong ? `<div class="warning"><strong>จุดที่แบรนด์ส่วนใหญ่มักพลาด:</strong> ${escape(insights.what_most_brands_get_wrong)}</div>` : ''}
+        ${Array.isArray(insights.validation_methods) && insights.validation_methods.length ? `<h3>วิธีตรวจสอบ</h3>${renderList(insights.validation_methods)}` : ''}
       </section>` : ''}
 
       ${Array.isArray(output.next_steps) && output.next_steps.length ? `<section class="section">
-        <h2>Next Steps</h2>
+        <h2>ขั้นตอนต่อไป</h2>
         ${renderList(output.next_steps)}
       </section>` : ''}
 
       ${output.reasoning ? `<section class="section">
-        <h2>Strategic Reasoning</h2>
+        <h2>เหตุผลเชิงกลยุทธ์</h2>
         <div class="quote">${escape(output.reasoning)}</div>
       </section>` : ''}
     `;
@@ -451,24 +451,24 @@
     if (save.tool_type === 'brand_voice') {
       const dim = output.voice_dimensions || {};
       body += `
-        ${output.voice_summary ? `<h2>Voice Summary</h2><div class="box">${escape(output.voice_summary)}</div>` : ''}
-        ${output.personality_archetype || output.tone ? `<h2>Personality</h2>
-          ${output.personality_archetype ? `<p><strong>Archetype:</strong> ${escape(output.personality_archetype)}</p>` : ''}
-          ${output.tone ? `<p><strong>Tone:</strong> ${escape(output.tone)}</p>` : ''}
+        ${output.voice_summary ? `<h2>สรุปโทนเสียงแบรนด์</h2><div class="box">${escape(output.voice_summary)}</div>` : ''}
+        ${output.personality_archetype || output.tone ? `<h2>บุคลิกภาพ</h2>
+          ${output.personality_archetype ? `<p><strong>บุคลิกแบรนด์:</strong> ${escape(output.personality_archetype)}</p>` : ''}
+          ${output.tone ? `<p><strong>โทนเสียง:</strong> ${escape(output.tone)}</p>` : ''}
         ` : ''}
-        ${Object.keys(dim).length ? `<h2>Voice Dimensions</h2>
-          ${dim.formal_casual ? bar('Formal (1) → Casual (10)', dim.formal_casual) : ''}
-          ${dim.serious_playful ? bar('Serious (1) → Playful (10)', dim.serious_playful) : ''}
-          ${dim.factual_emotional ? bar('Factual (1) → Emotional (10)', dim.factual_emotional) : ''}
-          ${dim.formal_concise ? bar('Long-form (1) → Concise (10)', dim.formal_concise) : ''}
+        ${Object.keys(dim).length ? `<h2>มิติของโทนเสียง</h2>
+          ${dim.formal_casual ? bar('เป็นทางการ (1) → เป็นกันเอง (10)', dim.formal_casual) : ''}
+          ${dim.serious_playful ? bar('จริงจัง (1) → สนุกขี้เล่น (10)', dim.serious_playful) : ''}
+          ${dim.factual_emotional ? bar('เน้นข้อเท็จจริง (1) → เน้นความรู้สึก (10)', dim.factual_emotional) : ''}
+          ${dim.formal_concise ? bar('เขียนยาว (1) → กระชับ (10)', dim.formal_concise) : ''}
         ` : ''}
-        ${output.do_list?.length ? `<h2>✅ Do (${output.do_list.length})</h2>
+        ${output.do_list?.length ? `<h2>✅ ควรทำ (${output.do_list.length})</h2>
           <ul>${output.do_list.map((x: string) => `<li>${escape(x)}</li>`).join('')}</ul>
         ` : ''}
-        ${output.dont_list?.length ? `<h2>❌ Don't (${output.dont_list.length})</h2>
+        ${output.dont_list?.length ? `<h2>❌ ไม่ควรทำ (${output.dont_list.length})</h2>
           <ul>${output.dont_list.map((x: string) => `<li>${escape(x)}</li>`).join('')}</ul>
         ` : ''}
-        ${output.vocabulary ? `<h2>Vocabulary</h2>
+        ${output.vocabulary ? `<h2>คำศัพท์ที่ใช้</h2>
           ${output.vocabulary.use_words?.length ? `<h3>ใช้คำว่า</h3>
             <div>${output.vocabulary.use_words.map((w: string) => `<span class="tag">${escape(w)}</span>`).join('')}</div>` : ''}
           ${output.vocabulary.avoid_words?.length ? `<h3>ห้ามใช้</h3>
@@ -480,101 +480,101 @@
               ? `<h3>${escape(ctx)}</h3>${list.map((p: string) => `<div class="phrase">"${escape(p)}"</div>`).join('')}`
               : '').join('')}
         ` : ''}
-        ${output.content_examples ? `<h2>Content Examples</h2>
+        ${output.content_examples ? `<h2>ตัวอย่างคอนเทนต์</h2>
           ${Object.entries(output.content_examples).map(([ctx, content]: [string, any]) =>
             content ? `<h3>${escape(ctx)}</h3><div class="box" style="white-space:pre-wrap;">${escape(content)}</div>` : '').join('')}
         ` : ''}
       `;
     } else if (save.tool_type === 'pain_generator') {
       body += `
-        ${output.summary ? `<h2>Summary</h2><div class="box">${escape(output.summary)}</div>` : ''}
-        ${output.persona_insight ? `<h2>Persona Insight</h2><div class="box">${escape(output.persona_insight)}</div>` : ''}
-        ${output.pain_points?.length ? `<h2>Pain Points (${output.pain_points.length})</h2>
+        ${output.summary ? `<h2>สรุป</h2><div class="box">${escape(output.summary)}</div>` : ''}
+        ${output.persona_insight ? `<h2>มุมมองเรื่องลูกค้า</h2><div class="box">${escape(output.persona_insight)}</div>` : ''}
+        ${output.pain_points?.length ? `<h2>ปัญหาที่ลูกค้าเจอ (${output.pain_points.length})</h2>
           ${output.pain_points.map((pp: any) => `
             <div class="box">
               <h3>#${pp.rank || '?'} ${escape(pp.title || '')}</h3>
               <p>${escape(pp.description || '')}</p>
-              <p><strong>Severity:</strong> ${escape(pp.severity || '-')} · <strong>Frequency:</strong> ${escape(pp.frequency || '-')} · <strong>Market:</strong> ${escape(pp.market_size || '-')}</p>
-              ${pp.current_solutions?.length ? `<p><strong>Current solutions:</strong> ${pp.current_solutions.map(escape).join(', ')}</p>` : ''}
-              ${pp.why_existing_fails ? `<p><strong>Why existing fails:</strong> ${escape(pp.why_existing_fails)}</p>` : ''}
-              ${pp.your_opportunity ? `<p><strong>Your opportunity:</strong> ${escape(pp.your_opportunity)}</p>` : ''}
+              <p><strong>ความรุนแรง:</strong> ${escape(pp.severity || '-')} · <strong>ความถี่:</strong> ${escape(pp.frequency || '-')} · <strong>ขนาดตลาด:</strong> ${escape(pp.market_size || '-')}</p>
+              ${pp.current_solutions?.length ? `<p><strong>ทางออกที่ใช้อยู่ตอนนี้:</strong> ${pp.current_solutions.map(escape).join(', ')}</p>` : ''}
+              ${pp.why_existing_fails ? `<p><strong>ทำไมของเดิมไม่พอ:</strong> ${escape(pp.why_existing_fails)}</p>` : ''}
+              ${pp.your_opportunity ? `<p><strong>โอกาสของคุณ:</strong> ${escape(pp.your_opportunity)}</p>` : ''}
             </div>
           `).join('')}
         ` : ''}
-        ${output.quick_wins?.length ? `<h2>Quick Wins</h2><ul>${output.quick_wins.map((x: string) => `<li>${escape(x)}</li>`).join('')}</ul>` : ''}
-        ${output.moonshots?.length ? `<h2>Moonshots</h2><ul>${output.moonshots.map((x: string) => `<li>${escape(x)}</li>`).join('')}</ul>` : ''}
+        ${output.quick_wins?.length ? `<h2>ไอเดียทำได้เลย</h2><ul>${output.quick_wins.map((x: string) => `<li>${escape(x)}</li>`).join('')}</ul>` : ''}
+        ${output.moonshots?.length ? `<h2>ไอเดียใหญ่เปลี่ยนเกม</h2><ul>${output.moonshots.map((x: string) => `<li>${escape(x)}</li>`).join('')}</ul>` : ''}
       `;
     } else if (save.tool_type === 'persona_builder') {
       body += `
         ${output.disclaimer ? `<div class="box" style="background:#fef3c7;border-left-color:#f59e0b;">⚠️ ${escape(output.disclaimer)}</div>` : ''}
-        ${output.personas?.length ? `<h2>Personas (${output.personas.length})</h2>
+        ${output.personas?.length ? `<h2>กลุ่มลูกค้า (${output.personas.length})</h2>
           ${output.personas.map((p: any) => `
             <div class="box">
               <h3>${escape(p.name || '')}</h3>
               ${p.tag ? `<p style="color:#64748b;">${escape(p.tag)}</p>` : ''}
-              ${p.demographics ? `<h3>Demographics</h3>
+              ${p.demographics ? `<h3>ข้อมูลประชากร</h3>
                 <p>อายุ: ${escape(p.demographics.age || '-')} · อาชีพ: ${escape(p.demographics.job || '-')} · รายได้: ${escape(p.demographics.income || '-')}</p>
                 <p>ที่อยู่: ${escape(p.demographics.location || '-')} · ครอบครัว: ${escape(p.demographics.family || '-')}</p>
               ` : ''}
-              ${p.psychographics ? `<h3>Psychographics</h3>
-                <p><strong>Values:</strong> ${escape(p.psychographics.values || '-')}</p>
-                <p><strong>Interests:</strong> ${escape(p.psychographics.interests || '-')}</p>
-                <p><strong>Fears:</strong> ${escape(p.psychographics.fears || '-')}</p>
-                <p><strong>Aspirations:</strong> ${escape(p.psychographics.aspirations || '-')}</p>
+              ${p.psychographics ? `<h3>ด้านจิตวิทยาลูกค้า</h3>
+                <p><strong>คุณค่าที่ยึดถือ:</strong> ${escape(p.psychographics.values || '-')}</p>
+                <p><strong>ความสนใจ:</strong> ${escape(p.psychographics.interests || '-')}</p>
+                <p><strong>ความกลัว:</strong> ${escape(p.psychographics.fears || '-')}</p>
+                <p><strong>ความใฝ่ฝัน:</strong> ${escape(p.psychographics.aspirations || '-')}</p>
               ` : ''}
-              ${p.pain_points?.length ? `<h3>Pain Points</h3><ul>${p.pain_points.map((x: string) => `<li>${escape(x)}</li>`).join('')}</ul>` : ''}
-              ${p.needs?.length ? `<h3>Needs</h3><ul>${p.needs.map((x: string) => `<li>${escape(x)}</li>`).join('')}</ul>` : ''}
-              ${p.preferred_channels?.length ? `<h3>Channels</h3><div>${p.preferred_channels.map((c: string) => `<span class="tag">${escape(c)}</span>`).join('')}</div>` : ''}
-              ${p.best_message ? `<h3>Best Message</h3><div class="box">${escape(p.best_message)}</div>` : ''}
-              ${p.best_offer ? `<h3>Best Offer</h3><div class="box">${escape(p.best_offer)}</div>` : ''}
-              ${p.size_estimate ? `<p><strong>Size estimate:</strong> ${escape(p.size_estimate)}</p>` : ''}
+              ${p.pain_points?.length ? `<h3>ปัญหาที่ลูกค้าเจอ</h3><ul>${p.pain_points.map((x: string) => `<li>${escape(x)}</li>`).join('')}</ul>` : ''}
+              ${p.needs?.length ? `<h3>สิ่งที่ต้องการ</h3><ul>${p.needs.map((x: string) => `<li>${escape(x)}</li>`).join('')}</ul>` : ''}
+              ${p.preferred_channels?.length ? `<h3>ช่องทางที่เหมาะ</h3><div>${p.preferred_channels.map((c: string) => `<span class="tag">${escape(c)}</span>`).join('')}</div>` : ''}
+              ${p.best_message ? `<h3>ข้อความที่ควรใช้</h3><div class="box">${escape(p.best_message)}</div>` : ''}
+              ${p.best_offer ? `<h3>ข้อเสนอที่ควรใช้</h3><div class="box">${escape(p.best_offer)}</div>` : ''}
+              ${p.size_estimate ? `<p><strong>ขนาดกลุ่มโดยประมาณ:</strong> ${escape(p.size_estimate)}</p>` : ''}
             </div>
           `).join('')}
         ` : ''}
-        ${output.how_to_validate?.length ? `<h2>How to Validate</h2><ul>${output.how_to_validate.map((x: string) => `<li>${escape(x)}</li>`).join('')}</ul>` : ''}
+        ${output.how_to_validate?.length ? `<h2>วิธีตรวจสอบว่าจริงไหม</h2><ul>${output.how_to_validate.map((x: string) => `<li>${escape(x)}</li>`).join('')}</ul>` : ''}
       `;
     } else if (save.tool_type === 'competitor_analysis') {
       body += `
-        ${output.summary ? `<h2>Market Summary</h2><div class="box">${escape(output.summary)}</div>` : ''}
-        ${output.market_dynamics ? `<h2>Market Dynamics</h2><div class="box">${escape(output.market_dynamics)}</div>` : ''}
+        ${output.summary ? `<h2>สรุปภาพตลาด</h2><div class="box">${escape(output.summary)}</div>` : ''}
+        ${output.market_dynamics ? `<h2>ภาพรวมตลาด</h2><div class="box">${escape(output.market_dynamics)}</div>` : ''}
         ${output.is_estimated ? `<div class="box" style="background:#fef3c7;border-left-color:#f59e0b;">⚠️ ${escape(output.estimation_note || 'คู่แข่งเหล่านี้เป็นการประมาณการณ์')}</div>` : ''}
-        ${output.competitors?.length ? `<h2>Competitors (${output.competitors.length})</h2>
+        ${output.competitors?.length ? `<h2>คู่แข่ง (${output.competitors.length})</h2>
           ${output.competitors.map((c: any) => `
             <div class="box">
               <h3>${escape(c.name || '')} ${c.threat_level ? `<span class="tag">${escape(c.threat_level)}</span>` : ''}</h3>
               ${c.tagline ? `<p style="color:#64748b;font-style:italic;">"${escape(c.tagline)}"</p>` : ''}
-              ${c.positioning ? `<p><strong>Positioning:</strong> ${escape(c.positioning)}</p>` : ''}
-              ${c.price_range ? `<p><strong>Price:</strong> ${escape(c.price_range)}</p>` : ''}
-              ${c.strengths?.length ? `<p><strong>Strengths:</strong></p><ul>${c.strengths.map((x: string) => `<li>${escape(x)}</li>`).join('')}</ul>` : ''}
-              ${c.weaknesses?.length ? `<p><strong>Weaknesses:</strong></p><ul>${c.weaknesses.map((x: string) => `<li>${escape(x)}</li>`).join('')}</ul>` : ''}
-              ${c.marketing_channels?.length ? `<p><strong>Channels:</strong> ${c.marketing_channels.map(escape).join(', ')}</p>` : ''}
-              ${c.content_style ? `<p><strong>Content style:</strong> ${escape(c.content_style)}</p>` : ''}
-              ${c.why_threat ? `<p><strong>Why threat:</strong> ${escape(c.why_threat)}</p>` : ''}
+              ${c.positioning ? `<p><strong>จุดยืน:</strong> ${escape(c.positioning)}</p>` : ''}
+              ${c.price_range ? `<p><strong>ราคา:</strong> ${escape(c.price_range)}</p>` : ''}
+              ${c.strengths?.length ? `<p><strong>จุดแข็ง:</strong></p><ul>${c.strengths.map((x: string) => `<li>${escape(x)}</li>`).join('')}</ul>` : ''}
+              ${c.weaknesses?.length ? `<p><strong>จุดอ่อน:</strong></p><ul>${c.weaknesses.map((x: string) => `<li>${escape(x)}</li>`).join('')}</ul>` : ''}
+              ${c.marketing_channels?.length ? `<p><strong>ช่องทางที่เหมาะ:</strong> ${c.marketing_channels.map(escape).join(', ')}</p>` : ''}
+              ${c.content_style ? `<p><strong>สไตล์คอนเทนต์:</strong> ${escape(c.content_style)}</p>` : ''}
+              ${c.why_threat ? `<p><strong>ทำไมถึงเป็นภัย:</strong> ${escape(c.why_threat)}</p>` : ''}
             </div>
           `).join('')}
         ` : ''}
-        ${output.market_gaps?.length ? `<h2>Market Gaps (${output.market_gaps.length})</h2>
+        ${output.market_gaps?.length ? `<h2>ช่องว่างในตลาด (${output.market_gaps.length})</h2>
           ${output.market_gaps.map((g: any) => `
             <div class="box">
               <h3>${escape(g.gap || '')} ${g.opportunity_size ? `<span class="tag">${escape(g.opportunity_size)}</span>` : ''}</h3>
-              ${g.evidence ? `<p><strong>Evidence:</strong> ${escape(g.evidence)}</p>` : ''}
-              ${g.your_advantage ? `<p><strong>Your advantage:</strong> ${escape(g.your_advantage)}</p>` : ''}
+              ${g.evidence ? `<p><strong>หลักฐาน:</strong> ${escape(g.evidence)}</p>` : ''}
+              ${g.your_advantage ? `<p><strong>ข้อได้เปรียบของคุณ:</strong> ${escape(g.your_advantage)}</p>` : ''}
             </div>
           `).join('')}
         ` : ''}
-        ${output.white_space ? `<h2>White Space</h2>
-          ${output.white_space.positioning ? `<p><strong>Positioning:</strong> ${escape(output.white_space.positioning)}</p>` : ''}
-          ${output.white_space.uvp ? `<p><strong>UVP:</strong> ${escape(output.white_space.uvp)}</p>` : ''}
+        ${output.white_space ? `<h2>จุดว่างที่ยังไม่มีใครทำ</h2>
+          ${output.white_space.positioning ? `<p><strong>จุดยืน:</strong> ${escape(output.white_space.positioning)}</p>` : ''}
+          ${output.white_space.uvp ? `<p><strong>จุดเด่นที่ไม่เหมือนใคร:</strong> ${escape(output.white_space.uvp)}</p>` : ''}
           ${output.white_space.key_message ? `<div class="box" style="background:#f0f9ff;border-left-color:#3b82f6;font-style:italic;">"${escape(output.white_space.key_message)}"</div>` : ''}
-          ${output.white_space.anti_positioning ? `<p><strong>Not for:</strong> ${escape(output.white_space.anti_positioning)}</p>` : ''}
+          ${output.white_space.anti_positioning ? `<p><strong>ไม่เหมาะกับ:</strong> ${escape(output.white_space.anti_positioning)}</p>` : ''}
         ` : ''}
-        ${output.recommended_strategy ? `<h2>Recommended Strategy</h2>
-          ${output.recommended_strategy.now ? `<p><strong>Do now:</strong> ${escape(output.recommended_strategy.now)}</p>` : ''}
-          ${output.recommended_strategy.next_30_days?.length ? `<p><strong>30 days:</strong></p><ul>${output.recommended_strategy.next_30_days.map((x: string) => `<li>${escape(x)}</li>`).join('')}</ul>` : ''}
-          ${output.recommended_strategy.next_90_days?.length ? `<p><strong>90 days:</strong></p><ul>${output.recommended_strategy.next_90_days.map((x: string) => `<li>${escape(x)}</li>`).join('')}</ul>` : ''}
-          ${output.recommended_strategy.avoid ? `<p><strong>Avoid:</strong> ${escape(output.recommended_strategy.avoid)}</p>` : ''}
+        ${output.recommended_strategy ? `<h2>กลยุทธ์แนะนำ</h2>
+          ${output.recommended_strategy.now ? `<p><strong>ทำด่วนที่สุด:</strong> ${escape(output.recommended_strategy.now)}</p>` : ''}
+          ${output.recommended_strategy.next_30_days?.length ? `<p><strong>ภายใน 30 วัน:</strong></p><ul>${output.recommended_strategy.next_30_days.map((x: string) => `<li>${escape(x)}</li>`).join('')}</ul>` : ''}
+          ${output.recommended_strategy.next_90_days?.length ? `<p><strong>ภายใน 90 วัน:</strong></p><ul>${output.recommended_strategy.next_90_days.map((x: string) => `<li>${escape(x)}</li>`).join('')}</ul>` : ''}
+          ${output.recommended_strategy.avoid ? `<p><strong>ห้ามทำ:</strong> ${escape(output.recommended_strategy.avoid)}</p>` : ''}
         ` : ''}
-        ${output.reasoning ? `<h2>Reasoning</h2><div class="box">${escape(output.reasoning)}</div>` : ''}
+        ${output.reasoning ? `<h2>เหตุผล</h2><div class="box">${escape(output.reasoning)}</div>` : ''}
       `;
     } else if (save.tool_type === 'jtbd_generator') {
       body += renderJtbdReport(output);
@@ -586,7 +586,7 @@
     // Input section
     const inputEntries = printableInputEntries(save.tool_type, input);
     const inputSection = save.tool_type === 'jtbd_generator' ? renderJtbdInputBrief(input) : inputEntries.length ? `
-      <h2>Input</h2>
+      <h2>ข้อมูลที่กรอก</h2>
       <table style="width:100%;border-collapse:collapse;font-size:14px;">
         ${inputEntries.map(([k, v]) => `
           <tr>
@@ -610,11 +610,11 @@ ${css}
       <h1>${escape(save.title)}</h1>
       <div class="meta">${escape(toolName)} · สร้างเมื่อ ${escape(createdAt)}</div>
     </div>
-	    <button class="print-button" onclick="window.print()" style="padding:10px 20px;background:#1d4ed8;color:white;border:none;border-radius:6px;cursor:pointer;font-size:14px;">🖨️ Print / Save PDF</button>
+	    <button class="print-button" onclick="window.print()" style="padding:10px 20px;background:#1d4ed8;color:white;border:none;border-radius:6px;cursor:pointer;font-size:14px;">🖨️ พิมพ์ / บันทึกเป็น PDF</button>
 	  </div>
 
 	  ${inputSection}
-	  <h1 style="margin-top:48px;">${save.tool_type === 'jtbd_generator' ? 'JTBD Report' : 'Output'}</h1>
+	  <h1 style="margin-top:48px;">${save.tool_type === 'jtbd_generator' ? 'รายงานงานที่ลูกค้าจ้างเราทำ' : 'ผลลัพธ์'}</h1>
 	  ${body}
 
   <div style="margin-top:60px;padding-top:20px;border-top:1px solid #e2e8f0;text-align:center;color:#94a3b8;font-size:12px;">
@@ -709,7 +709,7 @@ ${css}
       <div class="text-sm text-dark-900/60 dark:text-dark-100/60">ทั้งหมด {saves.length} รายการ</div>
       <label class="flex items-center gap-2 text-sm cursor-pointer">
         <input type="checkbox" bind:checked={showArchived} onchange={load} class="rounded" />
-        แสดงรายการที่ archive
+        แสดงรายการที่เก็บเข้าคลัง
       </label>
     </div>
 
@@ -720,7 +720,7 @@ ${css}
         <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-primary-50 dark:bg-primary-900/40 flex items-center justify-center">
           <span class="text-3xl">📂</span>
         </div>
-        <h3 class="font-semibold mb-2">{showArchived ? 'ไม่มีรายการที่ archive' : 'ยังไม่มีบันทึก'}</h3>
+        <h3 class="font-semibold mb-2">{showArchived ? 'ไม่มีรายการที่เก็บเข้าคลัง' : 'ยังไม่มีบันทึก'}</h3>
         <p class="text-sm text-dark-900/60 dark:text-dark-100/60 mb-6">ลองใช้เครื่องมือ ระบบอัจฉริยะ แล้วกด "💾 บันทึก" เพื่อเก็บไว้ดูภายหลัง</p>
         <a href="/tools" class="btn-primary inline-block">เปิดเครื่องมือ ระบบอัจฉริยะ</a>
       </div>
@@ -736,7 +736,7 @@ ${css}
                 <div class="flex items-center gap-2 mb-1 flex-wrap">
                   <span class="text-xs px-2 py-0.5 rounded-full bg-primary-50 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300">{toolLabel(save.tool_type)}</span>
                   {#if save.archived}
-                    <span class="text-xs px-2 py-0.5 rounded-full bg-dark-100 dark:bg-dark-700 text-dark-900/60 dark:text-dark-100/60">archived</span>
+                    <span class="text-xs px-2 py-0.5 rounded-full bg-dark-100 dark:bg-dark-700 text-dark-900/60 dark:text-dark-100/60">เก็บเข้าคลังแล้ว</span>
                   {/if}
                 </div>
                 <h3 class="font-semibold">{save.title}</h3>
@@ -747,17 +747,17 @@ ${css}
                 </div>
               </button>
               <div class="flex items-center gap-1 flex-shrink-0 flex-wrap">
-                <button onclick={() => openPrintable(save)} class="text-xs px-2 py-1 rounded bg-primary-50 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 hover:bg-primary-100 dark:hover:bg-primary-900/60 font-medium" title="ดาวน์โหลด PDF (เปิด print dialog)">📄 PDF</button>
+                <button onclick={() => openPrintable(save)} class="text-xs px-2 py-1 rounded bg-primary-50 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 hover:bg-primary-100 dark:hover:bg-primary-900/60 font-medium" title="ดาวน์โหลด PDF (เปิดหน้าต่างพิมพ์)">📄 PDF</button>
                 {#if save.tool_type === 'value_proposition_canvas' || save.tool_type === 'business_model_canvas' || save.tool_type === 'million_dollar_offer' || save.tool_type === 'objection_handler' || save.tool_type === 'hook_library'}
-                  <button onclick={() => openCanvasPDF(save)} class="text-xs px-2 py-1 rounded bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:opacity-90 font-medium" title="One-page A3 Canvas PDF (พิมพ์เป็น poster)">🎨 Canvas PDF</button>
+                  <button onclick={() => openCanvasPDF(save)} class="text-xs px-2 py-1 rounded bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:opacity-90 font-medium" title="ใบสรุปหน้าเดียว พิมพ์เป็นโปสเตอร์ได้">🎨 ใบสรุป (PDF)</button>
                 {/if}
-                <button onclick={() => editSave(save)} class="text-xs px-2 py-1 rounded bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/60 font-medium" title="แก้ไข input แล้วรันใหม่">✏️ แก้ไข</button>
+                <button onclick={() => editSave(save)} class="text-xs px-2 py-1 rounded bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/60 font-medium" title="แก้ไขข้อมูลที่กรอกไว้ แล้วรันใหม่">✏️ แก้ไข</button>
                 <button onclick={() => handleExport(save, 'md')} disabled={isGenerating} class="text-xs px-2 py-1 rounded bg-dark-50 dark:bg-dark-950 hover:bg-dark-100 dark:hover:bg-dark-700" title="Markdown">.md</button>
                 <button onclick={() => handleExport(save, 'json')} disabled={isGenerating} class="text-xs px-2 py-1 rounded bg-dark-50 dark:bg-dark-950 hover:bg-dark-100 dark:hover:bg-dark-700" title="JSON">.json</button>
-                <button onclick={() => handleArchive(save)} class="text-xs px-2 py-1 rounded bg-dark-50 dark:bg-dark-950 hover:bg-dark-100 dark:hover:bg-dark-700" title={save.archived ? 'Unarchive' : 'Archive'}>
+                <button onclick={() => handleArchive(save)} class="text-xs px-2 py-1 rounded bg-dark-50 dark:bg-dark-950 hover:bg-dark-100 dark:hover:bg-dark-700" title={save.archived ? 'เอากลับจากคลัง' : 'เก็บเข้าคลัง'}>
                   {save.archived ? '↩️' : '📦'}
                 </button>
-                <button onclick={() => handlePromoteToPlaybook(save)} class="text-xs px-2 py-1 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 font-medium" title="สร้าง Playbook จาก tool นี้ (import เนื้อหาเข้า step ที่เกี่ยวข้อง)">📋 เป็น Playbook</button>
+                <button onclick={() => handlePromoteToPlaybook(save)} class="text-xs px-2 py-1 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 font-medium" title="ทำแผนงานจากเครื่องมือนี้ (ใส่เนื้อหาให้อัตโนมัติในขั้นตอนที่เกี่ยวข้อง)">📋 ทำเป็นแผนงาน</button>
                 <button onclick={() => handleDelete(save)} class="text-xs px-2 py-1 rounded bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/60" title="ลบ">🗑️</button>
               </div>
             </div>
@@ -805,8 +805,8 @@ ${css}
                     <details class="mb-4 bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 rounded-lg overflow-hidden">
                       <summary class="px-3 py-2 cursor-pointer text-xs font-semibold text-dark-900/70 dark:text-dark-100/70 hover:bg-dark-50 flex items-center gap-2 select-none">
                         <span>📥</span>
-                        <span>Input</span>
-                        <span class="text-dark-900/40 dark:text-dark-100/40 font-normal">({Object.keys(input).length} fields)</span>
+                        <span>ข้อมูลที่กรอก</span>
+                        <span class="text-dark-900/40 dark:text-dark-100/40 font-normal">({Object.keys(input).length} ช่อง)</span>
                         <span class="ml-auto text-dark-900/40 dark:text-dark-100/40">▾</span>
                       </summary>
                       <div class="p-3 text-xs font-mono text-dark-900/80 dark:text-dark-100/80 border-t border-dark-100 dark:border-dark-700 max-h-60 overflow-y-auto">
@@ -819,8 +819,8 @@ ${css}
                     <div>
                       <div class="text-sm font-semibold text-dark-900/80 dark:text-dark-100/80 mb-3 flex items-center gap-2">
                         <span>📤</span>
-                        <span>Output</span>
-                        <span class="text-xs text-dark-900/50 dark:text-dark-100/50 font-normal">({Object.keys(output).length} sections)</span>
+                        <span>ผลลัพธ์</span>
+                        <span class="text-xs text-dark-900/50 dark:text-dark-100/50 font-normal">({Object.keys(output).length} หัวข้อ)</span>
                       </div>
                       <div class="space-y-3">
 
@@ -828,7 +828,7 @@ ${css}
                           <!-- Voice Summary block -->
                           {#if output.voice_summary}
                             <div class="bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 rounded-lg p-4">
-                              <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wide mb-1.5">Voice Summary</div>
+                              <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wide mb-1.5">สรุปโทนเสียงแบรนด์</div>
                               <p class="text-sm text-dark-900/90 dark:text-dark-100/90 leading-relaxed">{output.voice_summary}</p>
                             </div>
                           {/if}
@@ -839,13 +839,13 @@ ${css}
                               <div class="grid grid-cols-2 gap-3">
                                 {#if output.personality_archetype}
                                   <div>
-                                    <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wide mb-1">Archetype</div>
+                                    <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wide mb-1">บุคลิกแบรนด์</div>
                                     <div class="text-base font-semibold text-primary-900 dark:text-primary-200">{output.personality_archetype}</div>
                                   </div>
                                 {/if}
                                 {#if output.tone}
                                   <div>
-                                    <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wide mb-1">Tone</div>
+                                    <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wide mb-1">โทนเสียง</div>
                                     <div class="text-sm text-primary-900 dark:text-primary-200">{output.tone}</div>
                                   </div>
                                 {/if}
@@ -856,12 +856,12 @@ ${css}
                           <!-- Voice Dimensions -->
                           {#if output.voice_dimensions}
                             <div class="bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 rounded-lg p-4">
-                              <div class="text-xs font-bold text-dark-900/60 dark:text-dark-100/60 uppercase tracking-wide mb-3">Voice Dimensions</div>
+                              <div class="text-xs font-bold text-dark-900/60 dark:text-dark-100/60 uppercase tracking-wide mb-3">มิติของโทนเสียง</div>
                               <div class="space-y-2">
                                 {#if output.voice_dimensions.formal_casual}
                                   {@const v = output.voice_dimensions.formal_casual}
                                   <div class="flex items-center gap-2">
-                                    <span class="text-xs text-dark-900/60 dark:text-dark-100/60 w-28 flex-shrink-0">Formal ({1}) → Casual ({10})</span>
+                                    <span class="text-xs text-dark-900/60 dark:text-dark-100/60 flex-shrink-0">เป็นทางการ ({1}) → เป็นกันเอง ({10})</span>
                                     <div class="flex-1 h-2 bg-dark-100 dark:bg-dark-700 rounded-full overflow-hidden">
                                       <div class="h-full bg-primary-500 rounded-full" style="width:{v * 10}%"></div>
                                     </div>
@@ -871,7 +871,7 @@ ${css}
                                 {#if output.voice_dimensions.serious_playful}
                                   {@const v = output.voice_dimensions.serious_playful}
                                   <div class="flex items-center gap-2">
-                                    <span class="text-xs text-dark-900/60 dark:text-dark-100/60 w-28 flex-shrink-0">Serious ({1}) → Playful ({10})</span>
+                                    <span class="text-xs text-dark-900/60 dark:text-dark-100/60 flex-shrink-0">จริงจัง ({1}) → สนุกขี้เล่น ({10})</span>
                                     <div class="flex-1 h-2 bg-dark-100 dark:bg-dark-700 rounded-full overflow-hidden">
                                       <div class="h-full bg-primary-500 rounded-full" style="width:{v * 10}%"></div>
                                     </div>
@@ -881,7 +881,7 @@ ${css}
                                 {#if output.voice_dimensions.factual_emotional}
                                   {@const v = output.voice_dimensions.factual_emotional}
                                   <div class="flex items-center gap-2">
-                                    <span class="text-xs text-dark-900/60 dark:text-dark-100/60 w-28 flex-shrink-0">Factual ({1}) → Emotional ({10})</span>
+                                    <span class="text-xs text-dark-900/60 dark:text-dark-100/60 flex-shrink-0">เน้นข้อเท็จจริง ({1}) → เน้นความรู้สึก ({10})</span>
                                     <div class="flex-1 h-2 bg-dark-100 dark:bg-dark-700 rounded-full overflow-hidden">
                                       <div class="h-full bg-primary-500 rounded-full" style="width:{v * 10}%"></div>
                                     </div>
@@ -891,7 +891,7 @@ ${css}
                                 {#if output.voice_dimensions.formal_concise}
                                   {@const v = output.voice_dimensions.formal_concise}
                                   <div class="flex items-center gap-2">
-                                    <span class="text-xs text-dark-900/60 dark:text-dark-100/60 w-28 flex-shrink-0">Long ({1}) → Concise ({10})</span>
+                                    <span class="text-xs text-dark-900/60 dark:text-dark-100/60 flex-shrink-0">เขียนยาว ({1}) → กระชับ ({10})</span>
                                     <div class="flex-1 h-2 bg-dark-100 dark:bg-dark-700 rounded-full overflow-hidden">
                                       <div class="h-full bg-primary-500 rounded-full" style="width:{v * 10}%"></div>
                                     </div>
@@ -906,7 +906,7 @@ ${css}
                           {#if output.do_list?.length}
                             <div class="bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-800 rounded-lg p-4">
                               <div class="text-xs font-bold text-green-800 dark:text-green-300 uppercase tracking-wide mb-2 flex items-center gap-1.5">
-                                <span>✅</span> Do ({output.do_list.length})
+                                <span>✅</span> ควรทำ ({output.do_list.length})
                               </div>
                               <ul class="space-y-1.5 text-sm text-green-900 dark:text-green-200">
                                 {#each output.do_list as x}
@@ -920,7 +920,7 @@ ${css}
                           {#if output.dont_list?.length}
                             <div class="bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-lg p-4">
                               <div class="text-xs font-bold text-red-800 dark:text-red-300 uppercase tracking-wide mb-2 flex items-center gap-1.5">
-                                <span>❌</span> Don't ({output.dont_list.length})
+                                <span>❌</span> ไม่ควรทำ ({output.dont_list.length})
                               </div>
                               <ul class="space-y-1.5 text-sm text-red-900 dark:text-red-200">
                                 {#each output.dont_list as x}
@@ -934,7 +934,7 @@ ${css}
                           {#if output.vocabulary}
                             {#if output.vocabulary.use_words?.length || output.vocabulary.avoid_words?.length}
                               <div class="bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 rounded-lg p-4">
-                                <div class="text-xs font-bold text-dark-900/60 dark:text-dark-100/60 uppercase tracking-wide mb-3">Vocabulary</div>
+                                <div class="text-xs font-bold text-dark-900/60 dark:text-dark-100/60 uppercase tracking-wide mb-3">คำศัพท์ที่ใช้</div>
                                 {#if output.vocabulary.use_words?.length}
                                   <div class="mb-3">
                                     <div class="text-xs text-blue-700 dark:text-blue-400 font-semibold mb-1.5">ใช้คำว่า</div>
@@ -986,7 +986,7 @@ ${css}
                             {@const exEntries = Object.entries(output.content_examples).filter(([_, c]: any) => c)}
                             {#if exEntries.length}
                               <div class="bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 rounded-lg p-4">
-                                <div class="text-xs font-bold text-dark-900/60 dark:text-dark-100/60 uppercase tracking-wide mb-3">Content Examples</div>
+                                <div class="text-xs font-bold text-dark-900/60 dark:text-dark-100/60 uppercase tracking-wide mb-3">ตัวอย่างคอนเทนต์</div>
                                 <div class="space-y-3">
                                   {#each exEntries as [ctx, content]}
                                     <div>
@@ -1002,19 +1002,19 @@ ${css}
                         {:else if save.tool_type === 'pain_generator'}
                           {#if output.summary}
                             <div class="bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 rounded-lg p-4">
-                              <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wide mb-1.5">Summary</div>
+                              <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wide mb-1.5">สรุป</div>
                               <p class="text-sm text-dark-900/90 dark:text-dark-100/90 leading-relaxed">{output.summary}</p>
                             </div>
                           {/if}
                           {#if output.persona_insight}
                             <div class="bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
-                              <div class="text-xs font-bold text-purple-800 dark:text-purple-300 uppercase tracking-wide mb-1.5">Persona Insight</div>
+                              <div class="text-xs font-bold text-purple-800 dark:text-purple-300 uppercase tracking-wide mb-1.5">มุมมองเรื่องลูกค้า</div>
                               <p class="text-sm text-purple-900 dark:text-purple-200 leading-relaxed">{output.persona_insight}</p>
                             </div>
                           {/if}
                           {#if output.pain_points?.length}
                             <div>
-                              <div class="text-xs font-bold text-dark-900/60 dark:text-dark-100/60 uppercase tracking-wide mb-2.5">Pain Points ({output.pain_points.length})</div>
+                              <div class="text-xs font-bold text-dark-900/60 dark:text-dark-100/60 uppercase tracking-wide mb-2.5">ปัญหาที่ลูกค้าเจอ ({output.pain_points.length})</div>
                               <div class="space-y-2">
                                 {#each output.pain_points as pp}
                                   <div class="bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 rounded-lg p-4">
@@ -1024,15 +1024,15 @@ ${css}
                                     </div>
                                     <p class="text-sm text-dark-900/80 dark:text-dark-100/80 ml-9 leading-relaxed">{pp.description}</p>
                                     <div class="text-xs text-dark-900/60 dark:text-dark-100/60 ml-9 mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5">
-                                      <span><strong>Severity:</strong> {pp.severity}</span>
-                                      <span><strong>Frequency:</strong> {pp.frequency}</span>
-                                      <span><strong>Market:</strong> {pp.market_size}</span>
+                                      <span><strong>ความรุนแรง:</strong> {pp.severity}</span>
+                                      <span><strong>ความถี่:</strong> {pp.frequency}</span>
+                                      <span><strong>ขนาดตลาด:</strong> {pp.market_size}</span>
                                     </div>
                                     {#if pp.why_existing_fails}
-                                      <div class="text-xs ml-9 mt-1.5 text-red-700 dark:text-red-400"><strong>Why existing fails:</strong> {pp.why_existing_fails}</div>
+                                      <div class="text-xs ml-9 mt-1.5 text-red-700 dark:text-red-400"><strong>ทำไมของเดิมไม่พอ:</strong> {pp.why_existing_fails}</div>
                                     {/if}
                                     {#if pp.your_opportunity}
-                                      <div class="text-xs ml-9 mt-1 text-green-700 dark:text-green-400"><strong>Your opportunity:</strong> {pp.your_opportunity}</div>
+                                      <div class="text-xs ml-9 mt-1 text-green-700 dark:text-green-400"><strong>โอกาสของคุณ:</strong> {pp.your_opportunity}</div>
                                     {/if}
                                   </div>
                                 {/each}
@@ -1041,7 +1041,7 @@ ${css}
                           {/if}
                           {#if output.quick_wins?.length}
                             <div class="bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-800 rounded-lg p-4">
-                              <div class="text-xs font-bold text-green-800 dark:text-green-300 uppercase tracking-wide mb-2">Quick Wins</div>
+                              <div class="text-xs font-bold text-green-800 dark:text-green-300 uppercase tracking-wide mb-2">ไอเดียทำได้เลย</div>
                               <ul class="space-y-1.5 text-sm text-green-900 dark:text-green-200">
                                 {#each output.quick_wins as x}
                                   <li class="flex gap-2"><span class="text-green-600 dark:text-green-400 flex-shrink-0">•</span><span>{x}</span></li>
@@ -1051,7 +1051,7 @@ ${css}
                           {/if}
                           {#if output.moonshots?.length}
                             <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
-                              <div class="text-xs font-bold text-amber-800 dark:text-amber-300 uppercase tracking-wide mb-2">Moonshots</div>
+                              <div class="text-xs font-bold text-amber-800 dark:text-amber-300 uppercase tracking-wide mb-2">ไอเดียใหญ่เปลี่ยนเกม</div>
                               <ul class="space-y-1.5 text-sm text-amber-900 dark:text-amber-200">
                                 {#each output.moonshots as x}
                                   <li class="flex gap-2"><span class="text-amber-600 dark:text-amber-400 flex-shrink-0">•</span><span>{x}</span></li>
@@ -1069,7 +1069,7 @@ ${css}
                           {/if}
                           {#if output.personas?.length}
                             <div>
-                              <div class="text-xs font-bold text-dark-900/60 dark:text-dark-100/60 uppercase tracking-wide mb-2.5">Personas ({output.personas.length})</div>
+                              <div class="text-xs font-bold text-dark-900/60 dark:text-dark-100/60 uppercase tracking-wide mb-2.5">กลุ่มลูกค้า ({output.personas.length})</div>
                               <div class="space-y-3">
                                 {#each output.personas as p}
                                   <div class="bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 rounded-lg p-4">
@@ -1085,14 +1085,14 @@ ${css}
                                     {/if}
                                     {#if p.psychographics}
                                       <div class="text-xs text-dark-900/70 dark:text-dark-100/70 mb-2 space-y-0.5">
-                                        {#if p.psychographics.values}<div><strong>Values:</strong> {p.psychographics.values}</div>{/if}
-                                        {#if p.psychographics.aspirations}<div><strong>Aspirations:</strong> {p.psychographics.aspirations}</div>{/if}
-                                        {#if p.psychographics.fears}<div><strong>Fears:</strong> {p.psychographics.fears}</div>{/if}
+                                        {#if p.psychographics.values}<div><strong>คุณค่าที่ยึดถือ:</strong> {p.psychographics.values}</div>{/if}
+                                        {#if p.psychographics.aspirations}<div><strong>ความใฝ่ฝัน:</strong> {p.psychographics.aspirations}</div>{/if}
+                                        {#if p.psychographics.fears}<div><strong>ความกลัว:</strong> {p.psychographics.fears}</div>{/if}
                                       </div>
                                     {/if}
                                     {#if p.pain_points?.length}
                                       <div class="text-xs mb-2">
-                                        <strong class="text-red-700 dark:text-red-400">Pain Points:</strong>
+                                        <strong class="text-red-700 dark:text-red-400">ปัญหาที่ลูกค้าเจอ:</strong>
                                         <div class="mt-1 space-y-0.5 text-dark-900/80 dark:text-dark-100/80">
                                           {#each p.pain_points as x}
                                             <div class="flex gap-1.5"><span class="text-red-500 dark:text-red-400">•</span><span>{x}</span></div>
@@ -1102,7 +1102,7 @@ ${css}
                                     {/if}
                                     {#if p.preferred_channels?.length}
                                       <div class="text-xs mb-2">
-                                        <strong>Channels:</strong>
+                                        <strong>ช่องทางที่เหมาะ:</strong>
                                         <div class="flex flex-wrap gap-1 mt-1">
                                           {#each p.preferred_channels as c}
                                             <span class="px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400 text-xs">{c}</span>
@@ -1112,12 +1112,12 @@ ${css}
                                     {/if}
                                     {#if p.best_message}
                                       <div class="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded p-2 text-xs mb-1.5">
-                                        <strong class="text-blue-800 dark:text-blue-300">Best Message:</strong> {p.best_message}
+                                        <strong class="text-blue-800 dark:text-blue-300">ข้อความที่ควรใช้:</strong> {p.best_message}
                                       </div>
                                     {/if}
                                     {#if p.best_offer}
                                       <div class="bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-800 rounded p-2 text-xs">
-                                        <strong class="text-green-800 dark:text-green-300">Best Offer:</strong> {p.best_offer}
+                                        <strong class="text-green-800 dark:text-green-300">ข้อเสนอที่ควรใช้:</strong> {p.best_offer}
                                       </div>
                                     {/if}
                                   </div>
@@ -1127,7 +1127,7 @@ ${css}
                           {/if}
                           {#if output.how_to_validate?.length}
                             <div class="bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
-                              <div class="text-xs font-bold text-purple-800 dark:text-purple-300 uppercase tracking-wide mb-2">How to Validate</div>
+                              <div class="text-xs font-bold text-purple-800 dark:text-purple-300 uppercase tracking-wide mb-2">วิธีตรวจสอบว่าจริงไหม</div>
                               <ul class="space-y-1.5 text-sm text-purple-900 dark:text-purple-200">
                                 {#each output.how_to_validate as x}
                                   <li class="flex gap-2"><span class="text-purple-600 dark:text-purple-400 flex-shrink-0">•</span><span>{x}</span></li>
@@ -1140,24 +1140,24 @@ ${css}
                           <!-- Competitor Analysis rendering -->
                           {#if output.summary}
                             <div class="bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 rounded-lg p-4">
-                              <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wide mb-1.5">Market Summary</div>
+                              <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wide mb-1.5">สรุปภาพตลาด</div>
                               <p class="text-sm text-dark-900/90 dark:text-dark-100/90 leading-relaxed">{output.summary}</p>
                             </div>
                           {/if}
                           {#if output.is_estimated}
                             <div class="bg-amber-50 dark:bg-amber-950/40 border-l-4 border-amber-500 dark:border-amber-600 rounded-r-lg p-3 text-xs text-amber-900 dark:text-amber-200">
-                              ⚠️ <strong>Auto-find mode:</strong> {output.estimation_note || 'คู่แข่งเป็นการประมาณการณ์ ควรตรวจสอบข้อมูลจริง'}
+                              ⚠️ <strong>โหมดค้นหาอัตโนมัติ:</strong> {output.estimation_note || 'คู่แข่งเป็นการประมาณการณ์ ควรตรวจสอบข้อมูลจริง'}
                             </div>
                           {/if}
                           {#if output.market_dynamics}
                             <div class="bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 rounded-lg p-4">
-                              <div class="text-xs font-bold text-dark-900/60 dark:text-dark-100/60 uppercase tracking-wide mb-1.5">Market Dynamics</div>
+                              <div class="text-xs font-bold text-dark-900/60 dark:text-dark-100/60 uppercase tracking-wide mb-1.5">ภาพรวมตลาด</div>
                               <p class="text-sm text-dark-900/80 dark:text-dark-100/80 leading-relaxed">{output.market_dynamics}</p>
                             </div>
                           {/if}
                           {#if output.competitors?.length}
                             <div>
-                              <div class="text-xs font-bold text-dark-900/60 dark:text-dark-100/60 uppercase tracking-wide mb-2.5">Competitors ({output.competitors.length})</div>
+                              <div class="text-xs font-bold text-dark-900/60 dark:text-dark-100/60 uppercase tracking-wide mb-2.5">คู่แข่ง ({output.competitors.length})</div>
                               <div class="space-y-2">
                                 {#each output.competitors as c, i}
                                   {@const threatCls = c.threat_level === 'high' ? 'bg-red-100 dark:bg-red-950/40 text-red-800 dark:text-red-300 border-red-300 dark:border-red-700' : c.threat_level === 'medium' ? 'bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-700' : 'bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-700'}
@@ -1173,20 +1173,20 @@ ${css}
                                       <div class="text-xs italic text-dark-900/60 dark:text-dark-100/60 mb-2">"{c.tagline}"</div>
                                     {/if}
                                     <div class="text-xs text-dark-900/80 dark:text-dark-100/80 mb-2">
-                                      <strong>Positioning:</strong> {c.positioning}
-                                      {#if c.price_range}· <strong>Price:</strong> {c.price_range}{/if}
+                                      <strong>จุดยืน:</strong> {c.positioning}
+                                      {#if c.price_range}· <strong>ราคา:</strong> {c.price_range}{/if}
                                     </div>
                                     {#if c.strengths?.length || c.weaknesses?.length}
                                       <div class="grid sm:grid-cols-2 gap-2 text-xs">
                                         {#if c.strengths?.length}
                                           <div class="bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-800 rounded p-2">
-                                            <div class="font-bold text-green-800 dark:text-green-300 mb-1">💪 Strengths</div>
+                                            <div class="font-bold text-green-800 dark:text-green-300 mb-1">💪 จุดแข็ง</div>
                                             <ul class="space-y-0.5 text-green-900 dark:text-green-200">{#each c.strengths as s}<li>• {s}</li>{/each}</ul>
                                           </div>
                                         {/if}
                                         {#if c.weaknesses?.length}
                                           <div class="bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded p-2">
-                                            <div class="font-bold text-red-800 dark:text-red-300 mb-1">⚠️ Weaknesses</div>
+                                            <div class="font-bold text-red-800 dark:text-red-300 mb-1">⚠️ จุดอ่อน</div>
                                             <ul class="space-y-0.5 text-red-900 dark:text-red-200">{#each c.weaknesses as w}<li>• {w}</li>{/each}</ul>
                                           </div>
                                         {/if}
@@ -1194,7 +1194,7 @@ ${css}
                                     {/if}
                                     {#if c.marketing_channels?.length}
                                       <div class="text-xs text-dark-900/70 dark:text-dark-100/70 mt-2">
-                                        <strong>Channels:</strong>
+                                        <strong>ช่องทางที่เหมาะ:</strong>
                                         <div class="flex flex-wrap gap-1 mt-1">
                                           {#each c.marketing_channels as ch}<span class="px-1.5 py-0.5 bg-blue-50 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 rounded text-[10px]">{ch}</span>{/each}
                                         </div>
@@ -1202,7 +1202,7 @@ ${css}
                                     {/if}
                                     {#if c.why_threat}
                                       <div class="text-xs text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border-l-2 border-amber-400 dark:border-amber-600 rounded-r p-2 mt-2">
-                                        <strong>Why threat:</strong> {c.why_threat}
+                                        <strong>ทำไมถึงเป็นภัย:</strong> {c.why_threat}
                                       </div>
                                     {/if}
                                   </div>
@@ -1212,7 +1212,7 @@ ${css}
                           {/if}
                           {#if output.market_gaps?.length}
                             <div>
-                              <div class="text-xs font-bold text-dark-900/60 dark:text-dark-100/60 uppercase tracking-wide mb-2.5">Market Gaps ({output.market_gaps.length})</div>
+                              <div class="text-xs font-bold text-dark-900/60 dark:text-dark-100/60 uppercase tracking-wide mb-2.5">ช่องว่างในตลาด ({output.market_gaps.length})</div>
                               <div class="space-y-2">
                                 {#each output.market_gaps as g, i}
                                   {@const szCls = g.opportunity_size === 'big' ? 'bg-green-100 text-green-800 dark:text-green-300' : g.opportunity_size === 'medium' ? 'bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300' : 'bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300'}
@@ -1222,8 +1222,8 @@ ${css}
                                       <div class="font-semibold text-sm text-emerald-900 dark:text-emerald-200">#{i+1} {g.gap}</div>
                                       <span class="text-xs px-2 py-0.5 rounded-full {szCls} whitespace-nowrap">{szLabel}</span>
                                     </div>
-                                    {#if g.evidence}<div class="text-xs text-dark-900/70 dark:text-dark-100/70 mb-1"><strong>Evidence:</strong> {g.evidence}</div>{/if}
-                                    {#if g.your_advantage}<div class="text-xs text-emerald-800 dark:text-emerald-300"><strong>Your advantage:</strong> {g.your_advantage}</div>{/if}
+                                    {#if g.evidence}<div class="text-xs text-dark-900/70 dark:text-dark-100/70 mb-1"><strong>หลักฐาน:</strong> {g.evidence}</div>{/if}
+                                    {#if g.your_advantage}<div class="text-xs text-emerald-800 dark:text-emerald-300"><strong>ข้อได้เปรียบของคุณ:</strong> {g.your_advantage}</div>{/if}
                                   </div>
                                 {/each}
                               </div>
@@ -1232,21 +1232,21 @@ ${css}
                           {#if output.white_space}
                             <div class="bg-gradient-to-br from-primary-50 to-blue-50 dark:from-primary-900/40 dark:to-blue-950/40 border-2 border-primary-300 dark:border-primary-700 rounded-lg p-4">
                               <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wide mb-2.5 flex items-center gap-1.5">
-                                🚀 White Space
+                                🚀 จุดว่างที่ยังไม่มีใครทำ
                               </div>
                               <div class="space-y-2 text-sm">
                                 {#if output.white_space.positioning}
-                                  <div><strong class="text-xs text-primary-700 dark:text-primary-300">Positioning:</strong> {output.white_space.positioning}</div>
+                                  <div><strong class="text-xs text-primary-700 dark:text-primary-300">จุดยืน:</strong> {output.white_space.positioning}</div>
                                 {/if}
                                 {#if output.white_space.uvp}
-                                  <div><strong class="text-xs text-primary-700 dark:text-primary-300">UVP:</strong> {output.white_space.uvp}</div>
+                                  <div><strong class="text-xs text-primary-700 dark:text-primary-300">จุดเด่นที่ไม่เหมือนใคร:</strong> {output.white_space.uvp}</div>
                                 {/if}
                                 {#if output.white_space.key_message}
                                   <div class="bg-white dark:bg-dark-800 rounded p-2 italic border border-primary-200 dark:border-primary-800">"{output.white_space.key_message}"</div>
                                 {/if}
                                 {#if output.white_space.anti_positioning}
                                   <div class="bg-amber-50 dark:bg-amber-950/40 border-l-2 border-amber-400 dark:border-amber-600 rounded-r p-2 text-xs">
-                                    <strong class="text-amber-800 dark:text-amber-300">Not for:</strong> <span class="text-amber-900 dark:text-amber-200">{output.white_space.anti_positioning}</span>
+                                    <strong class="text-amber-800 dark:text-amber-300">ไม่เหมาะกับ:</strong> <span class="text-amber-900 dark:text-amber-200">{output.white_space.anti_positioning}</span>
                                   </div>
                                 {/if}
                               </div>
@@ -1254,7 +1254,7 @@ ${css}
                           {/if}
                           {#if output.recommended_strategy}
                             <div>
-                              <div class="text-xs font-bold text-dark-900/60 dark:text-dark-100/60 uppercase tracking-wide mb-2.5">📋 Recommended Strategy</div>
+                              <div class="text-xs font-bold text-dark-900/60 dark:text-dark-100/60 uppercase tracking-wide mb-2.5">📋 กลยุทธ์แนะนำ</div>
                               <div class="space-y-2">
                                 {#if output.recommended_strategy.now}
                                   <div class="bg-red-50 dark:bg-red-950/40 border-l-4 border-red-500 dark:border-red-600 rounded-r-lg p-3">
@@ -1292,22 +1292,22 @@ ${css}
                           <!-- JTBD rendering -->
                           {#if output.summary}
                             <div class="bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 rounded-lg p-4">
-                              <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wide mb-1.5">Summary</div>
+                              <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wide mb-1.5">สรุป</div>
                               <p class="text-sm text-dark-900/90 dark:text-dark-100/90 leading-relaxed">{output.summary}</p>
                             </div>
                           {/if}
                           {#if output.answer_to_core_question}
                             <div class="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/40 dark:to-purple-950/40 border border-indigo-200 dark:border-indigo-800 rounded-lg p-4">
-                              <div class="text-xs font-bold text-indigo-700 dark:text-indigo-400 uppercase tracking-wide mb-1">💡 Core Answer</div>
+                              <div class="text-xs font-bold text-indigo-700 dark:text-indigo-400 uppercase tracking-wide mb-1">💡 คำตอบหลัก</div>
                               <div class="text-sm italic text-indigo-900 dark:text-indigo-200">"{output.answer_to_core_question}"</div>
                             </div>
                           {/if}
                           {#if output.primary_job}
                             <div class="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/40 dark:to-amber-950/40 border-2 border-orange-300 dark:border-orange-700 rounded-lg p-4">
-                              <div class="text-xs font-bold text-orange-700 dark:text-orange-400 uppercase tracking-wide mb-2">🎯 Primary Job</div>
+                              <div class="text-xs font-bold text-orange-700 dark:text-orange-400 uppercase tracking-wide mb-2">🎯 งานหลักที่ลูกค้าต้องการให้สำเร็จ</div>
                               {#if output.primary_job.job_statement}
                                 <div class="bg-white dark:bg-dark-800 rounded p-2.5 mb-2 text-sm border border-orange-200 dark:border-orange-800">
-                                  <div class="text-xs font-bold text-orange-700 dark:text-orange-400 mb-1">Job Statement</div>
+                                  <div class="text-xs font-bold text-orange-700 dark:text-orange-400 mb-1">คำอธิบายงานนี้</div>
                                   {output.primary_job.job_statement}
                                 </div>
                               {/if}
@@ -1315,19 +1315,19 @@ ${css}
                                 <div class="grid sm:grid-cols-3 gap-2 text-xs">
                                   {#if output.primary_job.dimensions.functional}
                                     <div class="bg-white dark:bg-dark-800 border border-orange-200 dark:border-orange-800 rounded p-2">
-                                      <div class="font-bold text-orange-700 dark:text-orange-400 mb-0.5">⚙️ Functional</div>
+                                      <div class="font-bold text-orange-700 dark:text-orange-400 mb-0.5">⚙️ ด้านการใช้งาน</div>
                                       <div class="text-orange-900 dark:text-orange-200">{output.primary_job.dimensions.functional}</div>
                                     </div>
                                   {/if}
                                   {#if output.primary_job.dimensions.emotional}
                                     <div class="bg-white dark:bg-dark-800 border border-orange-200 dark:border-orange-800 rounded p-2">
-                                      <div class="font-bold text-orange-700 dark:text-orange-400 mb-0.5">💗 Emotional</div>
+                                      <div class="font-bold text-orange-700 dark:text-orange-400 mb-0.5">💗 ด้านความรู้สึก</div>
                                       <div class="text-orange-900 dark:text-orange-200">{output.primary_job.dimensions.emotional}</div>
                                     </div>
                                   {/if}
                                   {#if output.primary_job.dimensions.social}
                                     <div class="bg-white dark:bg-dark-800 border border-orange-200 dark:border-orange-800 rounded p-2">
-                                      <div class="font-bold text-orange-700 dark:text-orange-400 mb-0.5">👥 Social</div>
+                                      <div class="font-bold text-orange-700 dark:text-orange-400 mb-0.5">👥 ด้านสังคม</div>
                                       <div class="text-orange-900 dark:text-orange-200">{output.primary_job.dimensions.social}</div>
                                     </div>
                                   {/if}
@@ -1338,41 +1338,41 @@ ${css}
                           {#if output.forces_of_progress}
                             {@const f = output.forces_of_progress}
                             <div>
-                              <div class="text-xs font-bold text-dark-900/60 dark:text-dark-100/60 uppercase tracking-wide mb-2.5">⚖️ Forces of Progress</div>
+                              <div class="text-xs font-bold text-dark-900/60 dark:text-dark-100/60 uppercase tracking-wide mb-2.5">⚖️ แรงผลักดันให้เปลี่ยนใจ</div>
                               <div class="grid sm:grid-cols-2 gap-2 text-xs">
                                 <div class="bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded p-2">
-                                  <div class="font-bold text-red-800 dark:text-red-300 mb-1">⬆️ PUSH</div>
+                                  <div class="font-bold text-red-800 dark:text-red-300 mb-1">⬆️ ปัจจัยผลัก</div>
                                   <ul class="space-y-0.5 text-red-900 dark:text-red-200">{#each f.push || [] as p}<li>• {p.force} [{p.intensity}]</li>{/each}</ul>
                                 </div>
                                 <div class="bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-800 rounded p-2">
-                                  <div class="font-bold text-green-800 dark:text-green-300 mb-1">🧲 PULL</div>
+                                  <div class="font-bold text-green-800 dark:text-green-300 mb-1">🧲 ปัจจัยดึงดูด</div>
                                   <ul class="space-y-0.5 text-green-900 dark:text-green-200">{#each f.pull || [] as p}<li>• {p.force} [{p.intensity}]</li>{/each}</ul>
                                 </div>
                                 <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded p-2">
-                                  <div class="font-bold text-amber-800 dark:text-amber-300 mb-1">😟 ANXIETY</div>
+                                  <div class="font-bold text-amber-800 dark:text-amber-300 mb-1">😟 ความกังวล</div>
                                   <ul class="space-y-0.5 text-amber-900 dark:text-amber-200">{#each f.anxiety || [] as p}<li>• {p.force} [{p.intensity}]</li>{/each}</ul>
                                 </div>
                                 <div class="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded p-2">
-                                  <div class="font-bold text-blue-800 dark:text-blue-300 mb-1">🛋️ HABIT</div>
+                                  <div class="font-bold text-blue-800 dark:text-blue-300 mb-1">🛋️ ความเคยชิน</div>
                                   <ul class="space-y-0.5 text-blue-900 dark:text-blue-200">{#each f.habit || [] as p}<li>• {p.force} [{p.intensity}]</li>{/each}</ul>
                                 </div>
                               </div>
                               {#if f.verdict}
                                 <div class="mt-2 bg-indigo-50 dark:bg-indigo-950/40 border-l-2 border-indigo-400 dark:border-indigo-600 rounded-r p-2 text-xs text-indigo-900 dark:text-indigo-200">
-                                  <b>⚖️ Verdict:</b> {f.verdict}
+                                  <b>⚖️ สรุปผล:</b> {f.verdict}
                                 </div>
                               {/if}
                             </div>
                           {/if}
                           {#if output.desired_outcomes?.length}
                             <div>
-                              <div class="text-xs font-bold text-dark-900/60 dark:text-dark-100/60 uppercase tracking-wide mb-2.5">📏 Desired Outcomes ({output.desired_outcomes.length})</div>
+                              <div class="text-xs font-bold text-dark-900/60 dark:text-dark-100/60 uppercase tracking-wide mb-2.5">📏 ผลลัพธ์ที่ลูกค้าอยากได้ ({output.desired_outcomes.length})</div>
                               <div class="space-y-1.5">
                                 {#each output.desired_outcomes.slice(0, 6) as o}
                                   <div class="bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 rounded p-2.5 text-xs">
                                     <div class="flex items-center gap-2 mb-1">
-                                      <span class="px-1.5 py-0.5 rounded text-[10px] bg-dark-100 dark:bg-dark-700 font-bold">Opp: {o.opportunity_score}/10</span>
-                                      <span class="text-dark-900/60 dark:text-dark-100/60">I={o.importance} · S={o.satisfaction_current}</span>
+                                      <span class="px-1.5 py-0.5 rounded text-[10px] bg-dark-100 dark:bg-dark-700 font-bold">โอกาส: {o.opportunity_score}/10</span>
+                                      <span class="text-dark-900/60 dark:text-dark-100/60">สำคัญ={o.importance} · พอใจตอนนี้={o.satisfaction_current}</span>
                                     </div>
                                     <div class="font-mono text-sm text-dark-900 dark:text-dark-50">{o.outcome}</div>
                                     {#if o.why}<div class="text-dark-900/70 dark:text-dark-100/70 mt-0.5">{o.why}</div>{/if}
@@ -1383,7 +1383,7 @@ ${css}
                           {/if}
                           {#if output.customer_decision_timeline?.length}
                             <div>
-                              <div class="text-xs font-bold text-dark-900/60 dark:text-dark-100/60 uppercase tracking-wide mb-2.5">⏱️ Decision Timeline</div>
+                              <div class="text-xs font-bold text-dark-900/60 dark:text-dark-100/60 uppercase tracking-wide mb-2.5">⏱️ เส้นทางการตัดสินใจซื้อ</div>
                               <div class="space-y-1.5">
                                 {#each output.customer_decision_timeline as t}
                                   <div class="bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 rounded p-2.5 text-xs">
@@ -1401,7 +1401,7 @@ ${css}
                           {/if}
                           {#if output.triggers?.length}
                             <div>
-                              <div class="text-xs font-bold text-dark-900/60 dark:text-dark-100/60 uppercase tracking-wide mb-2.5">⚡ Triggers</div>
+                              <div class="text-xs font-bold text-dark-900/60 dark:text-dark-100/60 uppercase tracking-wide mb-2.5">⚡ จุดกระตุ้นให้เริ่มมองหาทางออก</div>
                               <div class="grid sm:grid-cols-2 gap-2">
                                 {#each output.triggers as t}
                                   <div class="bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 rounded p-2.5 text-xs">
@@ -1414,7 +1414,7 @@ ${css}
                           {/if}
                           {#if output.deep_research_insights?.key_insights?.length}
                             <div class="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/40 dark:to-pink-950/40 border-2 border-purple-300 dark:border-purple-700 rounded-lg p-4">
-                              <div class="text-xs font-bold text-purple-700 dark:text-purple-400 uppercase tracking-wide mb-2">🧠 Deep Research Insights</div>
+                              <div class="text-xs font-bold text-purple-700 dark:text-purple-400 uppercase tracking-wide mb-2">🧠 ข้อมูลเชิงลึกจากการวิจัย</div>
                               <div class="space-y-1.5 text-sm text-purple-900 dark:text-purple-200">
                                 {#each output.deep_research_insights.key_insights as ki}
                                   <div class="bg-white dark:bg-dark-800 rounded p-2 border border-purple-200 dark:border-purple-800">💡 {ki}</div>
@@ -1424,7 +1424,7 @@ ${css}
                           {/if}
                           {#if output.next_steps?.length}
                             <div class="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-teal-950/40 border border-emerald-200 dark:border-emerald-800 rounded-lg p-3">
-                              <div class="text-xs font-bold text-emerald-800 dark:text-emerald-300 uppercase mb-1.5">➡️ Next Steps</div>
+                              <div class="text-xs font-bold text-emerald-800 dark:text-emerald-300 uppercase mb-1.5">➡️ ขั้นตอนต่อไป</div>
                               <ul class="space-y-0.5 text-xs text-emerald-900 dark:text-emerald-200">{#each output.next_steps as s}<li>• {s}</li>{/each}</ul>
                             </div>
                           {/if}
@@ -1438,13 +1438,13 @@ ${css}
                           <!-- VPC rendering -->
                           {#if output.summary}
                             <div class="bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 rounded-lg p-4">
-                              <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wide mb-1.5">Summary</div>
+                              <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wide mb-1.5">สรุป</div>
                               <p class="text-sm text-dark-900/90 dark:text-dark-100/90 leading-relaxed">{output.summary}</p>
                             </div>
                           {/if}
                           {#if output.customer_segment}
                             <div class="bg-blue-50 dark:bg-blue-950/40 border-l-4 border-blue-500 dark:border-blue-600 rounded-r p-3">
-                              <div class="text-xs font-bold text-blue-700 dark:text-blue-400 uppercase mb-1">👤 Customer Segment</div>
+                              <div class="text-xs font-bold text-blue-700 dark:text-blue-400 uppercase mb-1">👤 กลุ่มลูกค้าเป้าหมาย</div>
                               <div class="text-sm font-semibold text-blue-900 dark:text-blue-200">{output.customer_segment.name || '-'}</div>
                               {#if output.customer_segment.description}
                                 <div class="text-xs text-blue-800 dark:text-blue-300 mt-0.5">{output.customer_segment.description}</div>
@@ -1454,44 +1454,44 @@ ${css}
                           <div class="grid sm:grid-cols-2 gap-3">
                             <!-- Customer Profile -->
                             <div class="space-y-2">
-                              <div class="text-xs font-bold text-dark-900/60 dark:text-dark-100/60 uppercase">👤 Customer Profile</div>
+                              <div class="text-xs font-bold text-dark-900/60 dark:text-dark-100/60 uppercase">👤 ตัวตนของลูกค้า</div>
                               {#if output.customer_profile?.jobs?.length}
                                 <div class="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded p-2.5 text-xs">
-                                  <div class="font-bold text-blue-800 dark:text-blue-300 mb-1">🔧 Jobs ({output.customer_profile.jobs.length})</div>
+                                  <div class="font-bold text-blue-800 dark:text-blue-300 mb-1">🔧 สิ่งที่ลูกค้าอยากทำให้สำเร็จ ({output.customer_profile.jobs.length})</div>
                                   <ul class="space-y-0.5 text-blue-900 dark:text-blue-200">{#each output.customer_profile.jobs as j}<li>• {j.job} <span class="text-[10px] text-blue-700 dark:text-blue-400">[{j.importance}]</span></li>{/each}</ul>
                                 </div>
                               {/if}
                               {#if output.customer_profile?.pains?.length}
                                 <div class="bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded p-2.5 text-xs">
-                                  <div class="font-bold text-red-800 dark:text-red-300 mb-1">😰 Pains ({output.customer_profile.pains.length})</div>
+                                  <div class="font-bold text-red-800 dark:text-red-300 mb-1">😰 ปัญหาที่ลูกค้าเจอ ({output.customer_profile.pains.length})</div>
                                   <ul class="space-y-0.5 text-red-900 dark:text-red-200">{#each output.customer_profile.pains as p}<li>• {p.pain} <span class="text-[10px] text-red-700 dark:text-red-400">[{p.intensity}]</span></li>{/each}</ul>
                                 </div>
                               {/if}
                               {#if output.customer_profile?.gains?.length}
                                 <div class="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded p-2.5 text-xs">
-                                  <div class="font-bold text-emerald-800 dark:text-emerald-300 mb-1">✨ Gains ({output.customer_profile.gains.length})</div>
+                                  <div class="font-bold text-emerald-800 dark:text-emerald-300 mb-1">✨ สิ่งที่ลูกค้าอยากได้เพิ่ม ({output.customer_profile.gains.length})</div>
                                   <ul class="space-y-0.5 text-emerald-900 dark:text-emerald-200">{#each output.customer_profile.gains as g}<li>• {g.gain} <span class="text-[10px] text-emerald-700 dark:text-emerald-400">[{g.relevance}]</span></li>{/each}</ul>
                                 </div>
                               {/if}
                             </div>
                             <!-- Value Map -->
                             <div class="space-y-2">
-                              <div class="text-xs font-bold text-dark-900/60 dark:text-dark-100/60 uppercase">🗺️ Value Map</div>
+                              <div class="text-xs font-bold text-dark-900/60 dark:text-dark-100/60 uppercase">🗺️ แผนที่คุณค่าที่มอบให้</div>
                               {#if output.value_map?.products_services?.length}
                                 <div class="bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800 rounded p-2.5 text-xs">
-                                  <div class="font-bold text-purple-800 dark:text-purple-300 mb-1">📦 Products ({output.value_map.products_services.length})</div>
+                                  <div class="font-bold text-purple-800 dark:text-purple-300 mb-1">📦 สินค้า/บริการของคุณ ({output.value_map.products_services.length})</div>
                                   <ul class="space-y-0.5 text-purple-900 dark:text-purple-200">{#each output.value_map.products_services as ps}<li>• <b>{ps.name}</b>: {ps.description}</li>{/each}</ul>
                                 </div>
                               {/if}
                               {#if output.value_map?.pain_relievers?.length}
                                 <div class="bg-orange-50 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-800 rounded p-2.5 text-xs">
-                                  <div class="font-bold text-orange-800 dark:text-orange-300 mb-1">💊 Pain Relievers ({output.value_map.pain_relievers.length})</div>
+                                  <div class="font-bold text-orange-800 dark:text-orange-300 mb-1">💊 สิ่งที่ช่วยแก้ปัญหาลูกค้า ({output.value_map.pain_relievers.length})</div>
                                   <ul class="space-y-0.5 text-orange-900 dark:text-orange-200">{#each output.value_map.pain_relievers as r}<li>• {r.reliever} <span class="text-[10px] text-orange-700 dark:text-orange-400">[{r.pattern}]</span></li>{/each}</ul>
                                 </div>
                               {/if}
                               {#if output.value_map?.gain_creators?.length}
                                 <div class="bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 rounded p-2.5 text-xs">
-                                  <div class="font-bold text-teal-800 dark:text-teal-300 mb-1">🎁 Gain Creators ({output.value_map.gain_creators.length})</div>
+                                  <div class="font-bold text-teal-800 dark:text-teal-300 mb-1">🎁 สิ่งที่เพิ่มความพอใจให้ลูกค้า ({output.value_map.gain_creators.length})</div>
                                   <ul class="space-y-0.5 text-teal-900 dark:text-teal-200">{#each output.value_map.gain_creators as c}<li>• {c.creator} <span class="text-[10px] text-teal-700 dark:text-teal-400">[{c.pattern}]</span></li>{/each}</ul>
                                 </div>
                               {/if}
@@ -1501,36 +1501,36 @@ ${css}
                             {@const fa = output.fit_analysis}
                             <div class="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-950/40 dark:to-purple-950/40 border-2 border-indigo-300 dark:border-indigo-700 rounded-lg p-3">
                               <div class="flex items-center gap-2 mb-2">
-                                <div class="text-xs font-bold text-indigo-700 dark:text-indigo-400">⚖️ Fit:</div>
+                                <div class="text-xs font-bold text-indigo-700 dark:text-indigo-400">⚖️ ความเข้ากันได้:</div>
                                 <span class="px-2 py-0.5 rounded text-sm font-bold {fa.overall_fit_score >= 7 ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300' : fa.overall_fit_score >= 5 ? 'bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300' : 'bg-red-100 dark:bg-red-950/40 text-red-800 dark:text-red-300'}">
                                   {fa.overall_fit_score || '-'}/10 — {fa.fit_verdict || '-'}
                                 </span>
                               </div>
                               {#if fa.uncovered_pains?.length}
-                                <div class="text-xs text-rose-800 dark:text-rose-300 mb-1"><b>⚠️ Uncovered Pains:</b> {fa.uncovered_pains.length} ข้อ</div>
+                                <div class="text-xs text-rose-800 dark:text-rose-300 mb-1"><b>⚠️ ปัญหาที่ยังไม่ได้แก้:</b> {fa.uncovered_pains.length} ข้อ</div>
                               {/if}
                               {#if fa.uncovered_gains?.length}
-                                <div class="text-xs text-rose-800 dark:text-rose-300 mb-1"><b>⚠️ Uncovered Gains:</b> {fa.uncovered_gains.length} ข้อ</div>
+                                <div class="text-xs text-rose-800 dark:text-rose-300 mb-1"><b>⚠️ สิ่งที่ลูกค้าอยากได้แต่ยังไม่มี:</b> {fa.uncovered_gains.length} ข้อ</div>
                               {/if}
                               {#if fa.orphans?.length}
-                                <div class="text-xs text-amber-800 dark:text-amber-300"><b>🗑️ Orphans:</b> {fa.orphans.length} ข้อ</div>
+                                <div class="text-xs text-amber-800 dark:text-amber-300"><b>🗑️ จุดที่ไม่เกี่ยวกับลูกค้ากลุ่มนี้:</b> {fa.orphans.length} ข้อ</div>
                               {/if}
                             </div>
                           {/if}
                           {#if output.value_proposition_statement}
                             <div class="bg-rose-50 dark:bg-rose-950/40 border-2 border-rose-300 dark:border-rose-700 rounded-lg p-3">
-                              <div class="text-xs font-bold text-rose-800 dark:text-rose-300 uppercase mb-1">💎 Value Proposition Statement</div>
+                              <div class="text-xs font-bold text-rose-800 dark:text-rose-300 uppercase mb-1">💎 ประโยคสรุปคุณค่าที่มอบให้ลูกค้า</div>
                               <div class="text-sm italic text-rose-900 dark:text-rose-200">"{output.value_proposition_statement}"</div>
                             </div>
                           {/if}
                           {#if output.elevator_pitch}
                             <div class="bg-amber-50 dark:bg-amber-950/40 border-l-4 border-amber-400 dark:border-amber-600 rounded-r p-2.5 text-xs">
-                              <b>⏱️ Elevator Pitch:</b> <span class="italic">{output.elevator_pitch}</span>
+                              <b>⏱️ แนะนำสั้นๆ ใน 30 วินาที:</b> <span class="italic">{output.elevator_pitch}</span>
                             </div>
                           {/if}
                           {#if output.next_steps?.length}
                             <div class="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded p-2.5 text-xs">
-                              <div class="font-bold text-emerald-800 dark:text-emerald-300 mb-1">➡️ Next Steps</div>
+                              <div class="font-bold text-emerald-800 dark:text-emerald-300 mb-1">➡️ ขั้นตอนต่อไป</div>
                               <ul class="text-emerald-900 dark:text-emerald-200">{#each output.next_steps as s}<li>→ {s}</li>{/each}</ul>
                             </div>
                           {/if}
@@ -1539,7 +1539,7 @@ ${css}
                           <!-- BMC rendering -->
                           {#if output.summary}
                             <div class="bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 rounded-lg p-4">
-                              <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wide mb-1.5">Summary</div>
+                              <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wide mb-1.5">สรุป</div>
                               <p class="text-sm text-dark-900/90 dark:text-dark-100/90 leading-relaxed">{output.summary}</p>
                             </div>
                           {/if}
@@ -1559,7 +1559,7 @@ ${css}
                           <!-- CS + VP (Desirability) -->
                           <div class="grid md:grid-cols-2 gap-3">
                             <div class="bg-blue-50 dark:bg-blue-950/40 border-l-4 border-blue-500 dark:border-blue-600 rounded p-3">
-                              <div class="text-xs font-bold text-blue-800 dark:text-blue-300 uppercase mb-1.5">👥 Customer Segments ({output.customer_segments?.length || 0})</div>
+                              <div class="text-xs font-bold text-blue-800 dark:text-blue-300 uppercase mb-1.5">👥 กลุ่มลูกค้า ({output.customer_segments?.length || 0})</div>
                               <div class="space-y-1.5">
                                 {#each (output.customer_segments || []) as s}
                                   <div class="bg-white dark:bg-dark-800 rounded p-2 text-xs">
@@ -1573,7 +1573,7 @@ ${css}
                               </div>
                             </div>
                             <div class="bg-purple-50 dark:bg-purple-950/40 border-l-4 border-purple-500 dark:border-purple-600 rounded p-3">
-                              <div class="text-xs font-bold text-purple-800 dark:text-purple-300 uppercase mb-1.5">💎 Value Propositions ({output.value_propositions?.length || 0})</div>
+                              <div class="text-xs font-bold text-purple-800 dark:text-purple-300 uppercase mb-1.5">💎 จุดขายหลัก ({output.value_propositions?.length || 0})</div>
                               <div class="space-y-1.5">
                                 {#each (output.value_propositions || []) as v}
                                   <div class="bg-white dark:bg-dark-800 rounded p-2 text-xs">
@@ -1589,7 +1589,7 @@ ${css}
                           <!-- Channels + CR -->
                           <div class="grid md:grid-cols-2 gap-3">
                             <div class="bg-teal-50 dark:bg-teal-950/40 border-l-4 border-teal-500 dark:border-teal-600 rounded p-3">
-                              <div class="text-xs font-bold text-teal-800 dark:text-teal-300 uppercase mb-1.5">📡 Channels ({output.channels?.length || 0})</div>
+                              <div class="text-xs font-bold text-teal-800 dark:text-teal-300 uppercase mb-1.5">📡 ช่องทางขาย ({output.channels?.length || 0})</div>
                               <div class="space-y-1.5">
                                 {#each (output.channels || []) as ch}
                                   <div class="bg-white dark:bg-dark-800 rounded p-2 text-xs">
@@ -1604,7 +1604,7 @@ ${css}
                               </div>
                             </div>
                             <div class="bg-cyan-50 dark:bg-cyan-950/40 border-l-4 border-cyan-500 dark:border-cyan-600 rounded p-3">
-                              <div class="text-xs font-bold text-cyan-800 dark:text-cyan-300 uppercase mb-1.5">🤝 Customer Relationships ({output.customer_relationships?.length || 0})</div>
+                              <div class="text-xs font-bold text-cyan-800 dark:text-cyan-300 uppercase mb-1.5">🤝 ความสัมพันธ์กับลูกค้า ({output.customer_relationships?.length || 0})</div>
                               <div class="space-y-1.5">
                                 {#each (output.customer_relationships || []) as r}
                                   <div class="bg-white dark:bg-dark-800 rounded p-2 text-xs">
@@ -1620,7 +1620,7 @@ ${css}
                           <!-- KR + KA + KP -->
                           <div class="grid md:grid-cols-3 gap-3">
                             <div class="bg-amber-50 dark:bg-amber-950/40 border-l-4 border-amber-500 dark:border-amber-600 rounded p-3">
-                              <div class="text-xs font-bold text-amber-800 dark:text-amber-300 uppercase mb-1.5">🔧 Key Resources ({output.key_resources?.length || 0})</div>
+                              <div class="text-xs font-bold text-amber-800 dark:text-amber-300 uppercase mb-1.5">🔧 ทรัพยากรสำคัญ ({output.key_resources?.length || 0})</div>
                               <ul class="space-y-0.5 text-xs text-amber-900 dark:text-amber-200">
                                 {#each (output.key_resources || []) as r}
                                   <li class="bg-white dark:bg-dark-800 rounded p-1.5 mb-0.5">
@@ -1631,7 +1631,7 @@ ${css}
                               </ul>
                             </div>
                             <div class="bg-orange-50 dark:bg-orange-950/40 border-l-4 border-orange-500 dark:border-orange-600 rounded p-3">
-                              <div class="text-xs font-bold text-orange-800 dark:text-orange-300 uppercase mb-1.5">⚙️ Key Activities ({output.key_activities?.length || 0})</div>
+                              <div class="text-xs font-bold text-orange-800 dark:text-orange-300 uppercase mb-1.5">⚙️ กิจกรรมหลัก ({output.key_activities?.length || 0})</div>
                               <ul class="space-y-0.5 text-xs text-orange-900 dark:text-orange-200">
                                 {#each (output.key_activities || []) as a}
                                   <li class="bg-white dark:bg-dark-800 rounded p-1.5 mb-0.5">
@@ -1642,7 +1642,7 @@ ${css}
                               </ul>
                             </div>
                             <div class="bg-pink-50 dark:bg-pink-950/40 border-l-4 border-pink-500 dark:border-pink-600 rounded p-3">
-                              <div class="text-xs font-bold text-pink-800 dark:text-pink-300 uppercase mb-1.5">🤝 Key Partnerships ({output.key_partnerships?.length || 0})</div>
+                              <div class="text-xs font-bold text-pink-800 dark:text-pink-300 uppercase mb-1.5">🤝 พาร์ทเนอร์สำคัญ ({output.key_partnerships?.length || 0})</div>
                               <ul class="space-y-0.5 text-xs text-pink-900 dark:text-pink-200">
                                 {#each (output.key_partnerships || []) as p}
                                   <li class="bg-white dark:bg-dark-800 rounded p-1.5 mb-0.5">
@@ -1658,7 +1658,7 @@ ${css}
                           <!-- Revenue + Cost (Viability) -->
                           <div class="grid md:grid-cols-2 gap-3">
                             <div class="bg-emerald-50 dark:bg-emerald-950/40 border-l-4 border-emerald-500 dark:border-emerald-600 rounded p-3">
-                              <div class="text-xs font-bold text-emerald-800 dark:text-emerald-300 uppercase mb-1.5">💰 Revenue Streams ({output.revenue_streams?.length || 0})</div>
+                              <div class="text-xs font-bold text-emerald-800 dark:text-emerald-300 uppercase mb-1.5">💰 ช่องทางรายได้ ({output.revenue_streams?.length || 0})</div>
                               <div class="space-y-1.5">
                                 {#each (output.revenue_streams || []) as r}
                                   <div class="bg-white dark:bg-dark-800 rounded p-2 text-xs">
@@ -1672,23 +1672,23 @@ ${css}
                             {#if output.cost_structure}
                               {@const cs = output.cost_structure}
                               <div class="bg-red-50 dark:bg-red-950/40 border-l-4 border-red-500 dark:border-red-600 rounded p-3">
-                                <div class="text-xs font-bold text-red-800 dark:text-red-300 uppercase mb-1.5">📊 Cost Structure</div>
+                                <div class="text-xs font-bold text-red-800 dark:text-red-300 uppercase mb-1.5">📊 โครงสร้างต้นทุน</div>
                                 <div class="space-y-1.5">
                                   <div class="flex items-center gap-1.5 flex-wrap text-xs">
                                     <span class="px-1.5 py-0.5 rounded text-[10px] border bg-white dark:bg-dark-800">{cs.model}</span>
-                                    <span class="px-1.5 py-0.5 rounded text-[10px] border bg-white dark:bg-dark-800">Margin: {cs.estimated_margin_profile}</span>
-                                    {#if cs.economies_of_scale}<span class="px-1.5 py-0.5 rounded text-[10px] bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-700">Scale ✓</span>{/if}
-                                    {#if cs.economies_of_scope}<span class="px-1.5 py-0.5 rounded text-[10px] bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-700">Scope ✓</span>{/if}
+                                    <span class="px-1.5 py-0.5 rounded text-[10px] border bg-white dark:bg-dark-800">กำไรขั้นต้น: {cs.estimated_margin_profile}</span>
+                                    {#if cs.economies_of_scale}<span class="px-1.5 py-0.5 rounded text-[10px] bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-700">ยิ่งทำเยอะยิ่งถูกลง ✓</span>{/if}
+                                    {#if cs.economies_of_scope}<span class="px-1.5 py-0.5 rounded text-[10px] bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-700">ทำหลายอย่างร่วมกันคุ้มกว่า ✓</span>{/if}
                                   </div>
                                   {#if cs.major_fixed_costs?.length}
                                     <div>
-                                      <div class="text-[10px] font-bold text-red-800 dark:text-red-300 uppercase mb-0.5">Fixed:</div>
+                                      <div class="text-[10px] font-bold text-red-800 dark:text-red-300 uppercase mb-0.5">ต้นทุนคงที่:</div>
                                       {#each cs.major_fixed_costs as c}<div class="bg-white dark:bg-dark-800 rounded p-1.5 text-xs text-red-900 dark:text-red-200 mb-0.5">{c.description} ({c.estimated_share})</div>{/each}
                                     </div>
                                   {/if}
                                   {#if cs.major_variable_costs?.length}
                                     <div>
-                                      <div class="text-[10px] font-bold text-red-800 dark:text-red-300 uppercase mb-0.5">Variable:</div>
+                                      <div class="text-[10px] font-bold text-red-800 dark:text-red-300 uppercase mb-0.5">ต้นทุนผันแปร:</div>
                                       {#each cs.major_variable_costs as c}<div class="bg-white dark:bg-dark-800 rounded p-1.5 text-xs text-red-900 dark:text-red-200 mb-0.5">{c.description} ({c.estimated_share})</div>{/each}
                                     </div>
                                   {/if}
@@ -1700,22 +1700,22 @@ ${css}
                           <!-- SWOT -->
                           {#if output.swot_summary}
                             <div class="bg-slate-50 dark:bg-slate-900/40 border border-slate-300 dark:border-slate-700 rounded p-3">
-                              <div class="text-xs font-bold text-slate-800 dark:text-slate-300 uppercase mb-1.5">🎯 SWOT</div>
+                              <div class="text-xs font-bold text-slate-800 dark:text-slate-300 uppercase mb-1.5">🎯 จุดแข็ง-จุดอ่อน-โอกาส-อุปสรรค</div>
                               <div class="grid grid-cols-2 gap-2 text-xs">
                                 <div class="bg-emerald-50 dark:bg-emerald-950/40 border-l-2 border-emerald-500 dark:border-emerald-600 rounded p-1.5">
-                                  <div class="font-bold text-emerald-800 dark:text-emerald-300 mb-0.5">💪 Strengths</div>
+                                  <div class="font-bold text-emerald-800 dark:text-emerald-300 mb-0.5">💪 จุดแข็ง</div>
                                   <ul class="text-emerald-900 dark:text-emerald-200 space-y-0.5">{#each (output.swot_summary.strengths || []) as s}<li>• {s}</li>{/each}</ul>
                                 </div>
                                 <div class="bg-amber-50 dark:bg-amber-950/40 border-l-2 border-amber-500 dark:border-amber-600 rounded p-1.5">
-                                  <div class="font-bold text-amber-800 dark:text-amber-300 mb-0.5">⚠️ Weaknesses</div>
+                                  <div class="font-bold text-amber-800 dark:text-amber-300 mb-0.5">⚠️ จุดอ่อน</div>
                                   <ul class="text-amber-900 dark:text-amber-200 space-y-0.5">{#each (output.swot_summary.weaknesses || []) as w}<li>• {w}</li>{/each}</ul>
                                 </div>
                                 <div class="bg-blue-50 dark:bg-blue-950/40 border-l-2 border-blue-500 dark:border-blue-600 rounded p-1.5">
-                                  <div class="font-bold text-blue-800 dark:text-blue-300 mb-0.5">🚀 Opportunities</div>
+                                  <div class="font-bold text-blue-800 dark:text-blue-300 mb-0.5">🚀 โอกาส</div>
                                   <ul class="text-blue-900 dark:text-blue-200 space-y-0.5">{#each (output.swot_summary.opportunities || []) as o}<li>• {o}</li>{/each}</ul>
                                 </div>
                                 <div class="bg-red-50 dark:bg-red-950/40 border-l-2 border-red-500 dark:border-red-600 rounded p-1.5">
-                                  <div class="font-bold text-red-800 dark:text-red-300 mb-0.5">⚡ Threats</div>
+                                  <div class="font-bold text-red-800 dark:text-red-300 mb-0.5">⚡ อุปสรรค</div>
                                   <ul class="text-red-900 dark:text-red-200 space-y-0.5">{#each (output.swot_summary.threats || []) as t}<li>• {t}</li>{/each}</ul>
                                 </div>
                               </div>
@@ -1724,7 +1724,7 @@ ${css}
 
                           {#if output.key_assumptions?.length}
                             <div class="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded p-2.5 text-xs">
-                              <div class="font-bold text-rose-800 dark:text-rose-300 mb-1">🧪 Key Assumptions</div>
+                              <div class="font-bold text-rose-800 dark:text-rose-300 mb-1">🧪 สมมติฐานที่ต้องพิสูจน์</div>
                               <ul class="text-rose-900 dark:text-rose-200 space-y-0.5">
                                 {#each output.key_assumptions as a}
                                   <li>• <b>{a.assumption}</b> [{a.risk_level}] → ทดสอบ: {a.how_to_test}</li>
@@ -1735,7 +1735,7 @@ ${css}
 
                           {#if output.next_steps?.length}
                             <div class="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded p-2.5 text-xs">
-                              <div class="font-bold text-emerald-800 dark:text-emerald-300 mb-1">➡️ Next Steps</div>
+                              <div class="font-bold text-emerald-800 dark:text-emerald-300 mb-1">➡️ ขั้นตอนต่อไป</div>
                               <ul class="text-emerald-900 dark:text-emerald-200">{#each output.next_steps as s}<li>→ {s}</li>{/each}</ul>
                             </div>
                           {/if}
@@ -1744,7 +1744,7 @@ ${css}
                           <!-- Million Dollar Offer rendering -->
                           {#if output.summary}
                             <div class="bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 rounded-lg p-4">
-                              <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wide mb-1.5">Summary</div>
+                              <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wide mb-1.5">สรุป</div>
                               <p class="text-sm text-dark-900/90 dark:text-dark-100/90 leading-relaxed">{output.summary}</p>
                             </div>
                           {/if}
@@ -1758,7 +1758,7 @@ ${css}
                           {#if output.value_equation_audit}
                             {@const ve = output.value_equation_audit}
                             <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
-                              <div class="text-xs font-bold text-amber-800 dark:text-amber-300 uppercase mb-2">⚖️ Value Equation</div>
+                              <div class="text-xs font-bold text-amber-800 dark:text-amber-300 uppercase mb-2">⚖️ มูลค่าที่ลูกค้ารู้สึก</div>
                               <div class="grid grid-cols-4 gap-1.5 text-xs">
                                 {#each [
                                   { key: 'dream_outcome', label: '🎯 DO', dir: '↑' },
@@ -1773,7 +1773,7 @@ ${css}
                                 {/each}
                               </div>
                               {#if ve.binding_constraint}
-                                <div class="text-xs text-red-800 dark:text-red-300 mt-2">⚠️ <b>Binding:</b> {ve.binding_constraint}</div>
+                                <div class="text-xs text-red-800 dark:text-red-300 mt-2">⚠️ <b>จุดที่ฉุดรั้งที่สุด:</b> {ve.binding_constraint}</div>
                               {/if}
                             </div>
                           {/if}
@@ -1781,7 +1781,7 @@ ${css}
                           {#if output.dream_outcome}
                             {@const dr = output.dream_outcome}
                             <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700 rounded p-3 text-sm">
-                              <div class="text-xs font-bold text-amber-800 dark:text-amber-300 uppercase mb-1">🎯 Dream Outcome</div>
+                              <div class="text-xs font-bold text-amber-800 dark:text-amber-300 uppercase mb-1">🎯 ผลลัพธ์ในฝันของลูกค้า</div>
                               <div class="bg-white dark:bg-dark-800 rounded p-2 text-amber-900 dark:text-amber-200 font-semibold">"{dr.specific_description || '-'}"</div>
                               {#if dr.by_when}<div class="text-xs text-amber-800 dark:text-amber-300 mt-1">⏱️ {dr.by_when}</div>{/if}
                             </div>
@@ -1789,13 +1789,13 @@ ${css}
 
                           {#if output.value_stack?.length}
                             <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded p-3">
-                              <div class="text-xs font-bold text-amber-800 dark:text-amber-300 uppercase mb-2">📚 Value Stack ({output.value_stack.length})</div>
+                              <div class="text-xs font-bold text-amber-800 dark:text-amber-300 uppercase mb-2">📚 รายการที่ลูกค้าได้ ({output.value_stack.length})</div>
                               <div class="space-y-1.5">
                                 {#each output.value_stack as v}
                                   <div class="rounded p-2 text-xs {v.is_core ? 'bg-amber-100 dark:bg-amber-950/40 border-2 border-amber-400 dark:border-amber-600' : 'bg-white'}">
                                     <div class="flex items-center gap-1.5 mb-0.5 flex-wrap">
-                                      <span class="px-1.5 py-0.5 rounded text-[10px] border {v.is_core ? 'bg-amber-500 text-white' : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-700'}">{v.is_core ? '⭐ Core' : '🎁 Bonus'}</span>
-                                      <span class="text-[10px] text-amber-700 dark:text-amber-400">cost: {v.cost_to_deliver}</span>
+                                      <span class="px-1.5 py-0.5 rounded text-[10px] border {v.is_core ? 'bg-amber-500 text-white' : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-700'}">{v.is_core ? '⭐ รายการหลัก' : '🎁 ของแถม'}</span>
+                                      <span class="text-[10px] text-amber-700 dark:text-amber-400">ต้นทุน: {v.cost_to_deliver}</span>
                                       <span class="ml-auto text-sm font-bold text-amber-700 dark:text-amber-400">{v.perceived_value}</span>
                                     </div>
                                     <div class="font-semibold text-amber-900 dark:text-amber-200">{v.name}</div>
@@ -1809,19 +1809,19 @@ ${css}
                           {#if output.pricing}
                             {@const pr = output.pricing}
                             <div class="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-700 rounded p-3 text-sm">
-                              <div class="text-xs font-bold text-emerald-800 dark:text-emerald-300 uppercase mb-2">💰 Pricing</div>
+                              <div class="text-xs font-bold text-emerald-800 dark:text-emerald-300 uppercase mb-2">💰 ราคา</div>
                               <div class="flex items-center gap-2 flex-wrap">
                                 <div class="bg-white dark:bg-dark-800 rounded p-2 text-center">
-                                  <div class="text-[10px] text-emerald-700 dark:text-emerald-400">Price</div>
+                                  <div class="text-[10px] text-emerald-700 dark:text-emerald-400">ราคาแนะนำ</div>
                                   <div class="text-base font-bold text-emerald-900 dark:text-emerald-200">{pr.recommended_price || '-'}</div>
                                 </div>
                                 <div class="bg-white dark:bg-dark-800 rounded p-2 text-center border-2 {pr.value_to_price_ratio?.startsWith('5:') || pr.value_to_price_ratio?.startsWith('6:') || pr.value_to_price_ratio?.startsWith('7:') || pr.value_to_price_ratio?.startsWith('8:') || pr.value_to_price_ratio?.startsWith('9:') || pr.value_to_price_ratio?.startsWith('10:') ? 'border-emerald-400' : 'border-amber-300 dark:border-amber-700'}">
-                                  <div class="text-[10px] text-emerald-700 dark:text-emerald-400">Ratio</div>
+                                  <div class="text-[10px] text-emerald-700 dark:text-emerald-400">อัตราคุ้มค่า</div>
                                   <div class="text-base font-bold text-emerald-900 dark:text-emerald-200">{pr.value_to_price_ratio || '?'}</div>
                                 </div>
                                 {#if pr.anchor_price}
                                   <div class="bg-white dark:bg-dark-800 rounded p-2 text-center">
-                                    <div class="text-[10px] text-emerald-700 dark:text-emerald-400">vs Anchor</div>
+                                    <div class="text-[10px] text-emerald-700 dark:text-emerald-400">เทียบราคาเดิม</div>
                                     <div class="text-sm text-dark-900/60 dark:text-dark-100/60 line-through">{pr.anchor_price}</div>
                                   </div>
                                 {/if}
@@ -1832,7 +1832,7 @@ ${css}
                           {#if output.guarantee}
                             {@const g = output.guarantee}
                             <div class="bg-blue-50 dark:bg-blue-950/40 border border-blue-300 dark:border-blue-700 rounded p-3 text-sm">
-                              <div class="text-xs font-bold text-blue-800 dark:text-blue-300 uppercase mb-1">🛡️ Guarantee</div>
+                              <div class="text-xs font-bold text-blue-800 dark:text-blue-300 uppercase mb-1">🛡️ การรับประกัน</div>
                               <div class="bg-white dark:bg-dark-800 rounded p-2 border border-blue-200 dark:border-blue-800">
                                 <div class="text-[10px] text-blue-700 dark:text-blue-400 uppercase">{g.type}</div>
                                 <div class="font-bold text-blue-900 dark:text-blue-200">"{g.name || '-'}"</div>
@@ -1845,7 +1845,7 @@ ${css}
                           {#if output.offer_name}
                             {@const n = output.offer_name}
                             <div class="bg-amber-50 dark:bg-amber-950/40 border-2 border-amber-400 dark:border-amber-600 rounded-lg p-3 text-center">
-                              <div class="text-xs font-bold text-amber-800 dark:text-amber-300 uppercase mb-1">🏷️ Offer Name (MAGIC)</div>
+                              <div class="text-xs font-bold text-amber-800 dark:text-amber-300 uppercase mb-1">🏷️ ชื่อข้อเสนอที่จำง่าย</div>
                               <div class="text-xl font-bold text-amber-900 dark:text-amber-200">"{n.full_name || '-'}"</div>
                               <div class="grid grid-cols-5 gap-1 mt-2 text-[10px]">
                                 <div class="bg-white dark:bg-dark-800 rounded p-1"><b>M</b><br/>{n.magnet || '-'}</div>
@@ -1859,7 +1859,7 @@ ${css}
 
                           {#if output.next_steps?.length}
                             <div class="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded p-2.5 text-xs">
-                              <div class="font-bold text-emerald-800 dark:text-emerald-300 mb-1">➡️ Next Steps</div>
+                              <div class="font-bold text-emerald-800 dark:text-emerald-300 mb-1">➡️ ขั้นตอนต่อไป</div>
                               <ul class="text-emerald-900 dark:text-emerald-200">{#each output.next_steps as s}<li>→ {s}</li>{/each}</ul>
                             </div>
                           {/if}
@@ -1868,14 +1868,14 @@ ${css}
                           <!-- Objection Handler rendering -->
                           {#if output.summary}
                             <div class="bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 rounded-lg p-4">
-                              <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wide mb-1.5">Summary</div>
+                              <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wide mb-1.5">สรุป</div>
                               <p class="text-sm text-dark-900/90 dark:text-dark-100/90">{output.summary}</p>
                             </div>
                           {/if}
 
                           {#if output.objections?.length}
                             <div class="space-y-2">
-                              <div class="text-xs font-bold text-rose-800 dark:text-rose-300 uppercase">🎯 Objections ({output.objections.length})</div>
+                              <div class="text-xs font-bold text-rose-800 dark:text-rose-300 uppercase">🎯 ข้อโต้แย้งที่ต้องเตรียมรับมือ ({output.objections.length})</div>
                               {#each output.objections as o, i}
                                 <div class="bg-white dark:bg-dark-800 border-2 border-rose-200 dark:border-rose-800 rounded-lg p-3">
                                   <div class="flex items-center gap-1.5 mb-1 flex-wrap">
@@ -1886,13 +1886,13 @@ ${css}
                                   <div class="font-semibold text-rose-900 dark:text-rose-200 text-sm mb-1">{o.objection}</div>
                                   <div class="bg-rose-50 dark:bg-rose-950/40 rounded p-2 text-xs italic text-rose-800 dark:text-rose-300 mb-1">💬 "{o.what_customer_says}"</div>
                                   <div class="bg-emerald-50 dark:bg-emerald-950/40 border-l-2 border-emerald-500 dark:border-emerald-600 rounded-r p-2 text-xs text-emerald-900 dark:text-emerald-200 mb-1">
-                                    <b>✅ Response:</b> {o.response_script}
+                                    <b>✅ คำตอบที่ควรพูด:</b> {o.response_script}
                                   </div>
                                   {#if o.evidence_to_provide?.length}
-                                    <div class="text-[10px] text-blue-700 dark:text-blue-400 mt-1">📊 <b>Evidence:</b> {o.evidence_to_provide.join(' · ')}</div>
+                                    <div class="text-[10px] text-blue-700 dark:text-blue-400 mt-1">📊 <b>หลักฐาน:</b> {o.evidence_to_provide.join(' · ')}</div>
                                   {/if}
                                   {#if o.bridge_to_close}
-                                    <div class="text-[10px] text-purple-700 dark:text-purple-400 mt-1">🌉 <b>Bridge:</b> {o.bridge_to_close}</div>
+                                    <div class="text-[10px] text-purple-700 dark:text-purple-400 mt-1">🌉 <b>เชื่อมไปสู่การปิดการขาย:</b> {o.bridge_to_close}</div>
                                   {/if}
                                 </div>
                               {/each}
@@ -1902,11 +1902,11 @@ ${css}
                           {#if output.do_dont}
                             <div class="grid md:grid-cols-2 gap-2 text-xs">
                               <div class="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded p-2">
-                                <div class="font-bold text-emerald-800 dark:text-emerald-300 mb-1">✅ Do</div>
+                                <div class="font-bold text-emerald-800 dark:text-emerald-300 mb-1">✅ ควรทำ</div>
                                 <ul class="text-emerald-900 dark:text-emerald-200 space-y-0.5">{#each (output.do_dont.do || []) as d}<li>✓ {d}</li>{/each}</ul>
                               </div>
                               <div class="bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded p-2">
-                                <div class="font-bold text-red-800 dark:text-red-300 mb-1">❌ Don't</div>
+                                <div class="font-bold text-red-800 dark:text-red-300 mb-1">❌ ไม่ควรทำ</div>
                                 <ul class="text-red-900 dark:text-red-200 space-y-0.5">{#each (output.do_dont.dont || []) as d}<li>✗ {d}</li>{/each}</ul>
                               </div>
                             </div>
@@ -1914,7 +1914,7 @@ ${css}
 
                           {#if output.faq_top_5?.length}
                             <div class="bg-white dark:bg-dark-800 border border-rose-200 dark:border-rose-800 rounded p-2.5 text-xs">
-                              <div class="font-bold text-rose-800 dark:text-rose-300 mb-1.5">❓ FAQ Top 5</div>
+                              <div class="font-bold text-rose-800 dark:text-rose-300 mb-1.5">❓ คำถามที่เจอบ่อย 5 ข้อ</div>
                               <div class="space-y-1">
                                 {#each output.faq_top_5 as f, i}
                                   <div class="border-l-2 border-rose-400 dark:border-rose-600 bg-rose-50 dark:bg-rose-950/40 rounded-r p-1.5">
@@ -1928,7 +1928,7 @@ ${css}
 
                           {#if output.next_steps?.length}
                             <div class="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded p-2.5 text-xs">
-                              <div class="font-bold text-emerald-800 dark:text-emerald-300 mb-1">➡️ Next Steps</div>
+                              <div class="font-bold text-emerald-800 dark:text-emerald-300 mb-1">➡️ ขั้นตอนต่อไป</div>
                               <ul class="text-emerald-900 dark:text-emerald-200">{#each output.next_steps as s}<li>→ {s}</li>{/each}</ul>
                             </div>
                           {/if}
@@ -1937,7 +1937,7 @@ ${css}
                           <!-- Hook Library rendering -->
                           {#if output.summary}
                             <div class="bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-600 rounded-lg p-4">
-                              <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wide mb-1.5">Summary</div>
+                              <div class="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wide mb-1.5">สรุป</div>
                               <p class="text-sm text-dark-900/90 dark:text-dark-100/90">{output.summary}</p>
                             </div>
                           {/if}
@@ -1950,7 +1950,7 @@ ${css}
 
                           {#if output.headlines_5?.length}
                             <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded p-3">
-                              <div class="text-xs font-bold text-amber-800 dark:text-amber-300 mb-1.5">📰 Headlines A/B Test</div>
+                              <div class="text-xs font-bold text-amber-800 dark:text-amber-300 mb-1.5">📰 พาดหัวให้เลือกทดสอบ</div>
                               <div class="space-y-1">
                                 {#each output.headlines_5 as h, i}
                                   <div class="bg-white dark:bg-dark-800 rounded p-1.5 text-xs text-amber-900 dark:text-amber-200 border-l-2 border-amber-400 dark:border-amber-600">
@@ -1962,7 +1962,7 @@ ${css}
                           {/if}
 
                           {#if output.hook_categories?.length}
-                            <div class="text-xs font-bold text-teal-800 dark:text-teal-300 uppercase">🎣 Hook Categories ({output.hook_categories.length})</div>
+                            <div class="text-xs font-bold text-teal-800 dark:text-teal-300 uppercase">🎣 หมวดประโยคเปิด ({output.hook_categories.length})</div>
                             <div class="space-y-2">
                               {#each output.hook_categories as cat}
                                 <div class="bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 rounded p-2.5 text-xs">
@@ -1982,7 +1982,7 @@ ${css}
 
                           {#if output.platform_specific && Object.keys(output.platform_specific).length > 0}
                             <div class="bg-cyan-50 dark:bg-cyan-950/40 border border-cyan-200 dark:border-cyan-800 rounded p-3">
-                              <div class="text-xs font-bold text-cyan-800 dark:text-cyan-300 mb-1.5">📱 Platform Hooks</div>
+                              <div class="text-xs font-bold text-cyan-800 dark:text-cyan-300 mb-1.5">📱 ประโยคเปิดตามแพลตฟอร์ม</div>
                               <div class="grid grid-cols-2 gap-1.5 text-[10px]">
                                 {#each Object.entries(output.platform_specific) as [platform, hooks]}
                                   <div class="bg-white dark:bg-dark-800 rounded p-1.5">
@@ -1996,14 +1996,14 @@ ${css}
 
                           {#if output.ab_testing_tips?.length}
                             <div class="bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 rounded p-2.5 text-xs">
-                              <div class="font-bold text-indigo-800 dark:text-indigo-300 mb-1">🧪 A/B Testing Tips</div>
+                              <div class="font-bold text-indigo-800 dark:text-indigo-300 mb-1">🧪 เทคนิคทดสอบเปรียบเทียบ</div>
                               <ul class="text-indigo-900 dark:text-indigo-200">{#each output.ab_testing_tips as t}<li>✓ {t}</li>{/each}</ul>
                             </div>
                           {/if}
 
                           {#if output.next_steps?.length}
                             <div class="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded p-2.5 text-xs">
-                              <div class="font-bold text-emerald-800 dark:text-emerald-300 mb-1">➡️ Next Steps</div>
+                              <div class="font-bold text-emerald-800 dark:text-emerald-300 mb-1">➡️ ขั้นตอนต่อไป</div>
                               <ul class="text-emerald-900 dark:text-emerald-200">{#each output.next_steps as s}<li>→ {s}</li>{/each}</ul>
                             </div>
                           {/if}

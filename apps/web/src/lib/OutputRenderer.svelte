@@ -16,23 +16,23 @@
   <!-- Step 1: Brand Card -->
   <div class="space-y-4">
     <div class="bg-gradient-to-br from-primary-50 to-white dark:from-primary-900/40 dark:to-dark-900 border border-primary-200 dark:border-primary-800 rounded-2xl p-6">
-      <div class="text-xs font-semibold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-2">Positioning</div>
+      <div class="text-xs font-semibold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-2">จุดยืนแบรนด์</div>
       <div class="text-lg font-semibold text-dark-900 dark:text-dark-50 leading-snug">{output.positioning || '—'}</div>
     </div>
 
     <div class="grid md:grid-cols-2 gap-4">
       <div class="bg-white dark:bg-dark-800 border border-dark-100 dark:border-dark-700 rounded-xl p-5">
-        <div class="text-xs font-semibold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-2">UVP</div>
+        <div class="text-xs font-semibold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-2">จุดขายเด่น</div>
         <div class="text-sm text-dark-900 dark:text-dark-50 leading-relaxed">{output.uvp || '—'}</div>
       </div>
       <div class="bg-white dark:bg-dark-800 border border-dark-100 dark:border-dark-700 rounded-xl p-5">
-        <div class="text-xs font-semibold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-2">Voice & Tone</div>
+        <div class="text-xs font-semibold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-2">โทนการพูด</div>
         <div class="text-sm text-dark-900 dark:text-dark-50 leading-relaxed">{output.voice_tone || '—'}</div>
       </div>
     </div>
 
     <div class="bg-white dark:bg-dark-800 border border-dark-100 dark:border-dark-700 rounded-xl p-5">
-      <div class="text-xs font-semibold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-2">Target Audience</div>
+      <div class="text-xs font-semibold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-2">กลุ่มเป้าหมาย</div>
       <div class="text-sm text-dark-900 dark:text-dark-50 leading-relaxed">{output.target_audience || '—'}</div>
     </div>
 
@@ -95,7 +95,7 @@
 
           {#if persona.pain_points && persona.pain_points.length > 0}
             <div class="mb-3">
-              <div class="text-xs font-semibold text-red-600 dark:text-red-400 mb-2">😣 Pain Points</div>
+              <div class="text-xs font-semibold text-red-600 dark:text-red-400 mb-2">😣 ปัญหาที่ลูกค้าเจอ</div>
               <ul class="text-sm space-y-1">
                 {#each persona.pain_points as p}<li class="flex gap-2"><span class="text-red-400">•</span>{p}</li>{/each}
               </ul>
@@ -125,7 +125,7 @@
 
     {#if output.insights && output.insights.length > 0}
       <div class="bg-gradient-to-br from-primary-50 to-white dark:from-primary-900/40 dark:to-dark-900 border border-primary-200 dark:border-primary-800 rounded-xl p-5">
-        <div class="text-xs font-semibold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-2">🔍 Insights จากข้อมูล</div>
+        <div class="text-xs font-semibold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-2">🔍 ข้อสังเกตจากข้อมูล</div>
         <ul class="text-sm space-y-1">
           {#each output.insights as ins}<li class="flex gap-2"><span class="text-primary-500">→</span>{ins}</li>{/each}
         </ul>
@@ -203,18 +203,18 @@
   <!-- Step 4: Positioning -->
   <div class="space-y-4">
     <div class="bg-gradient-to-br from-primary-500 to-primary-700 text-white rounded-2xl p-6">
-      <div class="text-xs font-semibold uppercase tracking-wider mb-2 opacity-80">Positioning Statement</div>
+      <div class="text-xs font-semibold uppercase tracking-wider mb-2 opacity-80">ประโยคจุดยืนแบรนด์</div>
       <div class="text-lg font-semibold leading-snug">{output.positioning_statement || '—'}</div>
     </div>
 
     <div class="bg-white dark:bg-dark-800 border-2 border-primary-500 rounded-2xl p-5">
-      <div class="text-xs font-semibold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-2">One-Liner</div>
+      <div class="text-xs font-semibold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-2">สรุปสั้น ๆ</div>
       <div class="text-base font-semibold text-dark-900 dark:text-dark-50">{output.positioning_one_liner || '—'}</div>
     </div>
 
     {#if output.uvp_bullets && output.uvp_bullets.length > 0}
       <div class="bg-white dark:bg-dark-800 border border-dark-100 dark:border-dark-700 rounded-xl p-5">
-        <div class="text-xs font-semibold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-3">Value Bullets</div>
+        <div class="text-xs font-semibold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-3">จุดขายเป็นข้อ ๆ</div>
         <ul class="space-y-2">
           {#each output.uvp_bullets as bullet}
             <li class="flex gap-3 text-sm"><span class="text-primary-500 font-bold">✓</span>{bullet}</li>
@@ -225,7 +225,7 @@
 
     {#if output.tagline_options && output.tagline_options.length > 0}
       <div class="bg-white dark:bg-dark-800 border border-dark-100 dark:border-dark-700 rounded-xl p-5">
-        <div class="text-xs font-semibold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-3">Tagline Options</div>
+        <div class="text-xs font-semibold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-3">ตัวเลือกแท็กไลน์</div>
         <div class="space-y-2">
           {#each output.tagline_options as tag, i}
             <div class="flex items-center gap-3 p-3 bg-dark-50 dark:bg-dark-900 rounded-lg">
@@ -252,7 +252,7 @@
 
     {#if output.elevator_pitch}
       <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-xl p-5">
-        <div class="text-xs font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wider mb-2">⏱️ 30-Second Elevator Pitch</div>
+        <div class="text-xs font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wider mb-2">⏱️ พูดแนะนำธุรกิจใน 30 วินาที</div>
         <div class="text-sm text-dark-900 dark:text-dark-50 leading-relaxed">{output.elevator_pitch}</div>
       </div>
     {/if}
@@ -263,15 +263,15 @@
   <div>
     {#if output.calendar && output.calendar.length > 0}
       <div class="text-xs text-dark-900/60 dark:text-dark-100/60 mb-3">
-        📅 {output.calendar.length} posts · {output.calendar.filter((p: any) => p.pillar === 'awareness').length} awareness · {output.calendar.filter((p: any) => p.pillar === 'education').length} education · {output.calendar.filter((p: any) => p.pillar === 'social_proof').length} social proof · {output.calendar.filter((p: any) => p.pillar === 'conversion').length} conversion
+        📅 {output.calendar.length} โพสต์ · {output.calendar.filter((p: any) => p.pillar === 'awareness').length} สร้างการรับรู้ · {output.calendar.filter((p: any) => p.pillar === 'education').length} ให้ความรู้ · {output.calendar.filter((p: any) => p.pillar === 'social_proof').length} สร้างความน่าเชื่อถือ · {output.calendar.filter((p: any) => p.pillar === 'conversion').length} ปิดการขาย
       </div>
       <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {#each output.calendar as post}
           <div class="bg-white dark:bg-dark-800 border border-dark-100 dark:border-dark-700 rounded-xl p-4 hover:shadow-md transition">
             <div class="flex items-center justify-between mb-2">
-              <span class="text-xs font-bold text-primary-600 dark:text-primary-400">Day {post.day}</span>
+              <span class="text-xs font-bold text-primary-600 dark:text-primary-400">วันที่ {post.day}</span>
               <span class="text-xs px-2 py-0.5 rounded-full {post.pillar === 'awareness' ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400' : post.pillar === 'education' ? 'bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-400' : post.pillar === 'social_proof' ? 'bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-400' : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400'}">
-                {post.pillar}
+                {post.pillar === 'awareness' ? 'สร้างการรับรู้' : post.pillar === 'education' ? 'ให้ความรู้' : post.pillar === 'social_proof' ? 'สร้างความน่าเชื่อถือ' : 'ปิดการขาย'}
               </span>
             </div>
             <div class="text-xs text-dark-900/60 dark:text-dark-100/60 mb-2 uppercase tracking-wider">
@@ -370,7 +370,7 @@
 
     {#if output.voice_guide}
       <div class="bg-gradient-to-br from-primary-50 to-white dark:from-primary-900/40 dark:to-dark-900 border border-primary-200 dark:border-primary-800 rounded-2xl p-5">
-        <div class="text-xs font-semibold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-3">🎙️ Voice Guide</div>
+        <div class="text-xs font-semibold text-primary-600 dark:text-primary-400 uppercase tracking-wider mb-3">🎙️ คู่มือโทนเสียง</div>
         <div class="text-sm font-semibold text-dark-900 dark:text-dark-50 mb-2">{output.voice_guide.tone}</div>
         <div class="grid md:grid-cols-2 gap-3 text-sm">
           <div>
