@@ -152,7 +152,7 @@
 
 | ขั้น | สถานะ | หมายเหตุ |
 |---|---|---|
-| 1. Brand Bootstrap + ลูกค้า 1 คน | ⬜ ยังไม่เริ่ม | |
+| 1. Brand Bootstrap + ลูกค้า 1 คน | ✅ เสร็จ | Migration 020 เพิ่ม persona_json/voice_samples_json ใน brand_profiles + validate เข้ม (persona ต้องมีคำบ่นเป๊ะ 3 ข้อ); ทางเข้า (ก) deterministic จากแผน wizard (`POST /api/brand-profiles/bootstrap/from-project`, ไม่ใช้ AI) + ทางเข้า (ข) ตอบ 3 คำถามสั้นให้ AI ร่าง (`.../bootstrap/from-answers`) — ทั้งคู่คืนแค่ draft ไม่บันทึกจนกว่าจะยืนยัน; แก้บั๊กจริง ✨ regenerate-field ที่ไม่เคยรู้จักแบรนด์เลย (ทดสอบสดเห็นผลชัดเจน); brand context จาก JSON ดิบ → บล็อกไทย 3 ชั้น; หน้า UI แรกของระบบสำหรับสร้าง Brand Profile (`/studio/brand-profile/new`) ใช้ component canon จาก Stage A — ทดสอบสดครบทั้ง 2 ทาง, ownership/cross-user probe ผ่าน, 340/340 test ผ่าน, code-reviewer เจอบั๊กจริง 1 จุด (validation crash บน non-string input) แก้แล้ว |
 | 2. ธีมเสาหลัก + Topic Picker | ⬜ ยังไม่เริ่ม | |
 | 3. Golden Path + ปฏิรูปภาษา | ⬜ ยังไม่เริ่ม | |
 | 4. Framework Engine | ⬜ ยังไม่เริ่ม | |
