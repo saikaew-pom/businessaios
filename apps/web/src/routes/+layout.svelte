@@ -7,6 +7,7 @@
   import { initAuth, isAuthed } from '$lib/auth';
   import MobileNav from '$lib/MobileNav.svelte';
   import AppHeader from '$lib/AppHeader.svelte';
+  import { ToastHost } from '$lib/ui';
   // Imported for its module-level side effect: applies the persisted/system
   // theme as a `dark` class on <html> as soon as the app boots, before any
   // page-specific dark: styling would otherwise have nothing to key off of.
@@ -44,3 +45,7 @@
   <div class="sm:hidden h-[calc(3.5rem+env(safe-area-inset-bottom))]" aria-hidden="true"></div>
   <MobileNav />
 {/if}
+
+<!-- Global, regardless of route — even public pages can trigger a toast
+     (e.g. a copy-to-clipboard confirmation) -->
+<ToastHost />
