@@ -1,5 +1,6 @@
 # BusinessAiOs — UX Audit & Redesign Plan
 
+> ⚠️ **แทนที่แล้วโดย `OS_REDESIGN_MASTER_PLAN.md` (ส.ค. 2569)** — audit/ประเด็น P0-P2 ในไฟล์นี้ยังเป็นข้อเท็จจริงอ้างอิงได้ แต่แผนการสร้างให้ยึดตาม master plan
 > จัดทำโดย: UX/UI specialist (take-over review) · 2026-07-29
 > ผู้รับงานต่อ: UI designer specialist → implementation phase
 > สถานะ: **plan + wireframe เท่านั้น — ยังไม่แตะโค้ด UI จริง** (implement ในเฟสถัดไป)
