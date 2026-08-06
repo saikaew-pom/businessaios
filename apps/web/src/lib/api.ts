@@ -1828,6 +1828,14 @@ export async function devMockSuccess(packageId: string): Promise<{ success: bool
 // Brand Profiles (Creative Studio brand context)
 // =====================================================
 
+export type BrandProfilePersona = {
+  name: string;
+  age: string;
+  job: string;
+  daily_life: string;
+  complaints: string[]; // always exactly 3 once saved — see validateBrandProfileInput on the API side
+};
+
 export type BrandProfile = {
   id: string;
   name: string;
@@ -1837,13 +1845,42 @@ export type BrandProfile = {
   content_pillars: any[];
   offers: any[];
   rules: Record<string, any>;
+  persona: BrandProfilePersona | null;
+  voice_samples: string[];
   is_default: boolean;
   created_at: number;
   updated_at: number;
 };
 
+export type BrandProfileDraft = Omit<BrandProfile, 'id' | 'is_default' | 'created_at' | 'updated_at'>;
+
 export async function listBrandProfiles(): Promise<{ profiles: BrandProfile[]; active_profile: BrandProfile | null }> {
   return fetchAPI('/api/brand-profiles');
+}
+
+export async function createBrandProfile(data: BrandProfileDraft & { is_default?: boolean }): Promise<BrandProfile> {
+  return fetchAPI('/api/brand-profiles', { method: 'POST', body: JSON.stringify(data) });
+}
+
+// Content Playbook Upgrade Plan ขั้นที่ 1 — Brand Bootstrap: both paths
+// return a DRAFT only (nothing saved) — call createBrandProfile() once the
+// user reviews/edits and confirms.
+export async function bootstrapBrandFromProject(projectId: string): Promise<{ draft: BrandProfileDraft }> {
+  return fetchAPI('/api/brand-profiles/bootstrap/from-project', {
+    method: 'POST',
+    body: JSON.stringify({ project_id: projectId }),
+  });
+}
+
+export async function bootstrapBrandFromAnswers(answers: {
+  business: string;
+  customer: string;
+  complaint: string;
+}): Promise<{ draft: BrandProfileDraft; credits_remaining: number }> {
+  return fetchAPI('/api/brand-profiles/bootstrap/from-answers', {
+    method: 'POST',
+    body: JSON.stringify(answers),
+  });
 }
 
 // =====================================================

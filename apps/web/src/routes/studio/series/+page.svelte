@@ -315,6 +315,9 @@
               <option value={p.id}>{p.name}</option>
             {/each}
           </select>
+          <a href="/studio/brand-profile/new" class="mt-1 inline-block text-xs font-semibold text-primary-600 dark:text-primary-400 hover:underline">
+            + สร้าง Brand Profile ใหม่ (ตอบครั้งเดียว ใช้ได้กับ content ทุกชิ้น)
+          </a>
         </label>
 
         <div>
