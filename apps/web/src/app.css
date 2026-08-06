@@ -4,8 +4,54 @@
 
 @layer base {
   :root {
-    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    /*
+      Noto Sans Thai first — see the matching note in tailwind.config.js's
+      fontFamily.sans. This --font-sans var is what `body` below actually
+      uses (not Tailwind's font-sans utility), so it needed the same fix:
+      Thai text was rendering in a font with zero Thai glyphs by default,
+      only getting Noto Sans Thai on elements that happened to carry an
+      explicit :lang(th)/.thai marker.
+    */
+    --font-sans: 'Noto Sans Thai', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     --font-thai: 'Noto Sans Thai', 'Inter', sans-serif;
+
+    /*
+      Motion — one set for the whole system (commitment 4.5): 200ms ease-out
+      entering, 150ms leaving. Components should reference these vars rather
+      than hand-rolling their own duration, so a future system-wide timing
+      change is one edit, not a grep-and-replace.
+    */
+    --motion-in: 200ms cubic-bezier(0.16, 1, 0.3, 1);
+    --motion-out: 150ms ease-out;
+
+    /*
+      Semantic role tokens (commitment 4.2) — new components (the canon in
+      $lib/ui/) reference these, not raw Tailwind color scales, so the
+      palette can shift under them without touching component code. Existing
+      components keep using Tailwind's bg-primary and text-dark utility
+      classes directly (recolored via tailwind.config.js) — no need to migrate those
+      just to introduce this for new work.
+    */
+    --surface: theme('colors.dark.50');
+    --surface-raised: theme('colors.white');
+    --line: theme('colors.dark.200');
+    --ink: theme('colors.dark.900');
+    --ink-soft: theme('colors.dark.600');
+    --accent: theme('colors.primary.500');
+    --accent-deep: theme('colors.primary.600');
+    --accent-tint: theme('colors.primary.100');
+  }
+
+  html.dark {
+    color-scheme: dark;
+    --surface: theme('colors.dark.900');
+    --surface-raised: theme('colors.dark.800');
+    --line: theme('colors.dark.700');
+    --ink: theme('colors.dark.50');
+    --ink-soft: theme('colors.dark.300');
+    --accent: theme('colors.primary.400');
+    --accent-deep: theme('colors.primary.300');
+    --accent-tint: theme('colors.primary.900');
   }
 
   html {
@@ -13,17 +59,24 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  html.dark {
-    color-scheme: dark;
-  }
-
   body {
     font-family: var(--font-sans);
   }
 
-  /* Thai content uses Noto Sans Thai */
+  /* Thai content — kept for any element that still marks itself explicitly;
+     harmless now that body itself defaults to Noto Sans Thai too. */
   :lang(th), .thai {
     font-family: var(--font-thai);
+  }
+
+  /* Respect reduced-motion system-wide (commitment 4.5), not per-component */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 
@@ -59,6 +112,23 @@
   .eyebrow-label {
     @apply block text-xs font-semibold tracking-wide uppercase text-primary-600 dark:text-primary-400 mb-3;
   }
+
+  /*
+    App-UI type scale (commitment 4.1) — six sizes, nothing in between.
+    Separate from .heading-1/2/3 above on purpose: those are landing-page
+    marketing sizes (responsive, larger); these are for the product UI
+    itself (dashboard, forms, cards) where every screen should read from
+    the same six-step scale rather than picking arbitrary text-* sizes.
+    Line-height is 1.65+ throughout — Thai needs more vertical room than
+    Latin text for its stacked vowel/tone marks, and clipping them at a
+    tight line-height is a real, easy-to-miss readability bug.
+  */
+  .t-display { @apply text-[28px] font-extrabold tracking-tight leading-[1.35]; }
+  .t-title { @apply text-[21px] font-extrabold tracking-tight leading-[1.4]; }
+  .t-heading { @apply text-[17px] font-bold leading-[1.5]; }
+  .t-body { @apply text-[15px] leading-[1.65]; }
+  .t-caption { @apply text-[13px] leading-[1.6] text-dark-600 dark:text-dark-300; }
+  .t-micro { @apply text-[11.5px] font-bold leading-[1.5]; }
 
   /*
     .input and .btn-ghost are used across dozens of components (works,

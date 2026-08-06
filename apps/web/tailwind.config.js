@@ -5,34 +5,52 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Electric Blue + White palette
+        // OS Redesign warm identity (docs/OS_REDESIGN_MASTER_PLAN.md §4.2) —
+        // replaces the electric-blue palette. Kept the token NAME `primary`
+        // (hundreds of existing bg-primary-*/text-primary-* usages across
+        // the app) and only changed its VALUES, rather than a sitewide
+        // rename to `accent` — same reasoning as `dark` below.
         primary: {
-          50: '#eff6ff',
-          100: '#dbeafe',
-          200: '#bfdbfe',
-          300: '#93c5fd',
-          400: '#60a5fa',
-          500: '#3b82f6',   // electric blue
-          600: '#2563eb',
-          700: '#1d4ed8',
-          800: '#1e40af',
-          900: '#1e3a8a',
+          50: '#fdf3ed',
+          100: '#fbe4d6',
+          200: '#f6c7a9',
+          300: '#efa87c',
+          400: '#e88856',
+          500: '#e06a3a',   // coral — the one accent color per screen (commitment 4.2)
+          600: '#c4551f',   // hover/pressed
+          700: '#9e441a',
+          800: '#7a3416',
+          900: '#57250f',
+          950: '#331608',
         },
-        // Full 50-950 neutral scale — previously jumped straight from 200 to
-        // 900 with nothing between, which is what forced every "dark mode"
-        // attempt to invent one-off greys instead of reusing a real scale.
+        // Full 50-950 neutral scale, re-hued warm (cream/ink) instead of
+        // cool blue-gray — same light-at-50 → dark-at-950 direction as
+        // before, so every existing `dark-50`..`dark-950` usage across the
+        // app keeps working, it just now matches the warm identity instead
+        // of clashing with it. Token NAME kept for the same reason as
+        // `primary` above: renaming would touch every component file.
         dark: {
-          50: '#f8fafc',
-          100: '#f1f5f9',
-          200: '#e2e8f0',
-          300: '#cbd5e1',
-          400: '#94a3b8',
-          500: '#64748b',
-          600: '#475569',
-          700: '#334155',
-          800: '#1e293b',
-          900: '#0a0a0a',
-          950: '#050505',
+          50: '#fbf5ee',   // cream — page background in light mode
+          100: '#f2e8d9',  // sand — card/subtle background
+          200: '#e6d8c4',  // line — borders in light mode
+          300: '#d3c0a3',
+          400: '#a8927a',
+          500: '#7d6b57',
+          600: '#6b5d4f',  // ink-soft — secondary text
+          700: '#4a3f35',
+          800: '#251e17',  // paper — card/surface background in dark mode
+          900: '#1b1611',  // darkest background (dark mode page bg)
+          950: '#100d0a',
+        },
+        // Secondary accent — "AI ทำให้" cards/tags, kept semantically apart
+        // from `primary` (the one accent per screen, per commitment 4.2)
+        // so a suggestion chip never competes visually with a real CTA.
+        sage: {
+          50: '#eef4ed',
+          100: '#e4ede0',
+          400: '#7fa07d',
+          600: '#5f8161',
+          800: '#3c5a3e',
         },
         // Semantic aliases over Tailwind's own green/amber/red/blue scales —
         // the app already used those directly (bg-green-50 etc.) ad hoc; these
@@ -43,8 +61,14 @@ export default {
         info: { 50: '#eff6ff', 100: '#dbeafe', 600: '#2563eb', 700: '#1d4ed8' },
       },
       fontFamily: {
-        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
-        display: ['Inter', 'system-ui', 'sans-serif'],
+        // Noto Sans Thai first — this app is Thai-primary (commitment 4.1),
+        // and Inter has zero Thai glyphs. Previously `sans` (the default
+        // body font, per app.css) listed Inter first, so Thai text only got
+        // Noto Sans Thai where something explicitly added `:lang(th)`/`.thai`
+        // — everywhere else it silently fell back past Inter to the
+        // browser's own generic Thai font, not the one actually loaded.
+        sans: ['Noto Sans Thai', 'Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        display: ['Noto Sans Thai', 'Inter', 'system-ui', 'sans-serif'],
       },
       animation: {
         'fade-in': 'fadeIn 0.6s ease-out',
