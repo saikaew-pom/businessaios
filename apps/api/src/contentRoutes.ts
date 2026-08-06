@@ -3,6 +3,7 @@ import { generateId } from './lib/crypto';
 import { calculateCredits, deductCredits, addCredits } from './lib/credit';
 import { callMinimax, estimateCost, extractJsonFromAny } from './lib/minimax';
 import { assembleVisualPrompt, buildVisualSlotPrompt, type VisualSlots } from './lib/creative/visualPrompt';
+import { formatBrandContextBlock, getBrandSnapshotObject } from './lib/creative/brandContext';
 import { getUser, requireAuth } from './lib/middleware';
 import type { Bindings, Variables } from './lib/types';
 
@@ -322,15 +323,19 @@ type RegenerateContext = {
   hook?: string; caption?: string; cta?: string; hashtags?: string[]; visual_suggestion?: string;
 };
 
-function buildRegenerateFieldPrompt(field: string, context: RegenerateContext) {
+function buildRegenerateFieldPrompt(field: string, context: RegenerateContext, brandContextBlock: string) {
   const isArray = field === 'hashtags';
   const system = `คุณคือนักการตลาดคอนเทนต์มืออาชีพสำหรับธุรกิจไทย งานของคุณคือเขียน "${field}" ใหม่ให้กับโพสต์โซเชียลมีเดีย 1 ชิ้น ให้เข้ากับบริบทของโพสต์ทั้งหมดที่ให้มา แต่งใหม่ ไม่ใช่แค่ปรับคำเดิมเล็กน้อย
+เขียนให้ตรงกับตัวตนแบรนด์และลูกค้าตัวแทนด้านล่าง ไม่ใช่เขียนแบบทั่วไปที่ใช้กับธุรกิจไหนก็ได้
 
 กติกา: ${REGEN_FIELD_RULES[field]}
 
 ตอบเป็น JSON object เท่านั้น: {"value": ${isArray ? '["...", "..."]' : '"..."'}}`;
 
   const user = [
+    brandContextBlock,
+    '',
+    '# โพสต์นี้',
     context.title ? `หัวข้อ: ${context.title}` : '',
     context.platform ? `Platform: ${context.platform}` : '',
     context.format ? `Format: ${context.format}` : '',
@@ -364,6 +369,20 @@ contentRoutes.post('/api/content-items/:id/regenerate-field', async (c) => {
   }
   const context: RegenerateContext = body.context && typeof body.context === 'object' ? body.context : {};
 
+  // The bug this fixes: this call used to know nothing about the brand at
+  // all, so the model wrote generic copy with no identity behind it. Resolve
+  // the item's own series → brand profile first (what it was actually
+  // generated with); fall back to the user's active profile if the item has
+  // no series or the series has no brand profile attached.
+  let brandProfileId: string | null = null;
+  if (item.series_id) {
+    const series = await c.env.DB.prepare('SELECT brand_profile_id FROM content_series WHERE id = ? AND user_id = ?')
+      .bind(item.series_id, user.id).first<{ brand_profile_id: string | null }>();
+    brandProfileId = series?.brand_profile_id || null;
+  }
+  const brandSnapshot = await getBrandSnapshotObject(c.env, user.id, brandProfileId);
+  const brandContextBlock = formatBrandContextBlock(brandSnapshot);
+
   const toolRunId = generateId();
   const startTime = Date.now();
   // visual_suggestion goes through a different pipeline than the other
@@ -373,7 +392,7 @@ contentRoutes.post('/api/content-items/:id/regenerate-field', async (c) => {
   const isVisual = field === 'visual_suggestion';
   const { system, user: userPrompt } = isVisual
     ? buildVisualSlotPrompt(context)
-    : buildRegenerateFieldPrompt(field, context);
+    : buildRegenerateFieldPrompt(field, context, brandContextBlock);
   // MiniMax-M3 spends tokens on an internal reasoning trace before writing
   // the final answer, and the reasoning length is NOT proportional to how
   // small the final answer is — 2000 was tried first and still truncated

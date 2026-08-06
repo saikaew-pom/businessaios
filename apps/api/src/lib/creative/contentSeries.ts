@@ -3,6 +3,7 @@ import type { Bindings } from '../types';
 import { callMinimax, extractJsonFromAny } from '../minimax';
 import { calculateCredits } from '../credit';
 import { assembleVisualPrompt, buildVisualSlotBatchPrompt, type VisualSlotBatchItem } from './visualPrompt';
+import { formatBrandContextBlock } from './brandContext';
 
 // Measured ceiling, not an arbitrary cap: MiniMax-M3 spends an unbounded
 // amount of its completion budget on internal reasoning before writing the
@@ -193,7 +194,7 @@ hook ทำให้คนหยุด scroll
 ${topic}
 
 # Brand context
-${JSON.stringify(brandSnapshot || {})}
+${formatBrandContextBlock(brandSnapshot)}
 
 ${existingHooks.length ? `# มุมที่เคยเขียนไปแล้ว (ห้ามซ้ำ)
 โพสต์เหล่านี้อยู่ในปฏิทินของธุรกิจนี้แล้ว ห้ามเขียนซ้ำมุมเดิม ประเด็นเดิม หรือ hook ที่สื่อความหมายเดียวกัน — ให้หามุมใหม่ที่ยังไม่เคยพูดถึง

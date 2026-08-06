@@ -9,6 +9,14 @@ import {
   listBrandProfiles,
   setActiveBrandProfile,
 } from './lib/creative/brandContext';
+import {
+  buildBrandBootstrapPrompt,
+  mapWizardPlanToBrandDraft,
+  parseBrandBootstrapOutput,
+  type BootstrapAnswers,
+} from './lib/creative/brandBootstrap';
+import { calculateCredits, deductCredits, addCredits } from './lib/credit';
+import { callMinimax, extractJsonFromAny } from './lib/minimax';
 import { runMediaProcessor } from './lib/media/processor';
 import { reconcileStuckGenerations } from './lib/media/reconciler';
 import { sweepMediaPurge } from './lib/media/purge';
@@ -393,6 +401,110 @@ mediaRoutes.post('/api/brand-profiles/snapshots', async (c) => {
   const body: { profile_id?: string | null } = await c.req.json<{ profile_id?: string | null }>().catch(() => ({}));
   const snapshot = await createBrandContextSnapshot(c.env, user.id, body.profile_id);
   return c.json({ snapshot }, 201);
+});
+
+// Content Playbook Upgrade Plan ขั้นที่ 1 — Brand Bootstrap, path (ก): the
+// user already has a wizard plan, so this is deterministic reshaping of
+// existing AI output — no new AI call, no credits. Returns a DRAFT only;
+// nothing is saved until the user reviews/edits and POSTs it to
+// /api/brand-profiles like any other profile.
+mediaRoutes.post('/api/brand-profiles/bootstrap/from-project', async (c) => {
+  const user = getUser(c)!;
+  const body: { project_id?: string } = await c.req.json<{ project_id?: string }>().catch(() => ({}));
+  if (!body.project_id) return c.json({ error: 'project_id_required' }, 400);
+
+  const project = await c.env.DB.prepare('SELECT name, step_data FROM projects WHERE id = ? AND user_id = ?')
+    .bind(body.project_id, user.id).first<{ name: string; step_data: string | null }>();
+  if (!project) return c.json({ error: 'not_found' }, 404);
+
+  return c.json({ draft: mapWizardPlanToBrandDraft(project) });
+});
+
+// Path (ข): no wizard plan — 3 short plain-Thai questions, one real AI call
+// drafts every field. This IS a paid call, so it follows the same
+// reserve → refund/true-up credit pattern as regenerate-field
+// (contentRoutes.ts) — single non-batched call, so the precise-estimate
+// style is used rather than content-series' per-item heuristic.
+mediaRoutes.post('/api/brand-profiles/bootstrap/from-answers', async (c) => {
+  const user = getUser(c)!;
+  const body: Partial<BootstrapAnswers> = await c.req.json<Partial<BootstrapAnswers>>().catch(() => ({}));
+  if (!body.business?.trim() || !body.customer?.trim() || !body.complaint?.trim()) {
+    return c.json({ error: 'validation_error', message: 'กรุณาตอบทั้ง 3 ข้อ', errors: ['answers_required'] }, 400);
+  }
+
+  const account = await c.env.DB.prepare('SELECT email_verified FROM users WHERE id = ?')
+    .bind(user.id).first<{ email_verified: number }>();
+  if (account && account.email_verified === 0) {
+    return c.json({ error: 'email_not_verified', message: 'กรุณายืนยันอีเมลก่อน' }, 403);
+  }
+
+  const answers: BootstrapAnswers = {
+    business: body.business.trim().slice(0, 300),
+    customer: body.customer.trim().slice(0, 300),
+    complaint: body.complaint.trim().slice(0, 300),
+  };
+  const { system, user: userPrompt } = buildBrandBootstrapPrompt(answers);
+
+  const toolRunId = generateId();
+  const maxTokens = 8000;
+  const estPromptTokens = Math.ceil((system.length + userPrompt.length) / 3);
+  const reserveCredits = calculateCredits({ prompt_tokens: estPromptTokens, completion_tokens: maxTokens });
+  const reservation = await deductCredits(c.env, user.id, reserveCredits, 'generation_reserve', toolRunId);
+  if (!reservation.ok) {
+    return c.json({ error: 'insufficient_credits', message: 'เครดิตไม่เพียงพอ', balance: reservation.balance, required: reserveCredits }, 402);
+  }
+
+  let result: Awaited<ReturnType<typeof callMinimax>>;
+  try {
+    result = await callMinimax(
+      { apiKey: c.env.MINIMAX_API_KEY, groupId: c.env.MINIMAX_GROUP_ID, model: c.env.MINIMAX_MODEL },
+      [
+        { role: 'system', content: system },
+        { role: 'user', content: `${userPrompt}\n\nตอบเป็น JSON object เท่านั้น ห้าม markdown ห้ามคำอธิบายเพิ่ม` },
+      ],
+      { maxTokens, temperature: 0.8, jsonMode: true },
+    );
+  } catch (err: any) {
+    console.error('Brand bootstrap AI error:', err);
+    const refund = await addCredits(c.env, user.id, reserveCredits, 'generation_refund', { referenceId: toolRunId, note: 'AI call failed' });
+    return c.json({ error: 'ai_error', message: 'ร่าง Brand Profile ไม่สำเร็จ', credits_remaining: refund.ok ? refund.balance : undefined }, 500);
+  }
+
+  let draft;
+  try {
+    const parsed = extractJsonFromAny(result.content, result.reasoning);
+    draft = parseBrandBootstrapOutput(parsed);
+  } catch (err: any) {
+    console.error('Brand bootstrap parse error:', err);
+    const refund = await addCredits(c.env, user.id, reserveCredits, 'generation_refund', { referenceId: toolRunId, note: 'AI returned unparseable output' });
+    return c.json({ error: 'parse_error', message: 'AI ตอบกลับไม่ถูกต้อง กรุณาลองใหม่', credits_remaining: refund.ok ? refund.balance : undefined }, 500);
+  }
+
+  try {
+    await c.env.DB.prepare(`
+      INSERT INTO tool_runs (id, user_id, tool_name, input, output, model, prompt_tokens, completion_tokens, total_tokens, cost_usd, duration_ms, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      toolRunId, user.id, 'brand_bootstrap_from_answers',
+      JSON.stringify(answers), JSON.stringify(draft), c.env.MINIMAX_MODEL,
+      result.usage?.prompt_tokens || 0, result.usage?.completion_tokens || 0, result.usage?.total_tokens || 0,
+      0, 0, Date.now(),
+    ).run();
+  } catch (err) {
+    console.error('Failed to save brand_bootstrap_from_answers tool_run (non-fatal):', err);
+  }
+
+  const creditsUsed = calculateCredits(result.usage);
+  let finalBalance = reservation.balance;
+  if (creditsUsed < reserveCredits) {
+    const refund = await addCredits(c.env, user.id, reserveCredits - creditsUsed, 'generation_refund', { referenceId: toolRunId, note: 'Reserved more than actual usage' });
+    if (refund.ok) finalBalance = refund.balance;
+  } else if (creditsUsed > reserveCredits) {
+    const extra = await deductCredits(c.env, user.id, creditsUsed - reserveCredits, 'generation_true_up', toolRunId);
+    if (extra.ok) finalBalance = extra.balance;
+  }
+
+  return c.json({ draft, credits_remaining: finalBalance });
 });
 
 export async function runMediaScheduled(env: Bindings) {
