@@ -75,6 +75,7 @@ const REQUIRED_TABLES = [
   'brand_profile_selections', 'brand_context_snapshots',
   'provider_webhook_events', 'media_work_items', 'media_pricing_quotes',
   'media_upload_intents', 'brandbook_exports', 'platform_provider_keys',
+  'content_themes', 'content_topics',
 ];
 
 describe('auto-applied migrations alone (`wrangler d1 migrations apply`)', () => {
@@ -225,6 +226,47 @@ describe('auto-applied migrations alone (`wrangler d1 migrations apply`)', () =>
       .get('brand-legacy-1') as any;
     expect(row.persona_json).toBeNull();
     expect(row.voice_samples_json).toBeNull();
+  });
+
+  it('content_themes and content_topics are usable, with a real theme→topic→series FK chain (021 — Topic Picker)', () => {
+    db.exec(`INSERT OR IGNORE INTO users (id, email, password_hash, plan, created_at, updated_at)
+             VALUES ('u-topic', 'topic@test.com', 'x', 'free', 0, 0)`);
+    db.exec(`
+      INSERT INTO brand_profiles (
+        id, user_id, name, business_summary, audience_json, tone_of_voice_json,
+        content_pillars_json, offers_json, rules_json, default_reference_asset_ids_json,
+        created_at, updated_at
+      )
+      VALUES ('brand-topic-1', 'u-topic', 'Brand', '', '[]', '[]', '[]', '[]', '{}', '[]', 0, 0);
+    `);
+
+    expect(() =>
+      db.exec(`
+        INSERT INTO content_themes (id, user_id, brand_profile_id, name, reason, status, created_at, updated_at)
+        VALUES ('theme-1', 'u-topic', 'brand-topic-1', 'ของกินยามดึก', 'กลุ่มลูกค้าหลักทำงานดึก', 'confirmed', 0, 0);
+      `)
+    ).not.toThrow();
+
+    expect(() =>
+      db.exec(`
+        INSERT INTO content_topics (id, user_id, theme_id, title, content_type, seasonal_event, status, created_at, updated_at)
+        VALUES ('topic-1', 'u-topic', 'theme-1', 'แกงถุงส่งดึกไม่ต้องออกจากบ้าน', 'lifestyle', NULL, 'suggested', 0, 0);
+      `)
+    ).not.toThrow();
+
+    // Selecting a topic links it to the series it produced — exercise the
+    // full chain a real "tap to generate" flow would create.
+    db.exec(`
+      INSERT INTO content_series (id, user_id, brand_profile_id, topic, requested_count, cadence_days, platforms_json, status, created_at, updated_at)
+      VALUES ('series-1', 'u-topic', 'brand-topic-1', 'แกงถุงส่งดึกไม่ต้องออกจากบ้าน', 1, 1, '[]', 'completed', 0, 0);
+    `);
+    expect(() =>
+      db.exec(`UPDATE content_topics SET status = 'used', used_series_id = 'series-1', updated_at = 0 WHERE id = 'topic-1';`)
+    ).not.toThrow();
+
+    const topic = db.prepare('SELECT status, used_series_id FROM content_topics WHERE id = ?').get('topic-1') as any;
+    expect(topic.status).toBe('used');
+    expect(topic.used_series_id).toBe('series-1');
   });
 
   it('KNOWN GAP: users/projects columns from 001-v2/002 are wiped by 0003_mvp_clean on a fresh apply', () => {
