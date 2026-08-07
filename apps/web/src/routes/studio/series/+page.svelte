@@ -9,14 +9,23 @@
     listProjects,
     listContentSeries,
     listContentSeriesTemplates,
+    listContentThemes,
+    suggestContentThemes,
+    confirmContentThemes,
+    listContentTopics,
+    suggestContentTopics,
     type BrandProfile,
     type ContentItem,
     type Project,
     type ContentSeries,
     type ContentSeriesTemplate,
+    type ContentTheme,
+    type ContentTopic,
   } from '$lib/api';
   import { initAuth, isAuthed, fullUser } from '$lib/auth';
   import { fetchConfig } from '$lib/config';
+  import { Chip, TapCard, Button } from '$lib/ui';
+  import { contentTypeLabel, contentTypeChipTone, seasonalEventLabel } from '$lib/contentTaxonomy';
 
   const PLATFORM_OPTIONS = ['facebook', 'instagram', 'line', 'tiktok'];
   const CADENCE_OPTIONS = [
@@ -47,6 +56,126 @@
   let platforms: string[] = ['facebook', 'instagram'];
   let isGenerating = false;
   let lastResult: { series: ContentSeries; items: ContentItem[] } | null = null;
+
+  // Content Playbook Upgrade Plan ขั้นที่ 2 — Topic Picker. "พิมพ์เอง" is the
+  // fallback now, not the default (per the plan's own wording) — 'pick' is
+  // the initial mode, 'manual' reveals the classic free-text textarea.
+  let topicMode: 'pick' | 'manual' = 'pick';
+  let selectedTopicId = '';
+  let themes: ContentTheme[] = [];
+  let themesLoading = false;
+  let suggestingThemes = false;
+  let selectedThemeId = '';
+  let pendingThemeIds: string[] = []; // freshly-suggested, not yet confirmed
+  let checkedThemeIds: Record<string, boolean> = {};
+  let themeRenames: Record<string, string> = {};
+  let confirmingThemes = false;
+  let topics: ContentTopic[] = [];
+  let topicsLoading = false;
+  let suggestingTopics = false;
+  let pickerError = '';
+  let lastLoadedBrandProfileId = '';
+
+  // Runs whenever brandProfileId changes (including its initial default from
+  // loadBrandProfiles()) — themes are scoped per brand profile, so switching
+  // profiles must reset the whole picker rather than show stale themes/topics.
+  $: if (brandProfileId && brandProfileId !== lastLoadedBrandProfileId) {
+    lastLoadedBrandProfileId = brandProfileId;
+    selectedThemeId = '';
+    selectedTopicId = '';
+    topics = [];
+    pendingThemeIds = [];
+    loadThemes();
+  }
+
+  async function loadThemes() {
+    if (!brandProfileId) return;
+    themesLoading = true;
+    pickerError = '';
+    try {
+      const res = await listContentThemes(brandProfileId);
+      themes = res.themes;
+    } catch (err) {
+      pickerError = humanizeError(err);
+    } finally {
+      themesLoading = false;
+    }
+  }
+
+  async function requestThemeSuggestions() {
+    if (!brandProfileId || suggestingThemes) return;
+    suggestingThemes = true;
+    pickerError = '';
+    try {
+      const res = await suggestContentThemes(brandProfileId);
+      // Suggest replaces the prior unconfirmed batch server-side — mirror
+      // that here by dropping any 'suggested' themes we already had and
+      // showing only the fresh batch for confirmation.
+      themes = [...themes.filter((t) => t.status === 'confirmed'), ...res.themes];
+      pendingThemeIds = res.themes.map((t) => t.id);
+      checkedThemeIds = Object.fromEntries(res.themes.map((t) => [t.id, true]));
+      themeRenames = {};
+    } catch (err) {
+      pickerError = humanizeError(err);
+    } finally {
+      suggestingThemes = false;
+    }
+  }
+
+  async function confirmSelectedThemes() {
+    const ids = pendingThemeIds.filter((id) => checkedThemeIds[id]);
+    if (!ids.length || confirmingThemes) return;
+    confirmingThemes = true;
+    pickerError = '';
+    try {
+      await confirmContentThemes(ids, themeRenames);
+      pendingThemeIds = [];
+      checkedThemeIds = {};
+      themeRenames = {};
+      await loadThemes();
+    } catch (err) {
+      pickerError = humanizeError(err);
+    } finally {
+      confirmingThemes = false;
+    }
+  }
+
+  async function selectTheme(themeId: string) {
+    selectedThemeId = themeId;
+    selectedTopicId = '';
+    topics = [];
+    topicsLoading = true;
+    pickerError = '';
+    try {
+      const res = await listContentTopics(themeId);
+      topics = res.topics;
+    } catch (err) {
+      pickerError = humanizeError(err);
+    } finally {
+      topicsLoading = false;
+    }
+  }
+
+  async function requestTopicSuggestions() {
+    if (!selectedThemeId || suggestingTopics) return;
+    suggestingTopics = true;
+    pickerError = '';
+    try {
+      const res = await suggestContentTopics(selectedThemeId);
+      // Additive, not a replacement — unlike themes, topic history is meant
+      // to accumulate (that's what de-dup is checked against server-side).
+      topics = [...topics, ...res.topics];
+    } catch (err) {
+      pickerError = humanizeError(err);
+    } finally {
+      suggestingTopics = false;
+    }
+  }
+
+  function pickTopic(t: ContentTopic) {
+    topic = t.title;
+    selectedTopicId = t.id;
+  }
 
   // Template creation form state
   let showTemplateForm = false;
@@ -118,11 +247,13 @@
         brand_profile_id: brandProfileId || null,
         project_id: projectId || null,
         platforms,
+        topic_id: topicMode === 'pick' ? (selectedTopicId || null) : null,
       });
       lastResult = result;
       notice = result.series.status === 'partial'
         ? `AI สร้างได้แค่ ${result.items.length}/${result.series.requested_count} ชิ้น (ใช้ ${result.series.credits_used} เครดิต) — ลองสร้างเพิ่มอีกรอบถ้าต้องการครบจำนวน`
         : `สร้าง content ${result.items.length} ชิ้นสำเร็จ (ใช้ ${result.series.credits_used} เครดิต)`;
+      selectedTopicId = ''; // this generate already linked it server-side; don't relink on a repeat submit
       await loadHistory();
     } catch (err) {
       error = humanizeError(err);
@@ -260,12 +391,103 @@
           <p class="mt-1 text-sm text-dark-900/60 dark:text-dark-100/60">1 หัวข้อ → หลาย content มุมต่างกัน ไม่ซ้ำกัน</p>
         </div>
 
-        <textarea
-          bind:value={topic}
-          rows="2"
-          class="input w-full"
-          placeholder="หัวข้อ เช่น เปิดร้านกาแฟใหม่ย่านทองหล่อ, โปรโมชันลดราคาสิ้นปี"
-        ></textarea>
+        <!-- Content Playbook ขั้นที่ 2 — Topic Picker. "เลือกจากไอเดีย" is the
+             default; "พิมพ์เอง" is a fallback toggle, not the primary path. -->
+        <div class="flex gap-2 text-sm font-semibold">
+          <button type="button" onclick={() => (topicMode = 'pick')}
+            class="px-3 py-1.5 rounded-full {topicMode === 'pick' ? 'bg-primary-600 text-white' : 'bg-dark-50 text-dark-900/70 dark:bg-dark-900 dark:text-dark-100/70'}">
+            เลือกจากไอเดีย
+          </button>
+          <button type="button" onclick={() => { topicMode = 'manual'; selectedTopicId = ''; }}
+            class="px-3 py-1.5 rounded-full {topicMode === 'manual' ? 'bg-primary-600 text-white' : 'bg-dark-50 text-dark-900/70 dark:bg-dark-900 dark:text-dark-100/70'}">
+            พิมพ์เอง
+          </button>
+        </div>
+
+        {#if pickerError}
+          <div class="rounded-lg border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/40 p-3 text-sm text-red-700 dark:text-red-300">{pickerError}</div>
+        {/if}
+
+        {#if topicMode === 'manual'}
+          <textarea
+            bind:value={topic}
+            rows="2"
+            class="input w-full"
+            placeholder="หัวข้อ เช่น เปิดร้านกาแฟใหม่ย่านทองหล่อ, โปรโมชันลดราคาสิ้นปี"
+          ></textarea>
+        {:else if !brandProfileId}
+          <p class="t-caption text-dark-500 dark:text-dark-400">เลือก Brand Profile ด้านล่างก่อน เพื่อให้ AI ช่วยคิดหัวข้อให้</p>
+        {:else}
+          <!-- Step 1: theme -->
+          {#if themesLoading}
+            <p class="t-caption text-dark-500 dark:text-dark-400">กำลังโหลดธีม...</p>
+          {:else}
+            {#if themes.filter((t) => t.status === 'confirmed').length}
+              <div class="space-y-2">
+                <span class="t-caption text-dark-600 dark:text-dark-300 block">ธีมเสาหลัก</span>
+                {#each themes.filter((t) => t.status === 'confirmed') as t}
+                  <TapCard title={t.name} subtitle={t.reason} selected={selectedThemeId === t.id} onclick={() => selectTheme(t.id)} />
+                {/each}
+              </div>
+            {/if}
+
+            {#if pendingThemeIds.length}
+              <div class="rounded-xl border border-dark-200 dark:border-dark-700 p-3 space-y-2">
+                <span class="t-caption text-dark-600 dark:text-dark-300 block">AI เสนอธีมใหม่ — ติ๊กเลือกที่จะใช้ (แก้ชื่อได้)</span>
+                {#each themes.filter((t) => pendingThemeIds.includes(t.id)) as t}
+                  <label class="flex items-start gap-2 rounded-lg border border-dark-100 dark:border-dark-700 p-2.5">
+                    <input type="checkbox" class="mt-1" checked={checkedThemeIds[t.id] ?? false}
+                      onchange={(e) => (checkedThemeIds = { ...checkedThemeIds, [t.id]: (e.target as HTMLInputElement).checked })} />
+                    <span class="min-w-0 flex-1">
+                      <input type="text" class="input w-full text-sm font-semibold" value={themeRenames[t.id] ?? t.name}
+                        oninput={(e) => (themeRenames = { ...themeRenames, [t.id]: (e.target as HTMLInputElement).value })} />
+                      <span class="t-caption text-dark-500 dark:text-dark-400 block mt-1">{t.reason}</span>
+                    </span>
+                  </label>
+                {/each}
+                <Button disabled={confirmingThemes} onclick={confirmSelectedThemes}>
+                  {confirmingThemes ? 'กำลังบันทึก...' : 'ยืนยันธีมที่เลือก'}
+                </Button>
+              </div>
+            {:else}
+              <Button variant="secondary" disabled={suggestingThemes} onclick={requestThemeSuggestions}>
+                {suggestingThemes ? 'กำลังคิดธีม...' : themes.length ? '+ คิดธีมใหม่' : '✨ ให้ AI ช่วยคิดธีมให้'}
+              </Button>
+            {/if}
+          {/if}
+
+          <!-- Step 2: topic cards for the selected theme -->
+          {#if selectedThemeId}
+            {#if topicsLoading}
+              <p class="t-caption text-dark-500 dark:text-dark-400">กำลังโหลดหัวข้อ...</p>
+            {:else}
+              {#if topics.length}
+                <div class="space-y-2">
+                  <span class="t-caption text-dark-600 dark:text-dark-300 block">แตะเพื่อเลือกหัวข้อ</span>
+                  {#each topics as t}
+                    <TapCard selected={selectedTopicId === t.id} onclick={() => pickTopic(t)}>
+                      <div class="t-body font-semibold">{t.title}</div>
+                      <div class="mt-1.5 flex flex-wrap gap-1.5">
+                        <Chip tone={contentTypeChipTone(t.content_type)}>{contentTypeLabel(t.content_type)}</Chip>
+                        {#if t.seasonal_event}<Chip tone="gold">🎊 {seasonalEventLabel(t.seasonal_event)}</Chip>{/if}
+                        {#if t.status === 'used'}<Chip>ใช้แล้ว</Chip>{/if}
+                      </div>
+                    </TapCard>
+                  {/each}
+                </div>
+              {/if}
+              <Button variant="secondary" disabled={suggestingTopics} onclick={requestTopicSuggestions}>
+                {suggestingTopics ? 'กำลังคิดหัวข้อ...' : topics.length ? '+ คิดหัวข้อเพิ่ม' : '✨ ให้ AI ช่วยคิดหัวข้อให้'}
+              </Button>
+              {#if selectedTopicId}
+                <label class="text-sm block">
+                  <span class="block mb-1 text-dark-900/70 dark:text-dark-100/70">หัวข้อที่เลือก (แก้ไขได้)</span>
+                  <textarea bind:value={topic} rows="2" class="input w-full"></textarea>
+                </label>
+              {/if}
+            {/if}
+          {/if}
+        {/if}
 
         <div class="grid md:grid-cols-3 gap-3">
           <label class="text-sm">

@@ -1942,6 +1942,52 @@ export async function deleteContentSeriesTemplate(id: string) {
   return fetchAPI<{ ok: boolean }>(`/api/content-series/templates/${id}`, { method: 'DELETE' });
 }
 
+// =====================================================
+// Content Playbook Upgrade Plan ขั้นที่ 2 — ธีมเสาหลัก + Topic Picker
+// =====================================================
+
+export type ContentTheme = {
+  id: string;
+  brand_profile_id: string;
+  name: string;
+  reason: string;
+  status: 'suggested' | 'confirmed' | 'dismissed';
+  created_at: number;
+  updated_at: number;
+};
+
+export type ContentTopic = {
+  id: string;
+  theme_id: string;
+  title: string;
+  content_type: string;
+  seasonal_event: string | null;
+  status: 'suggested' | 'used' | 'dismissed';
+  used_series_id: string | null;
+  created_at: number;
+  updated_at: number;
+};
+
+export async function listContentThemes(brandProfileId: string): Promise<{ themes: ContentTheme[] }> {
+  return fetchAPI(`/api/content-themes?brand_profile_id=${encodeURIComponent(brandProfileId)}`);
+}
+
+export async function suggestContentThemes(brandProfileId: string): Promise<{ themes: ContentTheme[]; credits_remaining: number }> {
+  return fetchAPI('/api/content-themes/suggest', { method: 'POST', body: JSON.stringify({ brand_profile_id: brandProfileId }) });
+}
+
+export async function confirmContentThemes(themeIds: string[], renames?: Record<string, string>): Promise<{ themes: ContentTheme[] }> {
+  return fetchAPI('/api/content-themes/confirm-batch', { method: 'POST', body: JSON.stringify({ theme_ids: themeIds, renames }) });
+}
+
+export async function listContentTopics(themeId: string): Promise<{ topics: ContentTopic[] }> {
+  return fetchAPI(`/api/content-themes/${themeId}/topics`);
+}
+
+export async function suggestContentTopics(themeId: string): Promise<{ topics: ContentTopic[]; credits_remaining: number }> {
+  return fetchAPI(`/api/content-themes/${themeId}/topics/suggest`, { method: 'POST' });
+}
+
 export async function listContentSeries(limit = 30): Promise<ContentSeries[]> {
   const res = await fetchAPI<{ series: ContentSeries[] }>(`/api/content-series?limit=${limit}`);
   return res.series;
@@ -1960,6 +2006,7 @@ export async function generateContentSeries(data: {
   brand_profile_id?: string | null;
   project_id?: string | null;
   platforms?: string[];
+  topic_id?: string | null;
 }): Promise<{ series: ContentSeries; items: ContentItem[] }> {
   return fetchAPI('/api/content-series', {
     method: 'POST',
