@@ -39,6 +39,7 @@ import { createMcpRoutes } from './mcpRoutes';
 import mediaRoutes, { runMediaScheduled } from './mediaRoutes';
 import contentRoutes from './contentRoutes';
 import contentSeriesRoutes from './contentSeriesRoutes';
+import contentThemeRoutes from './contentThemeRoutes';
 import brandKitRoutes from './brandKitRoutes';
 import socialRoutes from './socialRoutes';
 
@@ -3337,6 +3338,7 @@ createAdminRoutes(app);
 app.route('/', mediaRoutes);
 app.route('/', contentRoutes);
 app.route('/', contentSeriesRoutes);
+app.route('/', contentThemeRoutes);
 app.route('/', brandKitRoutes);
 app.route('/', socialRoutes);
 

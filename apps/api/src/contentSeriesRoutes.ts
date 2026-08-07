@@ -221,6 +221,7 @@ contentSeriesRoutes.post('/api/content-series', async (c) => {
     brand_profile_id?: string | null;
     project_id?: string | null;
     platforms?: string[];
+    topic_id?: string | null;
   }>();
 
   const input = {
@@ -232,6 +233,12 @@ contentSeriesRoutes.post('/api/content-series', async (c) => {
     brand_profile_id: body.brand_profile_id || null,
     project_id: body.project_id || null,
     platforms: body.platforms,
+    // Content Playbook ขั้นที่ 2 (Topic Picker) — optional link back to the
+    // content_topics row this series was generated from, so it can be
+    // marked "used" only once generation actually succeeds (not just
+    // tapped-then-abandoned). Doesn't change validateSeriesInput at all:
+    // this is pure bookkeeping, never required.
+    topic_id: body.topic_id || null,
   };
   const validation = validateSeriesInput(input);
   if (!validation.ok) return c.json({ error: 'validation_error', errors: validation.errors }, 400);
@@ -421,6 +428,17 @@ contentSeriesRoutes.post('/api/content-series', async (c) => {
     SET status = ?, generated_count = ?, credits_used = ?, updated_at = ?
     WHERE id = ?
   `).bind(finalStatus, createdIds.length, totalCreditsUsed, Date.now(), seriesId).run();
+
+  if (input.topic_id) {
+    try {
+      await c.env.DB.prepare(`
+        UPDATE content_topics SET status = 'used', used_series_id = ?, updated_at = ?
+        WHERE id = ? AND user_id = ?
+      `).bind(seriesId, Date.now(), input.topic_id, user.id).run();
+    } catch (err) {
+      console.error('Failed to mark content_topics as used (non-fatal):', err);
+    }
+  }
 
   const series = await c.env.DB.prepare('SELECT * FROM content_series WHERE id = ?').bind(seriesId).first<ContentSeriesRow>();
   const items = await c.env.DB.prepare(`
