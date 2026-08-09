@@ -5,7 +5,9 @@
    * (/today, /create) instead of the Stage A placeholders (/dashboard,
    * /studio/series) — those two still exist and still work, just moved into
    * "ขั้นสูง" below since they're no longer the default entry point.
-   * ร้านของฉัน still points at /profile (its real consolidation is Stage E).
+   * Stage E1: ร้านของฉัน now points at /shop, the real 5-section hub
+   * (ข้อมูลร้าน/แผนร้าน/คลังรูป/เครดิต/ตั้งค่า) — was a placeholder pointing
+   * at plain /profile until this stage.
    *
    * Replaces the previous 5-item nav (หน้าแรก/เครื่องมือ/Studio/เครดิต/
    * โปรไฟล์, emoji icons) — that IA mirrored the old header's link list,
@@ -19,7 +21,7 @@
     { href: '/today', icon: 'home' as const, label: 'วันนี้' },
     { href: '/create', icon: 'edit' as const, label: 'สร้าง', center: true },
     { href: '/calendar', icon: 'calendar' as const, label: 'ปฏิทิน' },
-    { href: '/profile', icon: 'store' as const, label: 'ร้านของฉัน' },
+    { href: '/shop', icon: 'store' as const, label: 'ร้านของฉัน' },
   ];
 
   function isActive(href: string) {

@@ -57,6 +57,7 @@
       <!-- Everything below is also reachable via the mobile bottom nav's "ขั้นสูง" sheet -->
       <div class="hidden sm:flex items-center gap-3">
         <a href="/calendar" class="shrink-0 inline-flex items-center gap-1.5 text-sm text-dark-700 dark:text-dark-200 hover:text-dark-900 dark:hover:text-dark-50 font-semibold"><Icon name="calendar" size={15} /> Calendar</a>
+        <a href="/shop" class="shrink-0 inline-flex items-center gap-1.5 text-sm text-dark-700 dark:text-dark-200 hover:text-dark-900 dark:hover:text-dark-50 font-semibold"><Icon name="store" size={15} /> ร้านของฉัน</a>
         <a href="/billing" class="shrink-0 inline-flex items-center gap-1.5 text-sm text-dark-700 dark:text-dark-200 hover:text-dark-900 dark:hover:text-dark-50 font-semibold"><Icon name="wallet" size={15} /> เติมเงิน</a>
         <a href="/profile" class="shrink-0 inline-flex items-center gap-1.5 text-sm text-dark-700 dark:text-dark-200 hover:text-dark-900 dark:hover:text-dark-50"><Icon name="user" size={15} /> โปรไฟล์</a>
         <button type="button" onclick={() => (advancedOpen = !advancedOpen)} aria-expanded={advancedOpen} aria-controls="advanced-nav-links" class="shrink-0 inline-flex items-center gap-1.5 text-sm text-dark-700 dark:text-dark-200 hover:text-dark-900 dark:hover:text-dark-50">
