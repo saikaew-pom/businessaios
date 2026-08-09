@@ -60,6 +60,27 @@ describe('validateBrandProfileInput — persona rules', () => {
   });
 });
 
+describe('validateBrandProfileInput — voice_particle (closed set, not free text)', () => {
+  it('accepts undefined, null, and both allowed literal values', () => {
+    expect(validateBrandProfileInput({ name: 'x' }).ok).toBe(true);
+    expect(validateBrandProfileInput({ name: 'x', voice_particle: null }).ok).toBe(true);
+    expect(validateBrandProfileInput({ name: 'x', voice_particle: 'ครับ' }).ok).toBe(true);
+    expect(validateBrandProfileInput({ name: 'x', voice_particle: 'ค่ะ' }).ok).toBe(true);
+  });
+
+  // The whole point of a closed set instead of free text: a plausible
+  // near-miss must be rejected with a clean 400, not silently accepted and
+  // then rendered verbatim into every future prompt by
+  // formatBrandContextBlock's truthy check.
+  it('rejects near-miss values instead of silently accepting them', () => {
+    expect(validateBrandProfileInput({ name: 'x', voice_particle: 'ครับๆ' }).errors).toContain('voice_particle_invalid');
+    expect(validateBrandProfileInput({ name: 'x', voice_particle: 'คะ' }).errors).toContain('voice_particle_invalid');
+    expect(validateBrandProfileInput({ name: 'x', voice_particle: 'khrap' }).errors).toContain('voice_particle_invalid');
+    expect(validateBrandProfileInput({ name: 'x', voice_particle: '' }).errors).toContain('voice_particle_invalid');
+    expect(validateBrandProfileInput({ name: 'x', voice_particle: ' ครับ' }).errors).toContain('voice_particle_invalid');
+  });
+});
+
 describe('formatBrandContextBlock', () => {
   it('renders a no-profile snapshot as a plain Thai message, not JSON', () => {
     expect(formatBrandContextBlock(null)).toBe('ไม่มีข้อมูลแบรนด์ (ยังไม่ได้เลือก Brand Profile)');

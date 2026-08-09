@@ -49,6 +49,15 @@
   let audienceText = $state('');
   let offersText = $state('');
   let voiceSamplesText = $state('');
+  // Content Playbook ขั้นที่ 4 — คำลงท้ายประโยคระดับแบรนด์ (นะคะ/ครับ), ฉีด
+  // เข้าทุก prompt ที่ generate content ให้แบรนด์นี้ (brandContext.ts's
+  // formatBrandContextBlock). '' = ไม่ใช้คำลงท้าย (ค่าเริ่มต้น, พฤติกรรมเดิม).
+  const VOICE_PARTICLE_OPTIONS = [
+    { value: '', label: 'ไม่ใช้คำลงท้าย' },
+    { value: 'ครับ', label: 'ครับ' },
+    { value: 'ค่ะ', label: 'ค่ะ / คะ' },
+  ];
+  let voiceParticle = $state('');
   let personaName = $state('');
   let personaAge = $state('');
   let personaJob = $state('');
@@ -66,6 +75,7 @@
     audienceText = (d.audience || []).join(', ');
     offersText = (d.offers || []).join(', ');
     voiceSamplesText = (d.voice_samples || []).join('\n');
+    voiceParticle = d.voice_particle || '';
     personaName = d.persona?.name || '';
     personaAge = d.persona?.age || '';
     personaJob = d.persona?.job || '';
@@ -117,6 +127,7 @@
         content_pillars: [],
         rules: {},
         voice_samples: voiceSamplesText.split('\n').map((s) => s.trim()).filter(Boolean),
+        voice_particle: voiceParticle || null,
         persona: {
           name: personaName.trim() || 'ลูกค้าตัวแทน',
           age: personaAge.trim(),
@@ -231,6 +242,20 @@
         <Field label="ชื่อแบรนด์" bind:value={profileName} />
         <Field label="สรุปธุรกิจ" bind:value={businessSummary} multiline rows={2} />
         <Field label="โทนเสียงแบรนด์ (คั่นด้วยจุลภาค)" bind:value={toneText} placeholder="อบอุ่น, จริงใจ" />
+        <label class="mb-3.5 block">
+          <span class="t-micro mb-1.5 block text-dark-600 dark:text-dark-300">คำลงท้ายประโยค</span>
+          <div class="flex flex-wrap gap-2">
+            {#each VOICE_PARTICLE_OPTIONS as opt}
+              <button
+                type="button"
+                onclick={() => (voiceParticle = opt.value)}
+                class="rounded-full px-3 py-1.5 text-sm font-semibold {voiceParticle === opt.value ? 'bg-primary-600 text-white' : 'bg-dark-50 text-dark-900/70 hover:bg-dark-100 dark:bg-dark-900 dark:text-dark-100/70'}"
+              >
+                {opt.label}
+              </button>
+            {/each}
+          </div>
+        </label>
         <Field label="กลุ่มเป้าหมาย (คั่นด้วยจุลภาค)" bind:value={audienceText} />
         <Field label="จุดขาย/ข้อเสนอ (คั่นด้วยจุลภาค)" bind:value={offersText} />
 

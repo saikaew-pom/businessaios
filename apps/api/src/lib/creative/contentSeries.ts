@@ -179,7 +179,13 @@ export async function getTemplateForUser(env: Pick<Bindings, 'DB'>, userId: stri
   return row || null;
 }
 
-function buildSeriesPrompt(params: {
+// Exported for the golden-set regression fixture (test/goldenBrands.test.ts)
+// — CONTENT_PLAYBOOK_UPGRADE_PLAN.md ขั้นที่ 4's own risk list calls for a
+// "golden set 10 แบรนด์ไว้ regression test ทุกครั้งที่แก้ prompt". That
+// needs to inspect the actual built prompt string deterministically and
+// fast, without a real MiniMax call per brand — this is otherwise identical
+// to the function callSeriesGeneration already used.
+export function buildSeriesPrompt(params: {
   topic: string;
   count: number;
   slots: SeriesSlot[];

@@ -10,6 +10,19 @@ export type BrandProfilePersona = {
   complaints: [string, string, string];
 };
 
+// Content Playbook ขั้นที่ 4 — "นะคะ/ครับ เป็น setting ระดับแบรนด์ฉีดทุก
+// slot". Stored as the literal particle string, not a code, since every
+// consumer just interpolates it into a prompt line — 'ครับ' or 'ค่ะ' (empty/
+// null means no particle, today's unchanged behavior). A closed set rather
+// than free text: this is a formality REGISTER, not a style preference like
+// tone_of_voice, and validating it here keeps a typo'd value from silently
+// doing nothing in every future prompt.
+export const VOICE_PARTICLE_OPTIONS = [
+  { value: 'ครับ', label: 'ครับ' },
+  { value: 'ค่ะ', label: 'ค่ะ / คะ' },
+] as const;
+const VOICE_PARTICLE_VALUES = new Set<string>(VOICE_PARTICLE_OPTIONS.map((o) => o.value));
+
 export type BrandProfileInput = {
   name?: string;
   business_summary?: string;
@@ -21,6 +34,7 @@ export type BrandProfileInput = {
   default_reference_asset_ids?: unknown;
   persona?: BrandProfilePersona | null;
   voice_samples?: string[];
+  voice_particle?: string | null;
   is_default?: boolean;
 };
 
@@ -37,6 +51,7 @@ export type BrandProfileRow = {
   default_reference_asset_ids_json: string;
   persona_json: string | null;
   voice_samples_json: string | null;
+  voice_particle: string | null;
   schema_version: number;
   is_default: number;
   created_at: number;
@@ -66,6 +81,10 @@ export function validateBrandProfileInput(input: BrandProfileInput, partial = fa
 
   if (input.voice_samples !== undefined && !Array.isArray(input.voice_samples)) {
     errors.push('voice_samples_must_be_array');
+  }
+
+  if (input.voice_particle !== undefined && input.voice_particle !== null && !VOICE_PARTICLE_VALUES.has(input.voice_particle)) {
+    errors.push('voice_particle_invalid');
   }
 
   if (input.persona !== undefined && input.persona !== null) {
@@ -107,10 +126,10 @@ export async function createBrandProfile(
     INSERT INTO brand_profiles (
       id, user_id, name, business_summary, audience_json, tone_of_voice_json,
       content_pillars_json, offers_json, rules_json, default_reference_asset_ids_json,
-      persona_json, voice_samples_json,
+      persona_json, voice_samples_json, voice_particle,
       schema_version, is_default, created_at, updated_at
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?)
   `).bind(
     id,
     userId,
@@ -124,6 +143,7 @@ export async function createBrandProfile(
     canonicalJson(input.default_reference_asset_ids || []),
     input.persona ? canonicalJson(input.persona) : null,
     input.voice_samples ? canonicalJson(input.voice_samples) : null,
+    input.voice_particle || null,
     isDefault,
     now,
     now,
@@ -204,6 +224,7 @@ function toSnapshotObject(profile: Awaited<ReturnType<typeof getBrandProfile>>) 
         default_reference_asset_ids: profile.default_reference_asset_ids,
         persona: profile.persona,
         voice_samples: profile.voice_samples,
+        voice_particle: profile.voice_particle,
       }
     : { schema_version: 1, profile_id: null };
 }
@@ -282,6 +303,7 @@ export function formatBrandContextBlock(snapshot: any): string {
   lines.push(`ชื่อธุรกิจ: ${snapshot.name || '-'}`);
   if (snapshot.business_summary) lines.push(`สรุปธุรกิจ: ${snapshot.business_summary}`);
   if (snapshot.tone_of_voice?.length) lines.push(`โทนเสียง: ${snapshot.tone_of_voice.join(', ')}`);
+  if (snapshot.voice_particle) lines.push(`คำลงท้ายประโยค: ลงท้ายด้วย "${snapshot.voice_particle}" สม่ำเสมอทุกประโยคที่ธรรมชาติจะลงท้ายได้ (คำถามปรับรูปที่เหมาะสมของคำเดียวกัน)`);
 
   lines.push('');
   lines.push('# บริบท');
@@ -318,6 +340,7 @@ function serializeBrandProfile(row: BrandProfileRow) {
     default_reference_asset_ids: parseJson(row.default_reference_asset_ids_json, []),
     persona: row.persona_json ? parseJson(row.persona_json, null) : null,
     voice_samples: row.voice_samples_json ? parseJson(row.voice_samples_json, []) : [],
+    voice_particle: row.voice_particle || null,
     schema_version: row.schema_version,
     is_default: row.is_default === 1,
     created_at: row.created_at,

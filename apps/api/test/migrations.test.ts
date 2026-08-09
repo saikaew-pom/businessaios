@@ -269,6 +269,41 @@ describe('auto-applied migrations alone (`wrangler d1 migrations apply`)', () =>
     expect(topic.used_series_id).toBe('series-1');
   });
 
+  it('brand_profiles.voice_particle is usable and defaults to NULL for pre-022 rows (022 — honorific particle)', () => {
+    expect(columnNames(db, 'brand_profiles')).toContain('voice_particle');
+
+    db.exec(`INSERT OR IGNORE INTO users (id, email, password_hash, plan, created_at, updated_at)
+             VALUES ('u-particle', 'particle@test.com', 'x', 'free', 0, 0)`);
+    expect(() =>
+      db.exec(`
+        INSERT INTO brand_profiles (
+          id, user_id, name, business_summary, audience_json, tone_of_voice_json,
+          content_pillars_json, offers_json, rules_json, default_reference_asset_ids_json,
+          voice_particle, created_at, updated_at
+        )
+        VALUES ('brand-particle-1', 'u-particle', 'Brand', '', '[]', '[]', '[]', '[]', '{}', '[]', 'ค่ะ', 0, 0);
+      `)
+    ).not.toThrow();
+    const row = db.prepare('SELECT voice_particle FROM brand_profiles WHERE id = ?').get('brand-particle-1') as any;
+    expect(row.voice_particle).toBe('ค่ะ');
+
+    // A profile inserted the old way (column omitted entirely) — same
+    // "additive migration, old rows stay valid" guarantee as 020's persona
+    // columns.
+    expect(() =>
+      db.exec(`
+        INSERT INTO brand_profiles (
+          id, user_id, name, business_summary, audience_json, tone_of_voice_json,
+          content_pillars_json, offers_json, rules_json, default_reference_asset_ids_json,
+          created_at, updated_at
+        )
+        VALUES ('brand-particle-legacy', 'u-particle', 'Brand', '', '[]', '[]', '[]', '[]', '{}', '[]', 0, 0);
+      `)
+    ).not.toThrow();
+    const legacyRow = db.prepare('SELECT voice_particle FROM brand_profiles WHERE id = ?').get('brand-particle-legacy') as any;
+    expect(legacyRow.voice_particle).toBeNull();
+  });
+
   it('KNOWN GAP: users/projects columns from 001-v2/002 are wiped by 0003_mvp_clean on a fresh apply', () => {
     // This is intentionally documenting a real, currently-unfixed-by-
     // automation gap, not asserting desired behavior. If this ever starts

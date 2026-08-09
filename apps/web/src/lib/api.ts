@@ -1847,6 +1847,7 @@ export type BrandProfile = {
   rules: Record<string, any>;
   persona: BrandProfilePersona | null;
   voice_samples: string[];
+  voice_particle: string | null;
   is_default: boolean;
   created_at: number;
   updated_at: number;

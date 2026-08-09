@@ -1,0 +1,12 @@
+-- Content Playbook Upgrade Plan ขั้นที่ 4 (docs/CONTENT_PLAYBOOK_UPGRADE_PLAN.md
+-- §6, line ~110): "ภาษาไทยตอนประกอบ: นะคะ/ครับ เป็น setting ระดับแบรนด์ฉีดทุก
+-- slot" — a brand-level Thai politeness-particle register, injected into
+-- every generation prompt (see brandContext.ts's formatBrandContextBlock).
+--
+-- Stored as the literal particle string ('ครับ' / 'ค่ะ' / ''), not an enum
+-- code — every consumer just needs to interpolate it directly into a prompt
+-- line, and this repo already stores tone_of_voice/offers etc. as literal
+-- content rather than lookup codes. NULL/empty means "no particle" (today's
+-- unchanged behavior) — additive, so every profile created before this
+-- migration remains valid with no particle applied.
+ALTER TABLE brand_profiles ADD COLUMN voice_particle TEXT;
