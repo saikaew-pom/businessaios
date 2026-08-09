@@ -351,13 +351,13 @@ type RegenerateContext = {
   hook?: string; caption?: string; cta?: string; hashtags?: string[]; visual_suggestion?: string;
 };
 
-function buildRegenerateFieldPrompt(field: string, context: RegenerateContext, brandContextBlock: string) {
+function buildRegenerateFieldPrompt(field: string, context: RegenerateContext, brandContextBlock: string, direction?: string) {
   const isArray = field === 'hashtags';
   const system = `คุณคือนักการตลาดคอนเทนต์มืออาชีพสำหรับธุรกิจไทย งานของคุณคือเขียน "${field}" ใหม่ให้กับโพสต์โซเชียลมีเดีย 1 ชิ้น ให้เข้ากับบริบทของโพสต์ทั้งหมดที่ให้มา แต่งใหม่ ไม่ใช่แค่ปรับคำเดิมเล็กน้อย
 เขียนให้ตรงกับตัวตนแบรนด์และลูกค้าตัวแทนด้านล่าง ไม่ใช่เขียนแบบทั่วไปที่ใช้กับธุรกิจไหนก็ได้
 
 กติกา: ${REGEN_FIELD_RULES[field]}
-
+${direction ? `\n⚠️ บอกทิศจากผู้ใช้ (ต้องทำตาม): ${direction}\n` : ''}
 ตอบเป็น JSON object เท่านั้น: {"value": ${isArray ? '["...", "..."]' : '"..."'}}`;
 
   const user = [
@@ -390,12 +390,16 @@ contentRoutes.post('/api/content-items/:id/regenerate-field', async (c) => {
     return c.json({ error: 'email_not_verified', message: 'กรุณายืนยันอีเมลก่อน' }, 403);
   }
 
-  const body: { field?: string; context?: RegenerateContext } = await c.req.json<{ field?: string; context?: RegenerateContext }>().catch(() => ({}));
+  const body: { field?: string; context?: RegenerateContext; direction?: string } = await c.req.json<{ field?: string; context?: RegenerateContext; direction?: string }>().catch(() => ({}));
   const field = body.field || '';
   if (!REGEN_FIELDS.includes(field)) {
     return c.json({ error: 'validation_error', message: 'field ไม่ถูกต้อง', errors: ['invalid_field'] }, 400);
   }
   const context: RegenerateContext = body.context && typeof body.context === 'object' ? body.context : {};
+  // Content Playbook ขั้นที่ 6 "✨ บอกทิศ" — a short tone/emotion steer, not
+  // free-form prose (matches the plan's own "ตัด 8 มิติเต็มทิ้ง" intent: a
+  // couple of enumerated chip labels joined together, never a paragraph).
+  const direction = typeof body.direction === 'string' ? body.direction.trim().slice(0, 100) : undefined;
 
   // The bug this fixes: this call used to know nothing about the brand at
   // all, so the model wrote generic copy with no identity behind it. Resolve
@@ -423,7 +427,7 @@ contentRoutes.post('/api/content-items/:id/regenerate-field', async (c) => {
     ? buildVisualSlotPrompt(context)
     : isSalesCloser
       ? buildSalesCloserPrompt(context, brandContextBlock)
-      : buildRegenerateFieldPrompt(field, context, brandContextBlock);
+      : buildRegenerateFieldPrompt(field, context, brandContextBlock, direction);
   // MiniMax-M3 spends tokens on an internal reasoning trace before writing
   // the final answer, and the reasoning length is NOT proportional to how
   // small the final answer is — 2000 was tried first and still truncated

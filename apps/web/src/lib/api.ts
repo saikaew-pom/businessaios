@@ -602,6 +602,9 @@ export async function regenerateContentItemField(id: string, data: {
     hashtags?: string[];
     visual_suggestion?: string;
   };
+  // Content Playbook ขั้นที่ 6 — "✨ บอกทิศ": an optional tone/emotion steer
+  // for this one regenerate call, e.g. "โทน: ขี้เล่น, อารมณ์: กลัวพลาด".
+  direction?: string;
 }): Promise<{ ok: boolean; field: RegenerableContentField; value: string | string[]; credits_remaining: number }> {
   return fetchAPI(`/api/content-items/${id}/regenerate-field`, {
     method: 'POST',

@@ -41,6 +41,29 @@
     { value: 'conversion', label: 'ปิดการขาย' },
   ];
 
+  // Content Playbook ขั้นที่ 6 — "✨ บอกทิศ": a small enumerated set of tone
+  // + emotion chips, not the playbook's original "8 มิติเต็ม" (deliberately
+  // cut per the plan's own choice-paralysis concern). Emotion chips are the
+  // plan's literal 5 ("กลัวพลาด/คุ้ม/ไม่ตกขบวน/สะดวก/คนพิเศษ"); tone chips
+  // are this implementation's pick of 5 common Thai SME registers — the plan
+  // only specifies a count (4-6), not which ones.
+  const TONE_CHIPS = ['ขี้เล่น', 'จริงจัง', 'อบอุ่น', 'กระตุ้น', 'เป็นทางการ'];
+  const EMOTION_CHIPS = ['กลัวพลาด', 'คุ้ม', 'ไม่ตกขบวน', 'สะดวก', 'คนพิเศษ'];
+  let selectedTone = $state('');
+  let selectedEmotion = $state('');
+  let direction = $derived(
+    [selectedTone && `โทน: ${selectedTone}`, selectedEmotion && `อารมณ์: ${selectedEmotion}`].filter(Boolean).join(', '),
+  );
+
+  // Stage E2 — "เห็นโพสต์เสร็จ → จิ้มส่วนที่อยากแก้": each content field
+  // renders as read-only preview text by default (looks like the finished
+  // post) and switches to its existing edit control only once tapped, tracked
+  // per-field so multiple can be open at once.
+  let fieldEditing = $state<Record<string, boolean>>({});
+  function toggleEdit(field: string) {
+    fieldEditing[field] = !fieldEditing[field];
+  }
+
   // Status shown as a plain-Thai badge — same value set used across
   // /works, /calendar, /inbox; only the on-screen label changes here.
   const STATUS_LABELS: Record<string, string> = {
@@ -135,6 +158,9 @@
       notice = '';
       showScheduleInput = false;
       scheduleValue = item.scheduled_at ? toDatetimeLocal(item.scheduled_at) : defaultScheduleValue();
+      fieldEditing = {};
+      selectedTone = '';
+      selectedEmotion = '';
     }
   });
 
@@ -193,6 +219,11 @@
           title, platform, format, pillar, hook, caption, cta, visual_suggestion: visualSuggestion,
           hashtags: hashtagsText.split(',').map((t) => t.trim()).filter(Boolean),
         },
+        // ✨ บอกทิศ — only meaningful for the two free-prose voice fields;
+        // sending it for hashtags/visual_suggestion/sales_closer would just
+        // be ignored server-side rules text, so keep it scoped to where the
+        // chip picker actually shows (see the template below).
+        direction: (field === 'hook' || field === 'caption') && direction ? direction : undefined,
       });
       if (field === 'hashtags') {
         hashtagsText = (Array.isArray(result.value) ? result.value : []).join(', ');
@@ -353,6 +384,28 @@
             <button type="button" onclick={openStudio} disabled={busy} class="btn-secondary w-full">
               {isActionBusy === 'studio' ? 'กำลังเปิด...' : item.primary_asset_id ? '🎨 เปลี่ยนงานภาพ' : '🎨 สร้างงานภาพ'}
             </button>
+            <!-- Art-direction text for the image generator, not part of the
+                 post a viewer reads — kept beside the image, not in the
+                 post-preview flow below. -->
+            <div class="rounded-lg border border-dark-100 dark:border-dark-700 p-3">
+              {#if fieldEditing.visual_suggestion}
+                <div class="mb-1 flex items-center justify-between gap-2">
+                  <label class="text-xs font-medium text-dark-700 dark:text-dark-200" for="visual">รายละเอียดภาพ</label>
+                  <div class="flex shrink-0 items-center gap-2">
+                    <button type="button" onclick={() => regenerateField('visual_suggestion')} disabled={busy} class="text-xs font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 disabled:opacity-40">
+                      {regeneratingField === 'visual_suggestion' ? '✨ กำลังคิด...' : '✨ AI ช่วยเขียน'}
+                    </button>
+                    <button type="button" onclick={() => toggleEdit('visual_suggestion')} class="text-xs font-semibold text-dark-500 dark:text-dark-400 hover:text-dark-700 dark:hover:text-dark-200">เสร็จแล้ว</button>
+                  </div>
+                </div>
+                <textarea id="visual" bind:value={visualSuggestion} rows="3" class="input"></textarea>
+              {:else}
+                <button type="button" onclick={() => toggleEdit('visual_suggestion')} aria-label={`แตะเพื่อแก้ไขรายละเอียดภาพ: ${visualSuggestion || 'ยังไม่มีข้อความ'}`} class="block w-full rounded-lg p-1 -m-1 text-left transition-colors hover:bg-dark-50 dark:hover:bg-dark-800">
+                  <div class="text-xs font-medium text-dark-500 dark:text-dark-400 mb-0.5">รายละเอียดภาพ</div>
+                  <p class="text-sm text-dark-700 dark:text-dark-200">{visualSuggestion || 'แตะเพื่อเขียนรายละเอียดภาพ'}</p>
+                </button>
+              {/if}
+            </div>
           </div>
 
           <div class="space-y-5">
@@ -384,57 +437,108 @@
               </div>
             </div>
 
-            <div class="space-y-3 rounded-xl border border-dark-100 dark:border-dark-700 p-4">
-              <div class="text-xs font-semibold uppercase tracking-wide text-dark-900/50 dark:text-dark-100/50">เนื้อหา</div>
-              <div>
+            {#snippet directionChips()}
+              <div class="mb-2 flex flex-wrap gap-1.5">
+                {#each TONE_CHIPS as chip}
+                  <button type="button" onclick={() => (selectedTone = selectedTone === chip ? '' : chip)} class="rounded-full px-2.5 py-1 text-xs font-semibold {selectedTone === chip ? 'bg-primary-600 text-white' : 'bg-dark-50 text-dark-900/70 hover:bg-dark-100 dark:bg-dark-900 dark:text-dark-100/70'}">
+                    {chip}
+                  </button>
+                {/each}
+                {#each EMOTION_CHIPS as chip}
+                  <button type="button" onclick={() => (selectedEmotion = selectedEmotion === chip ? '' : chip)} class="rounded-full px-2.5 py-1 text-xs font-semibold {selectedEmotion === chip ? 'bg-primary-600 text-white' : 'bg-dark-50 text-dark-900/70 hover:bg-dark-100 dark:bg-dark-900 dark:text-dark-100/70'}">
+                    {chip}
+                  </button>
+                {/each}
+              </div>
+            {/snippet}
+
+            <!--
+              Stage E2 — "เห็นโพสต์เสร็จ → จิ้มส่วนที่อยากแก้": rendered to
+              read like the actual finished post (hook as a bold opening
+              line, caption below it, cta and hashtags styled the way they'd
+              actually appear), not a stack of labeled form fields. Each
+              block is a tap target that reveals its existing edit control
+              (textarea + ✨ regenerate + ✨ บอกทิศ chips) in place — nothing
+              about the regenerate/save/credit mechanics changed, only when
+              the raw textarea is visible.
+            -->
+            <div class="space-y-1 rounded-xl border border-dark-100 dark:border-dark-700 p-4">
+              <div class="text-xs font-semibold uppercase tracking-wide text-dark-900/50 dark:text-dark-100/50 mb-2">โพสต์</div>
+
+              {#if fieldEditing.hook}
                 <div class="mb-1 flex items-center justify-between gap-2">
                   <label class="text-sm font-medium text-dark-700 dark:text-dark-200" for="hook">ประโยคเปิด</label>
-                  <button type="button" onclick={() => regenerateField('hook')} disabled={busy} class="shrink-0 text-xs font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 disabled:opacity-40">
-                    {regeneratingField === 'hook' ? '✨ กำลังคิด...' : '✨ AI ช่วยเขียน'}
-                  </button>
+                  <div class="flex shrink-0 items-center gap-2">
+                    <button type="button" onclick={() => regenerateField('hook')} disabled={busy} class="text-xs font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 disabled:opacity-40">
+                      {regeneratingField === 'hook' ? '✨ กำลังคิด...' : '✨ AI ช่วยเขียน'}
+                    </button>
+                    <button type="button" onclick={() => toggleEdit('hook')} class="text-xs font-semibold text-dark-500 dark:text-dark-400 hover:text-dark-700 dark:hover:text-dark-200">เสร็จแล้ว</button>
+                  </div>
                 </div>
+                {@render directionChips()}
                 <textarea id="hook" bind:value={hook} rows="2" class="input"></textarea>
-              </div>
-              <div>
-                <div class="mb-1 flex items-center justify-between gap-2">
+              {:else}
+                <button type="button" onclick={() => toggleEdit('hook')} aria-label={`แตะเพื่อแก้ไขประโยคเปิด: ${hook || 'ยังไม่มีข้อความ'}`} class="block w-full rounded-lg p-2 -m-2 text-left transition-colors hover:bg-dark-50 dark:hover:bg-dark-800">
+                  <p class="t-heading font-bold text-dark-900 dark:text-dark-50">{hook || 'แตะเพื่อเขียนประโยคเปิด'}</p>
+                </button>
+              {/if}
+
+              {#if fieldEditing.caption}
+                <div class="mb-1 mt-3 flex items-center justify-between gap-2">
                   <label class="text-sm font-medium text-dark-700 dark:text-dark-200" for="caption">เนื้อหาโพสต์</label>
-                  <button type="button" onclick={() => regenerateField('caption')} disabled={busy} class="shrink-0 text-xs font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 disabled:opacity-40">
-                    {regeneratingField === 'caption' ? '✨ กำลังคิด...' : '✨ AI ช่วยเขียน'}
-                  </button>
+                  <div class="flex shrink-0 items-center gap-2">
+                    <button type="button" onclick={() => regenerateField('caption')} disabled={busy} class="text-xs font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 disabled:opacity-40">
+                      {regeneratingField === 'caption' ? '✨ กำลังคิด...' : '✨ AI ช่วยเขียน'}
+                    </button>
+                    <button type="button" onclick={() => toggleEdit('caption')} class="text-xs font-semibold text-dark-500 dark:text-dark-400 hover:text-dark-700 dark:hover:text-dark-200">เสร็จแล้ว</button>
+                  </div>
                 </div>
-                <textarea id="caption" bind:value={caption} rows="4" class="input"></textarea>
+                {@render directionChips()}
+                <textarea id="caption" bind:value={caption} rows="6" class="input"></textarea>
                 <button type="button" onclick={() => regenerateField('sales_closer')} disabled={busy || !caption.trim()} class="mt-1.5 text-xs font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 disabled:opacity-40">
                   {regeneratingField === 'sales_closer' ? '✨ กำลังคิด...' : '✨ ปิดจบแบบขายเนียน ๆ'}
                 </button>
-              </div>
-              <div>
-                <div class="mb-1 flex items-center justify-between gap-2">
+              {:else}
+                <button type="button" onclick={() => toggleEdit('caption')} aria-label={`แตะเพื่อแก้ไขเนื้อหาโพสต์: ${caption || 'ยังไม่มีข้อความ'}`} class="mt-2 block w-full rounded-lg p-2 -m-2 text-left transition-colors hover:bg-dark-50 dark:hover:bg-dark-800">
+                  <p class="t-body whitespace-pre-line text-dark-900 dark:text-dark-50">{caption || 'แตะเพื่อเขียนเนื้อหาโพสต์'}</p>
+                </button>
+              {/if}
+
+              {#if fieldEditing.cta}
+                <div class="mb-1 mt-3 flex items-center justify-between gap-2">
                   <label class="text-sm font-medium text-dark-700 dark:text-dark-200" for="cta">ชวนลูกค้าทำอะไรต่อ</label>
-                  <button type="button" onclick={() => regenerateField('cta')} disabled={busy} class="shrink-0 text-xs font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 disabled:opacity-40">
-                    {regeneratingField === 'cta' ? '✨ กำลังคิด...' : '✨ AI ช่วยเขียน'}
-                  </button>
+                  <div class="flex shrink-0 items-center gap-2">
+                    <button type="button" onclick={() => regenerateField('cta')} disabled={busy} class="text-xs font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 disabled:opacity-40">
+                      {regeneratingField === 'cta' ? '✨ กำลังคิด...' : '✨ AI ช่วยเขียน'}
+                    </button>
+                    <button type="button" onclick={() => toggleEdit('cta')} class="text-xs font-semibold text-dark-500 dark:text-dark-400 hover:text-dark-700 dark:hover:text-dark-200">เสร็จแล้ว</button>
+                  </div>
                 </div>
                 <input id="cta" bind:value={cta} class="input" />
-              </div>
-              <div>
-                <div class="mb-1 flex items-center justify-between gap-2">
+              {:else}
+                <button type="button" onclick={() => toggleEdit('cta')} aria-label={`แตะเพื่อแก้ไขคำชวนลูกค้าทำอะไรต่อ: ${cta || 'ยังไม่มีข้อความ'}`} class="mt-2 block w-full rounded-lg p-2 -m-2 text-left transition-colors hover:bg-dark-50 dark:hover:bg-dark-800">
+                  <p class="t-body font-semibold text-primary-600 dark:text-primary-400">{cta || 'แตะเพื่อเขียนคำชวน'}</p>
+                </button>
+              {/if}
+
+              {#if fieldEditing.hashtags}
+                <div class="mb-1 mt-3 flex items-center justify-between gap-2">
                   <label class="text-sm font-medium text-dark-700 dark:text-dark-200" for="hashtags">แฮชแท็ก (คั่นด้วยจุลภาค)</label>
-                  <button type="button" onclick={() => regenerateField('hashtags')} disabled={busy} class="shrink-0 text-xs font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 disabled:opacity-40">
-                    {regeneratingField === 'hashtags' ? '✨ กำลังคิด...' : '✨ AI ช่วยเขียน'}
-                  </button>
+                  <div class="flex shrink-0 items-center gap-2">
+                    <button type="button" onclick={() => regenerateField('hashtags')} disabled={busy} class="text-xs font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 disabled:opacity-40">
+                      {regeneratingField === 'hashtags' ? '✨ กำลังคิด...' : '✨ AI ช่วยเขียน'}
+                    </button>
+                    <button type="button" onclick={() => toggleEdit('hashtags')} class="text-xs font-semibold text-dark-500 dark:text-dark-400 hover:text-dark-700 dark:hover:text-dark-200">เสร็จแล้ว</button>
+                  </div>
                 </div>
                 <input id="hashtags" bind:value={hashtagsText} class="input" placeholder="#promo, #newlaunch" />
-              </div>
-              <div>
-                <div class="mb-1 flex items-center justify-between gap-2">
-                  <label class="text-sm font-medium text-dark-700 dark:text-dark-200" for="visual">ภาพประกอบ</label>
-                  <button type="button" onclick={() => regenerateField('visual_suggestion')} disabled={busy} class="shrink-0 text-xs font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 disabled:opacity-40">
-                    {regeneratingField === 'visual_suggestion' ? '✨ กำลังคิด...' : '✨ AI ช่วยเขียน'}
-                  </button>
-                </div>
-                <textarea id="visual" bind:value={visualSuggestion} rows="2" class="input"></textarea>
-              </div>
-              <div>
+              {:else}
+                <button type="button" onclick={() => toggleEdit('hashtags')} aria-label={`แตะเพื่อแก้ไขแฮชแท็ก: ${hashtagsText || 'ยังไม่มีข้อความ'}`} class="mt-2 block w-full rounded-lg p-2 -m-2 text-left transition-colors hover:bg-dark-50 dark:hover:bg-dark-800">
+                  <p class="t-caption text-primary-500 dark:text-primary-400">{hashtagsText || 'แตะเพื่อเพิ่มแฮชแท็ก'}</p>
+                </button>
+              {/if}
+
+              <div class="mt-3 border-t border-dark-100 dark:border-dark-700 pt-3">
                 <label class="mb-1 block text-sm font-medium text-dark-700 dark:text-dark-200" for="engagement">ผลตอบรับที่คาดว่าจะได้</label>
                 <input id="engagement" bind:value={expectedEngagement} class="input" />
               </div>
