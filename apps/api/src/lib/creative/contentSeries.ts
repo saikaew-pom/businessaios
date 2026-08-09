@@ -4,6 +4,7 @@ import { callMinimax, extractJsonFromAny } from '../minimax';
 import { calculateCredits } from '../credit';
 import { assembleVisualPrompt, buildVisualSlotBatchPrompt, type VisualSlotBatchItem } from './visualPrompt';
 import { formatBrandContextBlock } from './brandContext';
+import { DEFAULT_PILLAR_ROTATION, HEADLINE_ANGLES_PROMPT_BLOCK, isComplaintDrivenPillar, parseHeadlineAngles, renderSlotLine, resolveFramework, type HeadlineAngleKey } from './frameworks';
 
 // Measured ceiling, not an arbitrary cap: MiniMax-M3 spends an unbounded
 // amount of its completion budget on internal reasoning before writing the
@@ -64,6 +65,7 @@ export function sanitizeExistingHooks(hooks: readonly unknown[] | undefined): st
 
 export type SeriesSlot = {
   pillar?: string;
+  framework?: string;
   hook_style?: string;
   cta_style?: string;
   notes?: string;
@@ -113,12 +115,22 @@ export type SeriesGenerationInput = {
   platforms?: string[];
 };
 
-const DEFAULT_SLOTS: SeriesSlot[] = [
-  { pillar: 'awareness', hook_style: 'ตั้งคำถามชวนคิด', cta_style: 'กดลิงก์/ทักแชท' },
-  { pillar: 'education', hook_style: 'ให้ความรู้/เทคนิค', cta_style: 'บันทึกไว้อ่านทีหลัง' },
-  { pillar: 'social_proof', hook_style: 'เล่าเคสจริง/รีวิว', cta_style: 'ทักแชทสอบถาม' },
-  { pillar: 'conversion', hook_style: 'โปรโมชัน/ข้อเสนอ', cta_style: 'สั่งซื้อ/จองเลย' },
-];
+// Cta-style hint per pillar, kept as free text the way user-authored
+// templates already store it — see frameworks.ts's DEFAULT_PILLAR_ROTATION
+// for the pillar/framework mix itself (education 40% / awareness 25% /
+// engagement 15% / social_proof 10% / conversion 10%, compressed to fit 7).
+const CTA_STYLE_BY_PILLAR: Record<string, string> = {
+  education: 'บันทึกไว้อ่านทีหลัง',
+  awareness: 'กดลิงก์/ทักแชท',
+  engagement: 'คอมเมนต์บอกความเห็น',
+  social_proof: 'ทักแชทสอบถาม',
+  conversion: 'สั่งซื้อ/จองเลย',
+};
+const DEFAULT_SLOTS: SeriesSlot[] = DEFAULT_PILLAR_ROTATION.map(({ pillar, framework }) => ({
+  pillar,
+  framework,
+  cta_style: CTA_STYLE_BY_PILLAR[pillar],
+}));
 const DEFAULT_PLATFORMS = ['facebook', 'instagram'];
 
 export function validateSeriesInput(input: SeriesGenerationInput) {
@@ -180,11 +192,33 @@ function buildSeriesPrompt(params: {
   // string goes straight into the prompt and the rows behind it are editable
   // free text (see sanitizeExistingHooks).
   const existingHooks = sanitizeExistingHooks(params.existingHooks);
+  const complaints: string[] | undefined = Array.isArray(brandSnapshot?.persona?.complaints)
+    ? brandSnapshot.persona.complaints
+    : undefined;
+  // One line per item (not per unique slot) — count can exceed slots.length,
+  // and each item must see its own resolved framework/length/complaint, not
+  // just the raw slot list the model would have to re-derive itself.
+  // complaintOccurrence counts complaint-driven slots only (not every item),
+  // so two awareness/social_proof slots in the same batch always get
+  // different complaints instead of colliding when they're spaced a
+  // multiple of complaints.length apart — see renderSlotLine's doc comment.
+  let complaintOccurrence = 0;
+  const slotLines = Array.from({ length: count }, (_, i) => {
+    const slot = slots[i % slots.length] || {};
+    const line = renderSlotLine(i, slot, complaints, complaintOccurrence);
+    if (complaints?.length && isComplaintDrivenPillar(slot.pillar)) complaintOccurrence++;
+    return line;
+  });
+
   const system = `คุณคือ Content Strategist ที่เขียน content series ให้ SME ไทยจากหัวข้อเดียว
 เข้าใจ platform ไทย, ภาษาไทย, คนไทย
-caption กระชับ ไม่เกิน 4-5 บรรทัด
 hook ทำให้คนหยุด scroll
+ความยาว caption ตามที่ระบุต่อ slot ด้านล่าง (framework ต่างกัน ความยาวต่างกัน — ห้ามตัดทุกโพสต์ให้สั้นเท่ากันหมด)
 ทุกชิ้นต้องพูดถึงหัวข้อเดียวกัน แต่เล่ามุมต่างกัน ห้ามซ้ำเนื้อหากัน
+ทุกโพสต์ต้องมีรายละเอียดจริงจากโปรไฟล์ธุรกิจอย่างน้อย 1 จุด (ชื่อร้าน/สินค้าจริง/ทำเล/ราคาจริงถ้ามี) — ห้ามเขียนด้วยคำคุณศัพท์ลอย ๆ (อร่อย, คุณภาพดี, ราคาถูก) โดยไม่มีข้อมูลจริงรองรับ
+
+# มุมพาดหัว (เลือก 2 มุมที่เข้ากับ hook ของแต่ละ item มากที่สุด)
+${HEADLINE_ANGLES_PROMPT_BLOCK}
 
 ⚠️ สำคัญมาก: ตอบเป็น JSON object เดียวเท่านั้น ห้ามมี markdown code fence ห้ามมีข้อความอธิบายก่อน/หลัง
 ⚠️ ต้องมี ${count} items ใน array "items" เท่านั้น (เท่ากับจำนวนที่ขอพอดี)
@@ -200,8 +234,8 @@ ${existingHooks.length ? `# มุมที่เคยเขียนไปแ�
 โพสต์เหล่านี้อยู่ในปฏิทินของธุรกิจนี้แล้ว ห้ามเขียนซ้ำมุมเดิม ประเด็นเดิม หรือ hook ที่สื่อความหมายเดียวกัน — ให้หามุมใหม่ที่ยังไม่เคยพูดถึง
 ${existingHooks.map((h) => `- ${h}`).join('\n')}
 
-` : ''}# Slot rotation (เรียงตามลำดับ ให้แต่ละ item ใช้ slot ตาม index ที่กำหนด)
-${JSON.stringify(slots)}
+` : ''}# Slot ต่อ item (ใช้โครงสร้าง+ความยาวตามที่ระบุเป๊ะ ๆ)
+${slotLines.join('\n')}
 
 # Platforms หมุนเวียน
 ${JSON.stringify(platforms)}
@@ -211,10 +245,11 @@ ${JSON.stringify(platforms)}
   "items": [
     {
       "slot_index": 0,
-      "pillar": "awareness | education | social_proof | conversion",
+      "pillar": "awareness | education | engagement | social_proof | conversion",
       "platform": "facebook | instagram | line | tiktok",
       "hook": "ประโยค hook 1 บรรทัด หยุด scroll ได้",
-      "caption": "caption 3-5 บรรทัด ภาษาไทย",
+      "headline_angles": ["result", "question"],
+      "caption": "caption ตามความยาวที่ระบุใน slot ข้างบน ภาษาไทย",
       "cta": "กดลิงก์ / ทักแชท / แชร์ / บันทึก",
       "hashtags": ["#tag1", "#tag2", "#tag3"],
       "visual_suggestion": "คำอธิบายภาพ 1 บรรทัด — บรรยายเฉพาะสิ่งที่เห็นในภาพ (ฉาก คน สิ่งของ มุมกล้อง แสง สี อารมณ์) ห้ามระบุตัวอักษร ข้อความ ป้าย ปุ่ม โลโก้ หรือราคาในภาพ"
@@ -223,7 +258,8 @@ ${JSON.stringify(platforms)}
 }
 
 ⚠️ สร้าง ${count} items พอดี (slot_index ไล่จาก 0 ถึง ${count - 1})
-⚠️ แต่ละ item ต้องใช้ slot ตาม index ที่กำหนดใน slot rotation ข้างบน (วนซ้ำถ้าจำนวน slot น้อยกว่า item)
+⚠️ แต่ละ item ต้องใช้โครงสร้าง/ความยาวตาม slot index ที่กำหนดข้างบนเป๊ะ ๆ
+⚠️ headline_angles ต้องมีสมาชิก 2 ตัวจากรายการ "มุมพาดหัว" เท่านั้น (ใช้ key ภาษาอังกฤษ เช่น "result","question")
 ⚠️ hashtag ไม่เกิน 5 ตัว ต่อ item${existingHooks.length ? '\n⚠️ ห้ามซ้ำมุมกับ "มุมที่เคยเขียนไปแล้ว" ข้างบนเด็ดขาด ทุก item ต้องเป็นมุมใหม่' : ''}
 ⚠️ visual_suggestion ต้องบรรยายภาพล้วน ๆ ห้ามมีตัวอักษร/ข้อความ/ป้าย/ปุ่ม/โลโก้/ราคาในภาพ (AI วาดตัวหนังสือไทยไม่ได้ — หัวข้อกับ CTA จะถูกใส่ทีหลังด้วยเครื่องมือแยก)
 ⚠️ ทุก field ต้องมี ไม่เว้นว่าง
@@ -237,6 +273,7 @@ export type SeriesItemResult = {
   pillar: string;
   platform: string;
   hook: string;
+  headline_angles: HeadlineAngleKey[];
   caption: string;
   cta: string;
   hashtags: string[];
@@ -267,8 +304,15 @@ export async function callSeriesGeneration(
   );
 
   const parsed = extractJsonFromAny(result.content, result.reasoning);
-  const items = Array.isArray(parsed?.items) ? parsed.items : [];
-  if (!items.length) throw new Error('series_generation_empty_output');
+  const rawItems = Array.isArray(parsed?.items) ? parsed.items : [];
+  if (!rawItems.length) throw new Error('series_generation_empty_output');
+  // Normalise here (not left to the route) so every caller of this function
+  // gets a validated angle pair rather than raw, possibly-malformed model
+  // output — see parseHeadlineAngles' never-throw contract.
+  const items: SeriesItemResult[] = rawItems.map((item: any) => ({
+    ...item,
+    headline_angles: parseHeadlineAngles(item?.headline_angles),
+  }));
 
   const creditsUsed = calculateCredits(result.usage);
   return { items, creditsUsed, reserveCredits, usage: result.usage };

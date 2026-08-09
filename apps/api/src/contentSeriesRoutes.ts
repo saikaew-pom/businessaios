@@ -18,6 +18,7 @@ import {
   type ContentSeriesRow,
   type ContentSeriesTemplateRow,
 } from './lib/creative/contentSeries';
+import { resolveFramework } from './lib/creative/frameworks';
 
 const contentSeriesRoutes = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
@@ -409,7 +410,22 @@ contentSeriesRoutes.post('/api/content-series', async (c) => {
       String(rawItem.cta || ''),
       JSON.stringify(Array.isArray(rawItem.hashtags) ? rawItem.hashtags : []),
       visual.prompts.get(index) || String(rawItem.visual_suggestion || ''),
-      JSON.stringify({ series_id: seriesId, slot_index: index, slot }),
+      JSON.stringify({
+        series_id: seriesId,
+        slot_index: index,
+        // `slot` above was already picked via `slotIndex` (the model's own
+        // reported slot_index, falling back to array position). Resolving
+        // the framework from that same `slot.pillar` but against `index`
+        // (plain array position) mixes two different index bases: whenever
+        // the model returns items out of slot_index order, this would
+        // compute a framework for a *different* rotation position than the
+        // one `slot.pillar` was actually selected for, storing a framework
+        // in metadata_json that neither matches the prompt's instruction nor
+        // the pillar it's paired with. Use `slotIndex` here too so both
+        // halves of this lookup agree.
+        slot: { ...slot, framework: resolveFramework(slot.pillar, slotIndex, slot.framework) },
+        headline_angles: Array.isArray(rawItem.headline_angles) ? rawItem.headline_angles : [],
+      }),
       seriesId,
       index,
       scheduledAt,
