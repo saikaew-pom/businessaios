@@ -542,6 +542,140 @@ contentRoutes.post('/api/content-items/:id/regenerate-field', async (c) => {
   return c.json({ ok: true, field, value, credits_remaining: finalBalance });
 });
 
+// Content Playbook ขั้นที่ 6 — "ปุ่ม ตรวจ 60 วิ": AI checks only the 4 items
+// the plan itself says are actually checkable by a model (พาดหัว 1 ไอเดีย /
+// CTA เดียว / คำเคลม trace ถึงข้อมูลโปรไฟล์ / ตรงเสียงแบรนด์) — the other 2
+// of the checklist's 6 items (อ่านออกเสียงลื่นไหม, โปร/ราคาเป็นเรื่องจริงไหม)
+// are plain reminder text in the frontend, never sent here, since no model
+// can verify "is this promo real" or "does this sound natural out loud."
+export const CHECKLIST_KEYS = ['headline_one_idea', 'single_cta', 'claims_grounded', 'brand_voice_match'] as const;
+export type ChecklistKey = (typeof CHECKLIST_KEYS)[number];
+
+function buildChecklistPrompt(context: RegenerateContext, brandContextBlock: string) {
+  const system = `คุณคือบรรณาธิการที่ตรวจโพสต์โซเชียลมีเดียก่อนเผยแพร่ให้ธุรกิจไทย ตรวจ 4 ข้อนี้เท่านั้นแบบตรงไปตรงมา ไม่ต้องชม ไม่ต้องแนะนำเพิ่มถ้าผ่านแล้ว
+1. headline_one_idea: ประโยคเปิด (hook) พูดถึงไอเดียเดียว ไม่ยัดหลายประเด็นจนสับสน
+2. single_cta: มีคำชวนทำอะไรต่อ (CTA) ทางเดียวชัดเจน ไม่ชวนทำหลายอย่างพร้อมกัน
+3. claims_grounded: ข้อมูล/คำเคลมทุกอย่างในโพสต์ (ราคา ตัวเลข คุณสมบัติ) ต้องตรงกับข้อมูลแบรนด์ที่ให้มาเท่านั้น — ถ้าโพสต์อ้างอะไรที่ไม่มีในข้อมูลแบรนด์เลย ถือว่าไม่ผ่าน
+4. brand_voice_match: โทนของโพสต์ตรงกับโทนเสียงแบรนด์ที่ให้มา
+
+ตอบเป็น JSON object เท่านั้น รูปแบบนี้เป๊ะ ๆ:
+{"headline_one_idea": {"pass": true, "note": "เหตุผลสั้น ๆ 1 ประโยค"}, "single_cta": {"pass": true, "note": "..."}, "claims_grounded": {"pass": true, "note": "..."}, "brand_voice_match": {"pass": true, "note": "..."}}`;
+
+  const user = [
+    brandContextBlock,
+    '',
+    '# โพสต์ที่จะตรวจ',
+    context.hook ? `Hook: ${context.hook}` : '',
+    context.caption ? `Caption: ${context.caption}` : '',
+    context.cta ? `CTA: ${context.cta}` : '',
+  ].filter(Boolean).join('\n');
+
+  return { system, user };
+}
+
+contentRoutes.post('/api/content-items/:id/checklist-check', async (c) => {
+  const user = getUser(c)!;
+  const id = c.req.param('id');
+  const item = await getContentItem(c.env, user.id, id);
+  if (!item) return c.json({ error: 'content_item_not_found' }, 404);
+
+  const account = await c.env.DB.prepare('SELECT email_verified FROM users WHERE id = ?')
+    .bind(user.id).first<{ email_verified: number }>();
+  if (account && account.email_verified === 0) {
+    return c.json({ error: 'email_not_verified', message: 'กรุณายืนยันอีเมลก่อน' }, 403);
+  }
+
+  const body: { context?: RegenerateContext } = await c.req.json<{ context?: RegenerateContext }>().catch(() => ({}));
+  const context: RegenerateContext = body.context && typeof body.context === 'object' ? body.context : {};
+
+  let brandProfileId: string | null = null;
+  if (item.series_id) {
+    const series = await c.env.DB.prepare('SELECT brand_profile_id FROM content_series WHERE id = ? AND user_id = ?')
+      .bind(item.series_id, user.id).first<{ brand_profile_id: string | null }>();
+    brandProfileId = series?.brand_profile_id || null;
+  }
+  const brandSnapshot = await getBrandSnapshotObject(c.env, user.id, brandProfileId);
+  const brandContextBlock = formatBrandContextBlock(brandSnapshot);
+
+  const toolRunId = generateId();
+  const startTime = Date.now();
+  const { system, user: userPrompt } = buildChecklistPrompt(context, brandContextBlock);
+  // Same reasoning-overhead trait documented throughout this codebase
+  // (contentSeries.ts's MAX_SERIES_COUNT comment, the sales-post route's
+  // maxTokens) — a short structured-JSON answer still needs a generous
+  // ceiling because MiniMax-M3's internal reasoning before that answer is
+  // highly variable and NOT proportional to how short the final output is.
+  const maxTokens = 8000;
+  const estPromptTokens = Math.ceil((system.length + userPrompt.length) / 3);
+  const reserveCredits = calculateCredits({ prompt_tokens: estPromptTokens, completion_tokens: maxTokens });
+  const reservation = await deductCredits(c.env, user.id, reserveCredits, 'generation_reserve', toolRunId);
+  if (!reservation.ok) {
+    return c.json({ error: 'insufficient_credits', message: 'เครดิตไม่เพียงพอ', balance: reservation.balance, required: reserveCredits }, 402);
+  }
+
+  let result: Awaited<ReturnType<typeof callMinimax>>;
+  let parsed: any;
+  try {
+    result = await callMinimax(
+      { apiKey: c.env.MINIMAX_API_KEY, groupId: c.env.MINIMAX_GROUP_ID, model: c.env.MINIMAX_MODEL },
+      [
+        { role: 'system', content: system },
+        { role: 'user', content: `${userPrompt}\n\nตอบเป็น JSON object เท่านั้น ห้าม markdown ห้ามคำอธิบายเพิ่ม` },
+      ],
+      { maxTokens, temperature: 0.3, jsonMode: true },
+    );
+    parsed = extractJsonFromAny(result.content, result.reasoning);
+  } catch (err: any) {
+    console.error('Checklist check error:', err);
+    const refund = await addCredits(c.env, user.id, reserveCredits, 'generation_refund', { referenceId: toolRunId, note: 'AI call failed' });
+    return c.json({ error: 'ai_error', message: 'ตรวจไม่สำเร็จ ลองอีกครั้ง', credits_remaining: refund.ok ? refund.balance : undefined }, 500);
+  }
+
+  const results: Record<string, { pass: boolean; note: string }> = {};
+  for (const key of CHECKLIST_KEYS) {
+    const entry = parsed?.[key];
+    // Never trust the model's shape blindly — a missing/malformed key
+    // degrades to an "unsure" result rather than crashing or silently
+    // showing nothing for that item, matching the never-throw-after-payment
+    // convention used by every other post-generation parse in this codebase.
+    results[key] = entry && typeof entry === 'object'
+      ? { pass: entry.pass === true, note: typeof entry.note === 'string' ? entry.note.slice(0, 300) : '' }
+      : { pass: false, note: 'ตรวจข้อนี้ไม่สำเร็จ ลองใหม่อีกครั้ง' };
+  }
+
+  try {
+    await c.env.DB.prepare(`
+      INSERT INTO tool_runs (id, user_id, tool_name, input, output, model, prompt_tokens, completion_tokens, total_tokens, cost_usd, duration_ms, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      toolRunId, user.id, 'content_item_checklist_check',
+      JSON.stringify({ content_item_id: id }),
+      JSON.stringify(results),
+      c.env.MINIMAX_MODEL,
+      result.usage?.prompt_tokens || 0,
+      result.usage?.completion_tokens || 0,
+      result.usage?.total_tokens || 0,
+      estimateCost(result.usage),
+      Date.now() - startTime,
+      Date.now(),
+    ).run();
+  } catch (err) {
+    console.error('Failed to save checklist-check tool_run (non-fatal):', err);
+  }
+
+  const creditsUsed = calculateCredits(result.usage);
+  let finalBalance = reservation.balance;
+  if (creditsUsed < reserveCredits) {
+    const refund = await addCredits(c.env, user.id, reserveCredits - creditsUsed, 'generation_refund', { referenceId: toolRunId, note: 'Reserved more than actual usage' });
+    if (refund.ok) finalBalance = refund.balance;
+  } else if (creditsUsed > reserveCredits) {
+    const extra = await deductCredits(c.env, user.id, creditsUsed - reserveCredits, 'generation_true_up', toolRunId);
+    if (extra.ok) finalBalance = extra.balance;
+  }
+
+  return c.json({ ok: true, results, credits_remaining: finalBalance });
+});
+
 contentRoutes.post('/api/content-items/:id/assets', async (c) => {
   const user = getUser(c)!;
   const id = c.req.param('id');

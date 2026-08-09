@@ -8,10 +8,12 @@
   import { goto } from '$app/navigation';
   import {
     createContentItemCreativeRequest,
+    checkContentItemChecklist,
     getMediaAssetContentUrl,
     regenerateContentItemField,
     transitionContentItem,
     updateContentItem,
+    type ChecklistKey,
     type ContentItem,
     type RegenerableContentField,
   } from '$lib/api';
@@ -62,6 +64,46 @@
   let fieldEditing = $state<Record<string, boolean>>({});
   function toggleEdit(field: string) {
     fieldEditing[field] = !fieldEditing[field];
+  }
+
+  // Content Playbook ขั้นที่ 6 — "Checklist ก่อนโพสต์": 6 items total, but
+  // only the first 4 are AI-checkable (the plan's own claim, not this
+  // implementation's guess) — the other 2 stay plain reminder text with no
+  // AI call, since no model can verify "is this promo actually real" or
+  // "does this sound natural read out loud". Manual ticks are local-only
+  // (never sent to the server) — this is a self-check aid, not a stored
+  // approval gate.
+  const CHECKLIST_ITEMS: Array<{ key: ChecklistKey | 'read_aloud' | 'promo_real'; label: string; aiCheckable: boolean }> = [
+    { key: 'headline_one_idea', label: 'ประโยคเปิดพูดไอเดียเดียว ไม่ยัดหลายเรื่อง', aiCheckable: true },
+    { key: 'single_cta', label: 'มีคำชวนทำอะไรต่อทางเดียว ไม่ชวนหลายอย่าง', aiCheckable: true },
+    { key: 'claims_grounded', label: 'ข้อมูล/ตัวเลขที่พูดถึงตรงกับความจริงของร้าน', aiCheckable: true },
+    { key: 'brand_voice_match', label: 'โทนของโพสต์ตรงกับโทนเสียงแบรนด์', aiCheckable: true },
+    { key: 'read_aloud', label: 'ลองอ่านออกเสียงดู — ลื่นไหมเหมือนคนพูดจริง', aiCheckable: false },
+    { key: 'promo_real', label: 'ราคา/โปร/ข้อเสนอที่พูดถึงเป็นเรื่องจริง ใช้ได้จริง', aiCheckable: false },
+  ];
+  let checklistTicked = $state<Record<string, boolean>>({});
+  let checklistResults = $state<Record<string, { pass: boolean; note: string }>>({});
+  let checkingList = $state(false);
+
+  async function runChecklistCheck() {
+    if (!item || busy) return;
+    checkingList = true;
+    error = '';
+    try {
+      const { results } = await checkContentItemChecklist(item.id, {
+        context: {
+          title, platform, format, pillar, hook, caption, cta, visual_suggestion: visualSuggestion,
+          hashtags: hashtagsText.split(',').map((t) => t.trim()).filter(Boolean),
+        },
+      });
+      checklistResults = results;
+      for (const [key, value] of Object.entries(results)) checklistTicked[key] = value.pass;
+      notice = 'ตรวจแล้ว — ข้อที่ AI เช็คไม่ได้ยังต้องเช็คเองด้านล่าง';
+    } catch (err) {
+      error = humanizeError(err);
+    } finally {
+      checkingList = false;
+    }
   }
 
   // Status shown as a plain-Thai badge — same value set used across
@@ -161,6 +203,8 @@
       fieldEditing = {};
       selectedTone = '';
       selectedEmotion = '';
+      checklistTicked = {};
+      checklistResults = {};
     }
   });
 
@@ -547,6 +591,31 @@
             <button type="button" onclick={handleSave} disabled={busy} class="btn-primary w-full">
               {isSaving ? 'กำลังบันทึก...' : '💾 บันทึกเนื้อหา'}
             </button>
+
+            <div class="space-y-2 rounded-xl border border-dark-100 dark:border-dark-700 p-4">
+              <div class="flex items-center justify-between gap-2">
+                <div class="text-xs font-semibold uppercase tracking-wide text-dark-900/50 dark:text-dark-100/50">Checklist ก่อนโพสต์</div>
+                <button type="button" onclick={runChecklistCheck} disabled={busy} class="shrink-0 text-xs font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 disabled:opacity-40">
+                  {checkingList ? '✨ กำลังตรวจ...' : '✨ ตรวจ 60 วิ'}
+                </button>
+              </div>
+              {#each CHECKLIST_ITEMS as row}
+                <label class="flex items-start gap-2.5 py-1 text-sm text-dark-900 dark:text-dark-50">
+                  <input type="checkbox" bind:checked={checklistTicked[row.key]} class="mt-0.5 h-4 w-4 shrink-0 rounded border-dark-300 dark:border-dark-600" />
+                  <span class="min-w-0">
+                    <span>{row.label}</span>
+                    {#if !row.aiCheckable}
+                      <span class="ml-1 text-xs text-dark-500 dark:text-dark-400">(เช็คเอง)</span>
+                    {/if}
+                    {#if checklistResults[row.key]}
+                      <span class="mt-0.5 block text-xs {checklistResults[row.key].pass ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400'}">
+                        {checklistResults[row.key].pass ? '✓' : '⚠'} {checklistResults[row.key].note}
+                      </span>
+                    {/if}
+                  </span>
+                </label>
+              {/each}
+            </div>
 
             <div class="border-t border-dark-100 dark:border-dark-700 pt-4">
               <div class="mb-2 text-sm font-semibold text-dark-900 dark:text-dark-50">สถานะ</div>

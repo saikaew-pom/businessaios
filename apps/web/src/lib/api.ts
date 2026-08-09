@@ -612,6 +612,30 @@ export async function regenerateContentItemField(id: string, data: {
   });
 }
 
+// Content Playbook ขั้นที่ 6 — "ปุ่ม ตรวจ 60 วิ": AI checks only the 4 items
+// a model can actually verify. Keys match apps/api/src/contentRoutes.ts's
+// CHECKLIST_KEYS exactly.
+export type ChecklistKey = 'headline_one_idea' | 'single_cta' | 'claims_grounded' | 'brand_voice_match';
+
+export async function checkContentItemChecklist(id: string, data: {
+  context: {
+    title?: string;
+    platform?: string;
+    format?: string;
+    pillar?: string;
+    hook?: string;
+    caption?: string;
+    cta?: string;
+    hashtags?: string[];
+    visual_suggestion?: string;
+  };
+}): Promise<{ ok: boolean; results: Record<ChecklistKey, { pass: boolean; note: string }>; credits_remaining: number }> {
+  return fetchAPI(`/api/content-items/${id}/checklist-check`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
 export async function attachContentItemAsset(id: string, data: {
   asset_id: string;
   link_role?: string;

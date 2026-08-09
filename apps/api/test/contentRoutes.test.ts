@@ -685,3 +685,197 @@ describe('Content item — regenerate-field (AI copy assist)', () => {
     });
   });
 });
+
+// Content Playbook ขั้นที่ 6 — "ปุ่ม ตรวจ 60 วิ". Same shape of route as
+// regenerate-field above (auth/ownership/email-verify gates, reserve →
+// refund/true-up credits, stubbed MiniMax for the parse/coercion branch), so
+// this suite follows that one's exact conventions rather than inventing new
+// ones.
+describe('Content item — checklist-check (ขั้นที่ 6 pre-post checklist)', () => {
+  let ctx: ReturnType<typeof makeEnv>;
+  beforeEach(() => { ctx = makeEnv(); });
+
+  function checklistCheck(id: string, body: Record<string, unknown> = { context: {} }, session = 'session-u1', envOverride: Record<string, unknown> = {}) {
+    return app.request(`/api/content-items/${id}/checklist-check`, {
+      method: 'POST', headers: H(session), body: JSON.stringify(body),
+    }, { ...ctx.env, ...envOverride });
+  }
+
+  function verifyEmail(userId: string) {
+    ctx.db.prepare('UPDATE users SET email_verified = 1 WHERE id = ?').run(userId);
+  }
+
+  const minimaxEnv = { MINIMAX_API_KEY: 'k', MINIMAX_GROUP_ID: 'g', MINIMAX_MODEL: 'MiniMax-M3' };
+
+  function stubMinimaxContent(content: string, usage: Record<string, number> = { prompt_tokens: 10, completion_tokens: 10, total_tokens: 20 }) {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({
+      id: 'test',
+      choices: [{ message: { role: 'assistant', content, reasoning_content: '' }, finish_reason: 'stop' }],
+      usage,
+    }), { status: 200 })));
+  }
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('404s for a nonexistent item', async () => {
+    verifyEmail('u1');
+    const res = await checklistCheck('ci_does_not_exist');
+    expect(res.status).toBe(404);
+  });
+
+  it('does not let a different user run the checklist on someone else\'s item', async () => {
+    verifyEmail('u2');
+    const id = seedItem(ctx.db);
+    const res = await checklistCheck(id, { context: {} }, 'session-u2');
+    expect(res.status).toBe(404);
+  });
+
+  it('403s with email_not_verified before touching credits', async () => {
+    const id = seedItem(ctx.db);
+    const before = ctx.db.prepare('SELECT credits FROM users WHERE id = ?').get('u1') as any;
+    const res = await checklistCheck(id);
+    expect(res.status).toBe(403);
+    expect(await res.json()).toMatchObject({ error: 'email_not_verified' });
+    const after = ctx.db.prepare('SELECT credits FROM users WHERE id = ?').get('u1') as any;
+    expect(after.credits).toBe(before.credits);
+  });
+
+  it('rejects a call with no auth header at all', async () => {
+    const id = seedItem(ctx.db);
+    const res = await app.request(`/api/content-items/${id}/checklist-check`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ context: {} }),
+    }, ctx.env);
+    expect(res.status).toBe(401);
+  });
+
+  it('rejects when the embedded feature flag is off', async () => {
+    verifyEmail('u1');
+    const id = seedItem(ctx.db);
+    const res = await checklistCheck(id, { context: {} }, 'session-u1', { CREATIVE_EMBEDDED_ENABLED: 'false' });
+    expect(res.status).toBe(404);
+    expect(await res.json()).toMatchObject({ error: 'feature_disabled' });
+  });
+
+  it('fully refunds the reserve when the MiniMax call itself throws', async () => {
+    verifyEmail('u1');
+    const id = seedItem(ctx.db);
+    const before = ctx.db.prepare('SELECT credits FROM users WHERE id = ?').get('u1') as any;
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('upstream down', { status: 503 })));
+
+    const res = await checklistCheck(id, { context: {} }, 'session-u1', minimaxEnv);
+    expect(res.status).toBe(500);
+    expect(await res.json()).toMatchObject({ error: 'ai_error' });
+    const after = ctx.db.prepare('SELECT credits FROM users WHERE id = ?').get('u1') as any;
+    expect(after.credits).toBe(before.credits);
+  });
+
+  it('fully refunds the reserve when the model returns unparseable content (no JSON at all)', async () => {
+    verifyEmail('u1');
+    const id = seedItem(ctx.db);
+    const before = ctx.db.prepare('SELECT credits FROM users WHERE id = ?').get('u1') as any;
+    stubMinimaxContent('this is not json at all, sorry');
+
+    const res = await checklistCheck(id, { context: {} }, 'session-u1', minimaxEnv);
+    expect(res.status).toBe(500);
+    expect(await res.json()).toMatchObject({ error: 'ai_error' });
+    const after = ctx.db.prepare('SELECT credits FROM users WHERE id = ?').get('u1') as any;
+    expect(after.credits).toBe(before.credits);
+  });
+
+  it('never leaks a raw error string as the user-facing message on AI failure', async () => {
+    verifyEmail('u1');
+    const id = seedItem(ctx.db);
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('upstream down', { status: 503 })));
+    const res = await checklistCheck(id, { context: {} }, 'session-u1', minimaxEnv);
+    const json: any = await res.json();
+    // Must be the hardcoded Thai message, never err.message/err.stack text.
+    expect(json.message).toBe('ตรวจไม่สำเร็จ ลองอีกครั้ง');
+  });
+
+  // MiniMax returns valid JSON but with a shape that doesn't match the
+  // contract exactly: one key missing entirely, one key's "pass" sent as the
+  // string "true" instead of a real boolean, one key missing "note", and one
+  // unexpected extra key thrown in. None of this should throw or crash the
+  // route (the whole point of the "never trust the model's shape blindly"
+  // per-key coercion) — every one of the 4 checklist keys must still come
+  // back in the response, malformed ones downgraded to a safe fail rather
+  // than silently treated as a pass.
+  it('degrades malformed per-key model output to a safe fail instead of crashing or silently passing', async () => {
+    verifyEmail('u1');
+    const id = seedItem(ctx.db);
+    stubMinimaxContent(JSON.stringify({
+      headline_one_idea: { pass: 'true', note: 'ควรจะผ่านแต่ pass ไม่ใช่ boolean' },
+      single_cta: { pass: true },
+      claims_grounded: 'ไม่ใช่ object เลย',
+      brand_voice_match_typo: { pass: true, note: 'คีย์นี้สะกดผิด ไม่ตรงกับที่ระบบต้องการ' },
+    }));
+
+    const res = await checklistCheck(id, { context: {} }, 'session-u1', minimaxEnv);
+    expect(res.status).toBe(200);
+    const json: any = await res.json();
+
+    // pass: "true" (string) must NOT be treated as a pass — strict boolean
+    // check only, since a reasoning model drifting on type is exactly the
+    // "cannot be trusted blindly" case this coercion exists for.
+    expect(json.results.headline_one_idea).toEqual({ pass: false, note: 'ควรจะผ่านแต่ pass ไม่ใช่ boolean' });
+    // missing "note" defaults to an empty string, not undefined/crash.
+    expect(json.results.single_cta).toEqual({ pass: true, note: '' });
+    // entry isn't an object at all -> safe-fail placeholder.
+    expect(json.results.claims_grounded).toEqual({ pass: false, note: 'ตรวจข้อนี้ไม่สำเร็จ ลองใหม่อีกครั้ง' });
+    // key never present in the model's response at all -> same safe-fail
+    // placeholder (the typo'd key above does not count as brand_voice_match).
+    expect(json.results.brand_voice_match).toEqual({ pass: false, note: 'ตรวจข้อนี้ไม่สำเร็จ ลองใหม่อีกครั้ง' });
+    // an extra/unrecognized key from the model must not leak into the response.
+    expect(json.results.brand_voice_match_typo).toBeUndefined();
+  });
+
+  it('accepts a well-formed 4-key response and true-ups credits down to actual usage (control case)', async () => {
+    verifyEmail('u1');
+    const id = seedItem(ctx.db);
+    const before = ctx.db.prepare('SELECT credits FROM users WHERE id = ?').get('u1') as any;
+    stubMinimaxContent(JSON.stringify({
+      headline_one_idea: { pass: true, note: 'โอเค' },
+      single_cta: { pass: true, note: 'โอเค' },
+      claims_grounded: { pass: false, note: 'อ้างราคาที่ไม่มีในข้อมูลแบรนด์' },
+      brand_voice_match: { pass: true, note: 'โทนตรง' },
+    }), { prompt_tokens: 10, completion_tokens: 10, total_tokens: 20 });
+
+    const res = await checklistCheck(id, { context: {} }, 'session-u1', minimaxEnv);
+    expect(res.status).toBe(200);
+    const json: any = await res.json();
+    expect(json.ok).toBe(true);
+    expect(json.results).toEqual({
+      headline_one_idea: { pass: true, note: 'โอเค' },
+      single_cta: { pass: true, note: 'โอเค' },
+      claims_grounded: { pass: false, note: 'อ้างราคาที่ไม่มีในข้อมูลแบรนด์' },
+      brand_voice_match: { pass: true, note: 'โทนตรง' },
+    });
+
+    // usage (10 prompt / 10 completion tokens) costs exactly 1 credit
+    // (ceil(0.01 + 0.02) = 1) — the large maxTokens=8000 reserve must be
+    // trued back down to that, not left over-charged.
+    const after = ctx.db.prepare('SELECT credits FROM users WHERE id = ?').get('u1') as any;
+    expect(before.credits - after.credits).toBe(1);
+    expect(json.credits_remaining).toBe(after.credits);
+  });
+
+  it('records a tool_runs row under content_item_checklist_check', async () => {
+    verifyEmail('u1');
+    const id = seedItem(ctx.db);
+    stubMinimaxContent(JSON.stringify({
+      headline_one_idea: { pass: true, note: '' },
+      single_cta: { pass: true, note: '' },
+      claims_grounded: { pass: true, note: '' },
+      brand_voice_match: { pass: true, note: '' },
+    }));
+
+    const res = await checklistCheck(id, { context: {} }, 'session-u1', minimaxEnv);
+    expect(res.status).toBe(200);
+    const run = ctx.db.prepare("SELECT * FROM tool_runs WHERE tool_name = 'content_item_checklist_check'").get() as any;
+    expect(run).toBeTruthy();
+    expect(run.user_id).toBe('u1');
+    expect(JSON.parse(run.input)).toMatchObject({ content_item_id: id });
+  });
+});
