@@ -2,8 +2,9 @@ import { Hono } from 'hono';
 import { generateId } from './lib/crypto';
 import { getUser, requireAuth, requireAdmin } from './lib/middleware';
 import type { Bindings, Variables } from './lib/types';
-import { addCredits, deductCredits } from './lib/credit';
-import { createBrandContextSnapshot } from './lib/creative/brandContext';
+import { addCredits, deductCredits, calculateCredits } from './lib/credit';
+import { createBrandContextSnapshot, getBrandSnapshotObject, formatBrandContextBlock } from './lib/creative/brandContext';
+import { callMinimax, extractJsonFromAny } from './lib/minimax';
 import {
   MAX_EXISTING_HOOKS,
   callSeriesGeneration,
@@ -19,6 +20,7 @@ import {
   type ContentSeriesTemplateRow,
 } from './lib/creative/contentSeries';
 import { resolveFramework } from './lib/creative/frameworks';
+import { buildSalesPostPrompt, resolveIncludedBlocks, validateSalesPostInput, type SalesPostInput } from './lib/creative/salesPost';
 
 const contentSeriesRoutes = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
@@ -471,6 +473,170 @@ contentSeriesRoutes.post('/api/content-series', async (c) => {
       metadata_json: undefined,
     })),
   }, 201);
+});
+
+// =====================================================
+// Sales post — ขั้นที่ 5, a deliberately separate flow from the pillar/
+// framework generator above: ONE post, ONE MiniMax call, no batch/series row,
+// because a sales post's facts (price/promo/guarantee/channel) are supplied
+// by the caller and must never be invented — see salesPost.ts's doc comment.
+// =====================================================
+
+contentSeriesRoutes.post('/api/content-series/sales-post', async (c) => {
+  const user = getUser(c)!;
+  // The body is untrusted JSON, not yet a `SalesPostInput` — validate types
+  // and lengths BEFORE calling .trim()/.toLowerCase() on anything. A
+  // hand-rolled client sending e.g. `price: 100` (a number) instead of a
+  // string used to throw inside `.trim()` here and escape as a raw 500 from
+  // the global error handler, the same class of gap `validateSeriesInput`'s
+  // `project_id_must_be_string` check exists to close for the sibling route.
+  const body = await c.req.json<Record<string, unknown>>();
+  const validation = validateSalesPostInput(body);
+  if (!validation.ok) return c.json({ error: 'validation_error', errors: validation.errors }, 400);
+
+  const input: SalesPostInput = {
+    topic: (body.topic as string).trim(),
+    price: (body.price as string | undefined)?.trim() || undefined,
+    promo: (body.promo as string | undefined)?.trim() || undefined,
+    guarantee: (body.guarantee as string | undefined)?.trim() || undefined,
+    channel: (body.channel as string | undefined)?.trim() || undefined,
+    social_proof: (body.social_proof as string | undefined)?.trim() || undefined,
+  };
+
+  const projectId = (body.project_id as string | null | undefined) || null;
+  if (projectId) {
+    const project = await c.env.DB.prepare('SELECT id FROM projects WHERE id = ? AND user_id = ?')
+      .bind(projectId, user.id).first();
+    if (!project) return c.json({ error: 'project_not_found' }, 404);
+  }
+
+  const platform = ((body.platform as string | undefined) || 'facebook').toLowerCase();
+  const brandProfileId = (body.brand_profile_id as string | null | undefined) ?? undefined;
+  const brandSnapshot = await getBrandSnapshotObject(c.env, user.id, brandProfileId);
+  const brandContextBlock = formatBrandContextBlock(brandSnapshot);
+  const personaComplaints = (brandSnapshot as any)?.persona?.complaints;
+  const { system, user: userPrompt } = buildSalesPostPrompt({ input, platform, brandContextBlock, personaComplaints });
+
+  const toolRunId = generateId();
+  // Measured live, not guessed: MiniMax-M3 spends an unbounded, highly
+  // variable amount of this budget on internal reasoning before writing any
+  // content at all (same instability documented at contentSeries.ts's
+  // MAX_SERIES_COUNT) — observed reasoning alone running anywhere from ~1k to
+  // over 16k characters across otherwise-identical calls to this route, well
+  // past contentSeries.ts's own proven-safe 6900 for its hardest case (a full
+  // 7-post batch). A single but rule-dense 15-block post apparently invites
+  // more of this reasoning than a short single-pillar post does. This is not
+  // fully eliminable by raising the ceiling further — it's an inherent
+  // MiniMax-M3 trait already accepted elsewhere in this codebase rather than
+  // solved — so the real safety net is the refund path below, not this
+  // number; this value is sized generously against what's been observed, not
+  // as a guarantee.
+  const maxTokens = 14000;
+  const estPromptTokens = Math.ceil((system.length + userPrompt.length) / 3);
+  const reserveCredits = calculateCredits({ prompt_tokens: estPromptTokens, completion_tokens: maxTokens });
+  const reservation = await deductCredits(c.env, user.id, reserveCredits, 'sales_post_reserve', toolRunId);
+  if (!reservation.ok) {
+    return c.json({ error: 'insufficient_credits', message: 'เครดิตไม่เพียงพอ', balance: reservation.balance, required: reserveCredits }, 402);
+  }
+
+  let result;
+  let parsed: any;
+  try {
+    result = await callMinimax(
+      { apiKey: c.env.MINIMAX_API_KEY, groupId: c.env.MINIMAX_GROUP_ID, model: c.env.MINIMAX_MODEL },
+      [
+        { role: 'system', content: system + '\n\n🚫 ห้าม reasoning หรือคิดออกเสียง — ตอบ JSON object เท่านั้นใน content field' },
+        { role: 'user', content: userPrompt + '\n\n[ตอบเป็น JSON object ใน content field เท่านั้น ไม่ต้องคิดออกเสียง ไม่ต้องอธิบาย]' },
+      ],
+      { maxTokens, temperature: 0.8, jsonMode: true },
+    );
+    // extractJsonFromAny throws when it can't find a JSON object in either
+    // field — must stay inside this try, or a parse failure would escape to
+    // the global error handler with the reservation above never refunded
+    // (the exact bug caught live-testing this route: a genuinely malformed
+    // model response left the user's credits deducted with nothing to show
+    // for it).
+    parsed = extractJsonFromAny(result.content, result.reasoning);
+  } catch (err: any) {
+    await addCredits(c.env, user.id, reserveCredits, 'sales_post_refund', { referenceId: toolRunId, note: 'generation failed' });
+    return c.json({ error: 'ai_error', message: err.message }, 500);
+  }
+
+  // Caught live-testing this route: MiniMax occasionally writes full,
+  // legitimate hook/cta/visual_suggestion fields but a bare "..." for
+  // caption — the one field this whole flow exists to get right. A
+  // present-but-degenerate string passes `!parsed?.caption`, so guard on
+  // length too rather than trusting "the field exists" as "the field is real
+  // copy". 30 chars is well below any real Thai sentence, but well above a
+  // stub ellipsis or a single word.
+  if (!parsed?.caption || String(parsed.caption).trim().length < 30) {
+    await addCredits(c.env, user.id, reserveCredits, 'sales_post_refund', { referenceId: toolRunId, note: 'empty output' });
+    return c.json({ error: 'ai_error', message: 'sales_post_generation_empty_output' }, 500);
+  }
+
+  const creditsUsed = calculateCredits(result.usage);
+  if (creditsUsed < reserveCredits) {
+    await addCredits(c.env, user.id, reserveCredits - creditsUsed, 'sales_post_refund', { referenceId: toolRunId, note: 'reserved more than actual usage' });
+  } else if (creditsUsed > reserveCredits) {
+    await deductCredits(c.env, user.id, creditsUsed - reserveCredits, 'sales_post_true_up', toolRunId);
+  }
+
+  const itemId = generateId();
+  const now = Date.now();
+  // Everything above this point is covered by a refund path on failure (the
+  // generation try/catch, then the explicit empty-output check). From here
+  // the user has already been charged `creditsUsed` net (reserve minus
+  // refund, or plus true-up) — an uncaught throw from the INSERT or the
+  // follow-up SELECT (a D1 hiccup, a constraint violation) would otherwise
+  // escape to the global error handler with that amount deducted and no
+  // content_items row to show for it, the same failure mode Bug A was.
+  // source_hash is derived from `toolRunId` (a fresh generateId() per
+  // request), so the table's UNIQUE(user_id, project_id, source_type,
+  // source_hash) constraint can't realistically collide here — the risk this
+  // guards is a transient D1 error, not a duplicate key.
+  try {
+    const sourceHash = await contentItemHash({ topic: input.topic, tool_run_id: toolRunId });
+    await c.env.DB.prepare(`
+      INSERT INTO content_items (
+        id, user_id, project_id, source_type, source_id, source_hash,
+        title, platform, format, pillar, hook, caption, cta, hashtags_json,
+        visual_suggestion, expected_engagement, status, metadata_json,
+        created_at, updated_at
+      )
+      VALUES (?, ?, ?, 'sales_post', ?, ?, ?, ?, 'post', 'conversion', ?, ?, ?, ?, ?, '', 'pending_review', ?, ?, ?)
+    `).bind(
+      itemId,
+      user.id,
+      projectId,
+      toolRunId,
+      sourceHash,
+      String(parsed.hook || input.topic).slice(0, 160),
+      platform,
+      String(parsed.hook || ''),
+      String(parsed.caption || ''),
+      String(parsed.cta || ''),
+      JSON.stringify(Array.isArray(parsed.hashtags) ? parsed.hashtags : []),
+      String(parsed.visual_suggestion || ''),
+      JSON.stringify({ sales_post: true, input, included_blocks: resolveIncludedBlocks(input).map((b) => b.label) }),
+      now,
+      now,
+    ).run();
+
+    const row = await c.env.DB.prepare('SELECT * FROM content_items WHERE id = ?').bind(itemId).first<any>();
+    return c.json({
+      item: {
+        ...row,
+        hashtags: parseJsonBody(row.hashtags_json, []),
+        metadata: parseJsonBody(row.metadata_json, {}),
+        hashtags_json: undefined,
+        metadata_json: undefined,
+      },
+      credits_used: creditsUsed,
+    }, 201);
+  } catch (err: any) {
+    await addCredits(c.env, user.id, creditsUsed, 'sales_post_refund', { referenceId: toolRunId, note: 'persist failed' });
+    return c.json({ error: 'db_error', message: err.message }, 500);
+  }
 });
 
 export default contentSeriesRoutes;
