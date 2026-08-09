@@ -240,7 +240,7 @@ describe('Sales Post (ขั้นที่ 5)', () => {
       const before = (ctx.db.prepare("SELECT credits FROM users WHERE id = 'u1'").get() as any).credits;
       const res = await postSalesPost({ topic: 'กาแฟคั่วสด' });
       expect(res.status).toBe(500);
-      expect(await res.json()).toMatchObject({ error: 'ai_error', message: 'sales_post_generation_empty_output' });
+      expect(await res.json()).toMatchObject({ error: 'ai_error', message: 'สร้างโพสต์ไม่สำเร็จ ลองอีกครั้ง' });
       const after = (ctx.db.prepare("SELECT credits FROM users WHERE id = 'u1'").get() as any).credits;
       expect(after).toBe(before);
     });

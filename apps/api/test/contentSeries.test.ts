@@ -254,11 +254,26 @@ describe('Content Series Generator', () => {
         body: JSON.stringify({ topic: 'เปิดร้านกาแฟ', requested_count: 5 }),
       }, ctx.env);
       expect(res.status).toBe(500);
+      // Same leak class as the sales-post route (see salesPost.ts's own
+      // refund tests): callMinimax throws "Minimax API error 500: boom" for
+      // this mocked failure, and that raw string used to be sent straight
+      // back as `message` — which /studio/series's error handler renders
+      // verbatim to the user. Assert the clean Thai message instead, and
+      // that the raw fetch/API text never reaches the response body.
+      const body = await res.json() as any;
+      expect(body).toMatchObject({ error: 'ai_error', message: 'สร้างเนื้อหาไม่สำเร็จ ลองอีกครั้ง' });
+      expect(JSON.stringify(body)).not.toMatch(/boom|Minimax API error/);
+
       const user = ctx.db.prepare("SELECT credits FROM users WHERE id = 'u1'").get() as any;
       expect(user.credits).toBe(100); // fully refunded
 
       const series = ctx.db.prepare("SELECT status FROM content_series WHERE user_id = 'u1'").get() as any;
       expect(series.status).toBe('failed');
+      // The raw text is still fine to keep in the DB row for admin/debug
+      // inspection (not shown to end users anywhere today) — this is the
+      // one place it's allowed to still contain "boom".
+      const seriesRow = ctx.db.prepare("SELECT error_message FROM content_series WHERE user_id = 'u1'").get() as any;
+      expect(seriesRow.error_message).toMatch(/boom/);
 
       const items = ctx.db.prepare("SELECT COUNT(*) as n FROM content_items WHERE user_id = 'u1'").get() as any;
       expect(items.n).toBe(0);

@@ -587,7 +587,7 @@ export async function updateContentItem(id: string, fields: {
   return res.item;
 }
 
-export type RegenerableContentField = 'hook' | 'caption' | 'cta' | 'hashtags' | 'visual_suggestion';
+export type RegenerableContentField = 'hook' | 'caption' | 'cta' | 'hashtags' | 'visual_suggestion' | 'sales_closer';
 
 export async function regenerateContentItemField(id: string, data: {
   field: RegenerableContentField;
@@ -2009,6 +2009,27 @@ export async function generateContentSeries(data: {
   topic_id?: string | null;
 }): Promise<{ series: ContentSeries; items: ContentItem[] }> {
   return fetchAPI('/api/content-series', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+// Content Playbook ขั้นที่ 5 — a deliberately separate one-post flow (see
+// apps/api/src/lib/creative/salesPost.ts): the caller supplies real facts
+// (price/promo/guarantee/channel/social_proof) and the backend skips any
+// block it has no real data for, rather than the model inventing one.
+export async function generateSalesPost(data: {
+  topic: string;
+  price?: string;
+  promo?: string;
+  guarantee?: string;
+  channel?: string;
+  social_proof?: string;
+  platform?: string;
+  brand_profile_id?: string | null;
+  project_id?: string | null;
+}): Promise<{ item: ContentItem; credits_used: number }> {
+  return fetchAPI('/api/content-series/sales-post', {
     method: 'POST',
     body: JSON.stringify(data),
   });

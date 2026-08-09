@@ -204,8 +204,16 @@
         cta = String(result.value);
       } else if (field === 'visual_suggestion') {
         visualSuggestion = String(result.value);
+      } else if (field === 'sales_closer') {
+        // Appends to the existing caption rather than replacing it — this
+        // button adds a closing paragraph to a post that's already written,
+        // it doesn't rewrite the post (see contentRoutes.ts's
+        // buildSalesCloserPrompt doc comment).
+        caption = `${caption}\n\n${result.value}`;
       }
-      notice = 'AI เขียนให้ใหม่แล้ว — ตรวจแล้วกด บันทึกเนื้อหา เพื่อเก็บไว้';
+      notice = field === 'sales_closer'
+        ? 'เพิ่มย่อหน้าปิดท้ายแล้ว — ตรวจแล้วกด บันทึกเนื้อหา เพื่อเก็บไว้'
+        : 'AI เขียนให้ใหม่แล้ว — ตรวจแล้วกด บันทึกเนื้อหา เพื่อเก็บไว้';
     } catch (err) {
       error = humanizeError(err);
     } finally {
@@ -395,6 +403,9 @@
                   </button>
                 </div>
                 <textarea id="caption" bind:value={caption} rows="4" class="input"></textarea>
+                <button type="button" onclick={() => regenerateField('sales_closer')} disabled={busy || !caption.trim()} class="mt-1.5 text-xs font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 disabled:opacity-40">
+                  {regeneratingField === 'sales_closer' ? '✨ กำลังคิด...' : '✨ ปิดจบแบบขายเนียน ๆ'}
+                </button>
               </div>
               <div>
                 <div class="mb-1 flex items-center justify-between gap-2">

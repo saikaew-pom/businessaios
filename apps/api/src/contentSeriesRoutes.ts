@@ -344,10 +344,19 @@ contentSeriesRoutes.post('/api/content-series', async (c) => {
       existingHooks,
     });
   } catch (err: any) {
+    // Same leak the sales-post route below used to have: err.message here is
+    // an internal/English string (a raw MiniMax API error, or
+    // extractJsonFromAny's "No JSON found in content or reasoning") and
+    // /studio/series's error handler renders whatever `message` comes back
+    // verbatim (its humanizeError only maps known codes, falling through to
+    // the raw string otherwise) — so this was reaching the user's screen.
+    // Logged server-side for debugging instead; error_message in the DB row
+    // below is for admin/debug inspection, not shown to end users.
+    console.error('Content series generation error:', err);
     const refund = await addCredits(c.env, user.id, estReserve, 'content_series_refund', { referenceId: seriesId, note: 'generation failed' });
     await c.env.DB.prepare(`UPDATE content_series SET status = 'failed', error_message = ?, updated_at = ? WHERE id = ?`)
       .bind(String(err.message || err).slice(0, 500), Date.now(), seriesId).run();
-    return c.json({ error: 'ai_error', message: err.message, credits_remaining: refund.ok ? refund.balance : undefined }, 500);
+    return c.json({ error: 'ai_error', message: 'สร้างเนื้อหาไม่สำเร็จ ลองอีกครั้ง', credits_remaining: refund.ok ? refund.balance : undefined }, 500);
   }
 
   // Second pass: real art direction for each post's image, from its copy.
@@ -558,8 +567,15 @@ contentSeriesRoutes.post('/api/content-series/sales-post', async (c) => {
     // for it).
     parsed = extractJsonFromAny(result.content, result.reasoning);
   } catch (err: any) {
+    // err.message here is an internal/English string (e.g. "No JSON found in
+    // content or reasoning", a raw MiniMax API error) — caught live-testing
+    // this route showing that literal text to the user in the frontend's
+    // toast. Same clean-Thai-message convention as regenerate-field's
+    // 'สร้างเนื้อหาไม่สำเร็จ' below; err.message is still logged server-side
+    // for debugging, just never sent to the client.
+    console.error('Sales post generation error:', err);
     await addCredits(c.env, user.id, reserveCredits, 'sales_post_refund', { referenceId: toolRunId, note: 'generation failed' });
-    return c.json({ error: 'ai_error', message: err.message }, 500);
+    return c.json({ error: 'ai_error', message: 'สร้างโพสต์ไม่สำเร็จ ลองอีกครั้ง' }, 500);
   }
 
   // Caught live-testing this route: MiniMax occasionally writes full,
@@ -571,7 +587,7 @@ contentSeriesRoutes.post('/api/content-series/sales-post', async (c) => {
   // stub ellipsis or a single word.
   if (!parsed?.caption || String(parsed.caption).trim().length < 30) {
     await addCredits(c.env, user.id, reserveCredits, 'sales_post_refund', { referenceId: toolRunId, note: 'empty output' });
-    return c.json({ error: 'ai_error', message: 'sales_post_generation_empty_output' }, 500);
+    return c.json({ error: 'ai_error', message: 'สร้างโพสต์ไม่สำเร็จ ลองอีกครั้ง' }, 500);
   }
 
   const creditsUsed = calculateCredits(result.usage);
@@ -634,8 +650,9 @@ contentSeriesRoutes.post('/api/content-series/sales-post', async (c) => {
       credits_used: creditsUsed,
     }, 201);
   } catch (err: any) {
+    console.error('Sales post persist error:', err);
     await addCredits(c.env, user.id, creditsUsed, 'sales_post_refund', { referenceId: toolRunId, note: 'persist failed' });
-    return c.json({ error: 'db_error', message: err.message }, 500);
+    return c.json({ error: 'db_error', message: 'บันทึกโพสต์ไม่สำเร็จ ลองอีกครั้ง' }, 500);
   }
 });
 

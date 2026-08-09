@@ -316,7 +316,35 @@ const REGEN_FIELD_RULES: Record<string, string> = {
   hashtags: 'Hashtag ที่เกี่ยวข้อง 3-5 ตัว แต่ละตัวขึ้นต้นด้วย # ไม่มีช่องว่างในแต่ละแท็ก',
   visual_suggestion: 'คำอธิบายภาพประกอบ 1 บรรทัด บรรยายเฉพาะฉาก องค์ประกอบภาพ แสง สี และบรรยากาศ ห้ามระบุตัวอักษร ข้อความ ป้าย ปุ่มมีข้อความ โลโก้ หรือราคาในภาพเด็ดขาด (จะใส่หัวข้อ/CTA ทีหลังด้วยเครื่องมือแยกต่างหาก)',
 };
-const REGEN_FIELDS = Object.keys(REGEN_FIELD_RULES);
+// Content Playbook ขั้นที่ 5 — "ปุ่มป้ายยาย่อ" ("ปิดจบแบบขายเนียน ๆ"): appends
+// one short soft-sell paragraph to an EXISTING post (any framework — How-to/
+// เรื่องเล่า/Mindset per the plan) rather than rewriting the whole caption,
+// so it gets its own prompt builder below instead of REGEN_FIELD_RULES'
+// generic "rewrite this field" template. Not in REGEN_FIELD_RULES itself —
+// REGEN_FIELDS below still lists it so the route's field-validity check
+// accepts it.
+const SALES_CLOSER_FIELD = 'sales_closer';
+const REGEN_FIELDS = [...Object.keys(REGEN_FIELD_RULES), SALES_CLOSER_FIELD];
+
+function buildSalesCloserPrompt(context: RegenerateContext, brandContextBlock: string) {
+  const system = `คุณคือนักการตลาดคอนเทนต์มืออาชีพสำหรับธุรกิจไทย งานของคุณคือเขียนย่อหน้าปิดท้ายแบบขายเนียน ๆ (soft-sell) 1-2 ประโยคสั้น ๆ ต่อท้ายโพสต์ที่ให้มาด้านล่าง — ไม่ใช่เขียนโพสต์ใหม่ทั้งหมด
+เขียนให้ตรงกับตัวตนแบรนด์ด้านล่าง โทน "ชวนดู/ชวนคุย" ไม่ใช่ "ยัดเยียดขาย"
+⚠️ ห้ามแต่งข้อเท็จจริง (ราคา/โปรโมชั่น/การันตี) ที่ไม่มีอยู่ในโพสต์เดิม — ถ้าโพสต์เดิมไม่มีราคา/โปรอยู่แล้ว ให้ปิดด้วยคำชวนทักแชท/สอบถามทั่วไปแทน
+⚠️ ห้ามเอ่ยชื่อร้าน/แบรนด์คู่แข่งเด็ดขาด
+
+ตอบเป็น JSON object เท่านั้น: {"value": "..."}`;
+
+  const user = [
+    brandContextBlock,
+    '',
+    '# โพสต์เดิมที่จะปิดท้าย',
+    context.hook ? `Hook: ${context.hook}` : '',
+    context.caption ? `Caption: ${context.caption}` : '',
+    context.cta ? `CTA เดิม: ${context.cta}` : '',
+  ].filter(Boolean).join('\n');
+
+  return { system, user };
+}
 
 type RegenerateContext = {
   title?: string; platform?: string; format?: string; pillar?: string;
@@ -390,9 +418,12 @@ contentRoutes.post('/api/content-items/:id/regenerate-field', async (c) => {
   // slots and assembles the art direction deterministically afterwards.
   // See lib/creative/visualPrompt.ts for why.
   const isVisual = field === 'visual_suggestion';
+  const isSalesCloser = field === SALES_CLOSER_FIELD;
   const { system, user: userPrompt } = isVisual
     ? buildVisualSlotPrompt(context)
-    : buildRegenerateFieldPrompt(field, context, brandContextBlock);
+    : isSalesCloser
+      ? buildSalesCloserPrompt(context, brandContextBlock)
+      : buildRegenerateFieldPrompt(field, context, brandContextBlock);
   // MiniMax-M3 spends tokens on an internal reasoning trace before writing
   // the final answer, and the reasoning length is NOT proportional to how
   // small the final answer is — 2000 was tried first and still truncated
