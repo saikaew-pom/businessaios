@@ -38,7 +38,7 @@
       return;
     }
     if ($fullUser?.role !== 'admin') {
-      goto('/dashboard');
+      goto('/today');
       return;
     }
     await loadAll();

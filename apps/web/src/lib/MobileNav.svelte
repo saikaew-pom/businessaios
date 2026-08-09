@@ -1,11 +1,11 @@
 <script lang="ts">
   /**
    * Bottom nav — the "4 ที่" architecture (docs/OS_REDESIGN_MASTER_PLAN.md
-   * §3), Stage A version: the shell and the 4 places are real, but three of
-   * them still point at the closest existing page rather than a purpose-built
-   * destination (that's Stage C/E work) — exactly what §8's roadmap calls
-   * "bottom nav 4 ที่ (ยังชี้หน้าเดิมได้ระหว่างเปลี่ยนผ่าน)". Only the
-   * "สร้าง" (create) center item is a real behavior change today.
+   * §3). Stage C3: วันนี้/สร้าง now point at their real purpose-built pages
+   * (/today, /create) instead of the Stage A placeholders (/dashboard,
+   * /studio/series) — those two still exist and still work, just moved into
+   * "ขั้นสูง" below since they're no longer the default entry point.
+   * ร้านของฉัน still points at /profile (its real consolidation is Stage E).
    *
    * Replaces the previous 5-item nav (หน้าแรก/เครื่องมือ/Studio/เครดิต/
    * โปรไฟล์, emoji icons) — that IA mirrored the old header's link list,
@@ -16,8 +16,8 @@
   import { Icon, Sheet, ListItem } from '$lib/ui';
 
   const PLACES = [
-    { href: '/dashboard', icon: 'home' as const, label: 'วันนี้' },
-    { href: '/studio/series', icon: 'edit' as const, label: 'สร้าง', center: true },
+    { href: '/today', icon: 'home' as const, label: 'วันนี้' },
+    { href: '/create', icon: 'edit' as const, label: 'สร้าง', center: true },
     { href: '/calendar', icon: 'calendar' as const, label: 'ปฏิทิน' },
     { href: '/profile', icon: 'store' as const, label: 'ร้านของฉัน' },
   ];
@@ -66,6 +66,12 @@
 <Sheet open={advancedOpen} onclose={() => (advancedOpen = false)}>
   <div class="t-heading mb-1">โหมดขั้นสูง</div>
   <div class="t-caption mb-3">เครื่องมือเดิมทั้งหมดยังอยู่ครบ — ย้ายมาไว้ที่นี่</div>
+  <ListItem href="/dashboard" title="แผนการตลาด" subtitle="ดู/สร้างแผนแบบ wizard 7 ขั้นเต็มรูป">
+    {#snippet icon()}<Icon name="layout-grid" size={18} />{/snippet}
+  </ListItem>
+  <ListItem href="/studio/series" title="สร้าง Series แบบเต็ม" subtitle="กำหนดจำนวน/ความถี่/template เอง">
+    {#snippet icon()}<Icon name="edit" size={18} />{/snippet}
+  </ListItem>
   <ListItem href="/studio" title="Creative Studio เต็มรูป" subtitle="เลือกโมเดล AI, aspect ratio, ภาพอ้างอิงเอง">
     {#snippet icon()}<Icon name="image" size={18} />{/snippet}
   </ListItem>

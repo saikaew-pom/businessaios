@@ -874,7 +874,9 @@ app.get('/api/auth/google', async (c) => {
 /**
  * Google OAuth callback
  * Receives code, exchanges for access token, gets user info,
- * creates or logs in user, sets session cookie, redirects to dashboard
+ * creates or logs in user, sets session cookie, redirects to /today
+ * (Stage C3 IA cutover — same post-auth landing page as the email/password
+ * login and register flows in apps/web).
  */
 app.get('/api/auth/google/callback', async (c) => {
   const clientId = (c.env as any).GOOGLE_CLIENT_ID;
@@ -1002,7 +1004,7 @@ app.get('/api/auth/google/callback', async (c) => {
 
     // Set session cookie + redirect
     const headers = new Headers();
-    headers.set('Location', `${webUrl}/dashboard?google_login=success`);
+    headers.set('Location', `${webUrl}/today?google_login=success`);
     headers.set('Set-Cookie', buildSessionCookieHeader(sessionToken, expiresAt));
     headers.append('Set-Cookie', 'google_oauth_state=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0');
 

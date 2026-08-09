@@ -91,7 +91,7 @@
 
 <div class="min-h-screen bg-dark-50 dark:bg-dark-950">
   <main class="container-narrow py-10 space-y-8">
-    <a href="/dashboard" class="text-sm text-primary-600 dark:text-primary-400 hover:underline">← กลับ Dashboard</a>
+    <a href="/today" class="text-sm text-primary-600 dark:text-primary-400 hover:underline">← กลับวันนี้</a>
     <div class="flex items-start justify-between gap-4 flex-wrap">
       <div>
         <h1 class="heading-2 mb-1">🔌 Developers</h1>

@@ -131,7 +131,7 @@
 <div class="max-w-5xl mx-auto px-6 py-10">
   <!-- Header -->
   <div class="mb-8">
-    <a href="/dashboard" class="text-sm text-dark-900/60 dark:text-dark-100/60 hover:text-primary-600">← กลับไป Dashboard</a>
+    <a href="/today" class="text-sm text-dark-900/60 dark:text-dark-100/60 hover:text-primary-600">← กลับไปวันนี้</a>
     <h1 class="text-3xl font-black mt-2 mb-1">💰 เติม Credits</h1>
     <p class="text-dark-900/60 dark:text-dark-100/60">ใช้ PromptPay QR (ธนาคารไทย) — ปลอดภัย รวดเร็ว ไม่มีค่าธรรมเนียม</p>
   </div>

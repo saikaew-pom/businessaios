@@ -31,7 +31,7 @@
     isSubmitting = true;
     try {
       await login(email, password, turnstileToken || undefined);
-      goto('/dashboard');
+      goto('/today');
     } catch (err: any) {
       error = err.message || 'เข้าสู่ระบบไม่สำเร็จ';
     } finally {

@@ -18,8 +18,9 @@
    * button already uses) — reusing tested plumbing rather than building a
    * second, rushed image-generation path.
    *
-   * Stage C2 is purely additive: reachable only by direct URL for now.
-   * MobileNav's "สร้าง" item still points at /studio/series until Stage C3.
+   * Stage C3 (IA cutover) now makes this MobileNav's "สร้าง" default
+   * destination — /studio/series still exists (full batch generator with
+   * template/count/cadence controls), reachable via the "ขั้นสูง" sheet.
    */
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';

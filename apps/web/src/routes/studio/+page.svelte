@@ -675,7 +675,7 @@
   <main class="container-narrow py-8 max-w-7xl">
     <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
       <div>
-        <a href="/dashboard" class="text-sm text-dark-900/60 dark:text-dark-100/60 hover:text-primary-600">กลับ Dashboard</a>
+        <a href="/today" class="text-sm text-dark-900/60 dark:text-dark-100/60 hover:text-primary-600">กลับวันนี้</a>
         <h1 class="mt-2 text-3xl font-bold tracking-tight">Creative Studio</h1>
       </div>
       <div class="flex items-center gap-2">

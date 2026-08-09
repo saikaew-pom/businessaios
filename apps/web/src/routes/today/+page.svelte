@@ -6,10 +6,10 @@
    *   2. รอคุณตรวจ (n) — count of AI work awaiting approval, links to Inbox
    *   3. การ์ดทำต่อ 1 ใบ — exactly one suggested next action
    *
-   * Stage C1 is purely additive: reachable only by direct URL for now.
-   * MobileNav's "วันนี้" item still points at /dashboard until Stage C3
-   * does the real IA cutover (redirects, nav rewiring) — deliberately not
-   * done here so nothing existing breaks mid-build.
+   * Stage C3 (IA cutover) now points MobileNav's/AppHeader's "วันนี้" and
+   * every "back to home" link across the app at this page — /dashboard
+   * still exists (full wizard/project management), reachable via the
+   * "ขั้นสูง" sheet, just no longer the default landing page.
    */
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
@@ -141,7 +141,7 @@
         {#if upcomingCount === 0}
           <div class="t-heading mb-1">ปฏิทินอาทิตย์หน้ายังว่าง</div>
           <p class="t-caption text-dark-600 dark:text-dark-300 mb-4">สร้างโพสต์ต่อไหม</p>
-          <Button onclick={() => goto('/studio/series')}>สร้างโพสต์</Button>
+          <Button onclick={() => goto('/create')}>สร้างโพสต์</Button>
         {:else}
           <div class="t-heading mb-1">มีโพสต์รอคิวอีก {upcomingCount} ชิ้นในสัปดาห์นี้</div>
           <p class="t-caption text-dark-600 dark:text-dark-300 mb-4">ดูภาพรวมทั้งหมดได้ที่ปฏิทิน</p>

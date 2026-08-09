@@ -50,7 +50,7 @@
   <header class="bg-white dark:bg-dark-800 border-b border-dark-100 dark:border-dark-700">
     <div class="container-narrow flex items-center justify-between h-16">
       <div class="flex items-center gap-3">
-        <a href="/dashboard" class="text-dark-900/60 dark:text-dark-100/60 hover:text-dark-900 dark:hover:text-dark-50">
+        <a href="/today" class="text-dark-900/60 dark:text-dark-100/60 hover:text-dark-900 dark:hover:text-dark-50">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
         </a>
         <div class="flex items-center gap-2">
@@ -91,7 +91,7 @@
 
     <!-- Footer -->
     <div class="mt-8 text-center text-sm text-dark-900/50 dark:text-dark-100/50">
-      <a href="/dashboard" class="hover:text-primary-600 dark:hover:text-primary-400">← กลับไป Dashboard</a>
+      <a href="/today" class="hover:text-primary-600 dark:hover:text-primary-400">← กลับไปวันนี้</a>
     </div>
   </main>
 </div>

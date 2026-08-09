@@ -146,7 +146,7 @@
 
 <div class="min-h-screen bg-dark-50 dark:bg-dark-950 dark:text-dark-50">
   <main class="container-narrow py-10 space-y-6 max-w-2xl">
-    <a href="/dashboard" class="text-sm text-primary-600 hover:underline">← กลับ Dashboard</a>
+    <a href="/today" class="text-sm text-primary-600 hover:underline">← กลับวันนี้</a>
     <h1 class="heading-2">โปรไฟล์</h1>
 
     <!-- Profile card -->

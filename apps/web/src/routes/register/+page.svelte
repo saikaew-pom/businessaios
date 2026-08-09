@@ -33,7 +33,7 @@
     isSubmitting = true;
     try {
       await register(email, password, { first_name, last_name, turnstile_token: turnstileToken || undefined });
-      goto('/dashboard');
+      goto('/today');
     } catch (err: any) {
       error = err.message || 'สมัครสมาชิกไม่สำเร็จ';
     } finally {

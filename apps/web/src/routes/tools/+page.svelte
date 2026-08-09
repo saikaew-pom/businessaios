@@ -138,9 +138,9 @@
 <div class="min-h-screen bg-dark-50 dark:bg-dark-950">
   <main class="container-narrow py-8 max-w-5xl">
     <div class="flex items-center justify-between mb-4">
-      <a href="/dashboard" class="flex items-center gap-1 text-sm text-dark-900/60 dark:text-dark-100/60 hover:text-dark-900 dark:hover:text-dark-50">
+      <a href="/today" class="flex items-center gap-1 text-sm text-dark-900/60 dark:text-dark-100/60 hover:text-dark-900 dark:hover:text-dark-50">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-        กลับ Dashboard
+        กลับวันนี้
       </a>
       <button onclick={toggleLocale} class="text-xs font-semibold px-2.5 py-1 rounded border border-dark-200 dark:border-dark-600 hover:bg-dark-50 dark:hover:bg-dark-700 transition">
         {$locale === 'th' ? 'EN' : 'TH'}

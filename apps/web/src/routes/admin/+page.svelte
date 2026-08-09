@@ -38,7 +38,7 @@
       return;
     }
     if ($fullUser?.role !== 'admin') {
-      goto('/dashboard');
+      goto('/today');
       return;
     }
     await Promise.all([loadUsers(), loadStats(), loadEmails()]);
@@ -248,7 +248,7 @@
       </div>
       <div class="flex items-center gap-3">
         <a href="/admin/creative" class="text-sm text-primary-600 dark:text-primary-400 hover:underline">Creative Ops</a>
-        <a href="/dashboard" class="text-sm text-primary-600 dark:text-primary-400 hover:underline">← กลับ Dashboard</a>
+        <a href="/today" class="text-sm text-primary-600 dark:text-primary-400 hover:underline">← กลับวันนี้</a>
       </div>
     </div>
 

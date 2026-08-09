@@ -27,7 +27,7 @@
       await refreshFullUser();
       status = 'success';
       message = 'ยืนยันอีเมลสำเร็จ!';
-      setTimeout(() => goto('/dashboard'), 2000);
+      setTimeout(() => goto('/today'), 2000);
     } catch (err: any) {
       status = 'error';
       message = err.message;
@@ -50,7 +50,7 @@
 
 <div class="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-50 dark:from-dark-950 dark:via-dark-900 dark:to-dark-950 flex items-center justify-center p-4">
   <div class="w-full max-w-md">
-    <a href="/dashboard" class="flex items-center gap-2 justify-center mb-8">
+    <a href="/today" class="flex items-center gap-2 justify-center mb-8">
       <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
         <span class="text-white font-bold">B</span>
       </div>
@@ -64,13 +64,13 @@
       {:else if status === 'success'}
         <div class="text-5xl mb-4">✅</div>
         <h1 class="text-xl font-bold mb-2 text-green-700 dark:text-green-400">ยืนยันอีเมลสำเร็จ!</h1>
-        <p class="text-sm text-dark-900/60 dark:text-dark-100/60">กำลังพากลับไปยัง Dashboard...</p>
+        <p class="text-sm text-dark-900/60 dark:text-dark-100/60">กำลังพากลับไปยังหน้าวันนี้...</p>
       {:else if status === 'error'}
         <div class="text-5xl mb-4">❌</div>
         <h1 class="text-xl font-bold mb-2 text-red-700 dark:text-red-400">ยืนยันไม่สำเร็จ</h1>
         <p class="text-sm text-dark-900/60 dark:text-dark-100/60 mb-4">{message}</p>
         <button onclick={handleResend} class="btn-primary">ส่งอีเมลยืนยันใหม่</button>
-        <a href="/dashboard" class="block mt-3 text-sm text-dark-900/60 dark:text-dark-100/60 hover:underline">กลับไป Dashboard</a>
+        <a href="/today" class="block mt-3 text-sm text-dark-900/60 dark:text-dark-100/60 hover:underline">กลับไปวันนี้</a>
       {:else}
         <div class="text-5xl mb-4">📧</div>
         <h1 class="text-xl font-bold mb-2">ยืนยันอีเมล</h1>
@@ -78,7 +78,7 @@
           กรุณาคลิกลิงก์ในอีเมลที่ส่งไป เพื่อยืนยันการสมัคร
         </p>
         <button onclick={handleResend} class="btn-primary">ส่งอีเมลยืนยันอีกครั้ง</button>
-        <a href="/dashboard" class="block mt-3 text-sm text-dark-900/60 dark:text-dark-100/60 hover:underline">กลับไป Dashboard</a>
+        <a href="/today" class="block mt-3 text-sm text-dark-900/60 dark:text-dark-100/60 hover:underline">กลับไปวันนี้</a>
       {/if}
     </div>
   </div>

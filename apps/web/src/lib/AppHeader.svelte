@@ -11,7 +11,7 @@
 
 <header class="bg-white dark:bg-dark-800 border-b border-dark-200 dark:border-dark-700 sticky top-0 z-10">
   <div class="container-narrow flex items-center justify-between h-16 gap-4">
-    <a href="/dashboard" class="flex items-center gap-2 shrink-0">
+    <a href="/today" class="flex items-center gap-2 shrink-0">
       <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center shrink-0">
         <span class="text-white font-bold text-sm">B</span>
       </div>
@@ -30,12 +30,14 @@
       shrink-0 + whitespace-nowrap on every item keeps text from wrapping
       mid-phrase instead of the row overflowing/scrolling as intended.
 
-      Link SET is unchanged in Stage A — the "4 ที่" IA cutover (dashboard →
-      วันนี้, etc.) is Stage C, deliberately not done here. This pass only
-      recolors to the warm identity and swaps emoji-as-icon for the system
-      icon set (commitment 4.3) — icons are the mechanism (kept small,
-      alongside the text, not replacing it), emoji stay for genuine feeling
-      elsewhere in the app, not as this header's chrome.
+      Link SET (the desktop-only middle group below) is still the full
+      legacy list, deliberately NOT trimmed by the Stage C3 IA cutover —
+      desktop has room for direct links where mobile's bottom nav doesn't,
+      so only the logo (→ /today, the new home) was repointed. Recolors to
+      the warm identity and swaps emoji-as-icon for the system icon set
+      (commitment 4.3) — icons are the mechanism (kept small, alongside the
+      text, not replacing it), emoji stay for genuine feeling elsewhere in
+      the app, not as this header's chrome.
     -->
     <div class="flex min-w-0 flex-1 items-center gap-3 overflow-x-auto whitespace-nowrap">
       {#if $fullUser}
