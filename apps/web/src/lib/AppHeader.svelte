@@ -7,6 +7,12 @@
     await logout();
     goto('/');
   }
+
+  // Stage C4 — "เมนูขั้นสูง (Works/Inbox/Series/Developers) ซ่อนหลัง
+  // 'ขั้นสูง' ... มือโปรเปิดได้": mirrors MobileNav's own "ขั้นสูง" sheet
+  // pattern (collapsed by default for everyone, one click reveals it — not
+  // gated on account history, matching the mobile version's own behavior).
+  let advancedOpen = $state(false);
 </script>
 
 <header class="bg-white dark:bg-dark-800 border-b border-dark-200 dark:border-dark-700 sticky top-0 z-10">
@@ -50,14 +56,21 @@
       {/if}
       <!-- Everything below is also reachable via the mobile bottom nav's "ขั้นสูง" sheet -->
       <div class="hidden sm:flex items-center gap-3">
-        <a href="/studio" class="shrink-0 inline-flex items-center gap-1.5 text-sm text-dark-700 dark:text-dark-200 hover:text-dark-900 dark:hover:text-dark-50 font-semibold"><Icon name="image" size={15} /> Studio</a>
-        <a href="/inbox" class="shrink-0 inline-flex items-center gap-1.5 text-sm text-dark-700 dark:text-dark-200 hover:text-dark-900 dark:hover:text-dark-50 font-semibold"><Icon name="inbox" size={15} /> Inbox</a>
-        <a href="/works" class="shrink-0 inline-flex items-center gap-1.5 text-sm text-dark-700 dark:text-dark-200 hover:text-dark-900 dark:hover:text-dark-50 font-semibold"><Icon name="layout-grid" size={15} /> Works</a>
         <a href="/calendar" class="shrink-0 inline-flex items-center gap-1.5 text-sm text-dark-700 dark:text-dark-200 hover:text-dark-900 dark:hover:text-dark-50 font-semibold"><Icon name="calendar" size={15} /> Calendar</a>
         <a href="/billing" class="shrink-0 inline-flex items-center gap-1.5 text-sm text-dark-700 dark:text-dark-200 hover:text-dark-900 dark:hover:text-dark-50 font-semibold"><Icon name="wallet" size={15} /> เติมเงิน</a>
         <a href="/profile" class="shrink-0 inline-flex items-center gap-1.5 text-sm text-dark-700 dark:text-dark-200 hover:text-dark-900 dark:hover:text-dark-50"><Icon name="user" size={15} /> โปรไฟล์</a>
-        <a href="/tools/saved" class="shrink-0 inline-flex items-center gap-1.5 text-sm text-dark-700 dark:text-dark-200 hover:text-dark-900 dark:hover:text-dark-50"><Icon name="folder" size={15} /> บันทึก</a>
-        <a href="/developers" class="shrink-0 inline-flex items-center gap-1.5 text-sm text-dark-700 dark:text-dark-200 hover:text-dark-900 dark:hover:text-dark-50"><Icon name="terminal" size={15} /> Developers</a>
+        <button type="button" onclick={() => (advancedOpen = !advancedOpen)} aria-expanded={advancedOpen} aria-controls="advanced-nav-links" class="shrink-0 inline-flex items-center gap-1.5 text-sm text-dark-700 dark:text-dark-200 hover:text-dark-900 dark:hover:text-dark-50">
+          <Icon name="more-horizontal" size={15} /> ขั้นสูง
+        </button>
+        {#if advancedOpen}
+          <span id="advanced-nav-links" class="contents">
+            <a href="/studio" class="shrink-0 inline-flex items-center gap-1.5 text-sm text-dark-700 dark:text-dark-200 hover:text-dark-900 dark:hover:text-dark-50 font-semibold"><Icon name="image" size={15} /> Studio</a>
+            <a href="/inbox" class="shrink-0 inline-flex items-center gap-1.5 text-sm text-dark-700 dark:text-dark-200 hover:text-dark-900 dark:hover:text-dark-50 font-semibold"><Icon name="inbox" size={15} /> Inbox</a>
+            <a href="/works" class="shrink-0 inline-flex items-center gap-1.5 text-sm text-dark-700 dark:text-dark-200 hover:text-dark-900 dark:hover:text-dark-50 font-semibold"><Icon name="layout-grid" size={15} /> Works</a>
+            <a href="/tools/saved" class="shrink-0 inline-flex items-center gap-1.5 text-sm text-dark-700 dark:text-dark-200 hover:text-dark-900 dark:hover:text-dark-50"><Icon name="folder" size={15} /> บันทึก</a>
+            <a href="/developers" class="shrink-0 inline-flex items-center gap-1.5 text-sm text-dark-700 dark:text-dark-200 hover:text-dark-900 dark:hover:text-dark-50"><Icon name="terminal" size={15} /> Developers</a>
+          </span>
+        {/if}
         {#if $user}
           <span class="shrink-0 text-sm text-dark-500 dark:text-dark-400">{$user.email}</span>
         {/if}

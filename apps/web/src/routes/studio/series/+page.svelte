@@ -53,7 +53,7 @@
   let brandProfileId = '';
   let projectId = '';
   let projects: Project[] = [];
-  let platforms: string[] = ['facebook', 'instagram'];
+  let platforms: string[] = ['facebook', 'line', 'tiktok'];
   let isGenerating = false;
   let lastResult: { series: ContentSeries; items: ContentItem[] } | null = null;
 
@@ -182,7 +182,7 @@
   let templateName = '';
   let templateDescription = '';
   let templateIsGlobal = false;
-  let templatePlatforms: string[] = ['facebook', 'instagram'];
+  let templatePlatforms: string[] = ['facebook', 'line', 'tiktok'];
   let templateSlots: Array<{ pillar: string; hook_style: string; cta_style: string }> = [
     { pillar: 'awareness', hook_style: '', cta_style: '' },
   ];
@@ -450,6 +450,7 @@
                 </Button>
               </div>
             {:else}
+              <p class="t-caption text-dark-500 dark:text-dark-400 mb-1">ใช้เครดิตไม่เกิน 9 เครดิตต่อครั้ง</p>
               <Button variant="secondary" disabled={suggestingThemes} onclick={requestThemeSuggestions}>
                 {suggestingThemes ? 'กำลังคิดธีม...' : themes.length ? '+ คิดธีมใหม่' : '✨ ให้ AI ช่วยคิดธีมให้'}
               </Button>
@@ -476,6 +477,7 @@
                   {/each}
                 </div>
               {/if}
+              <p class="t-caption text-dark-500 dark:text-dark-400 mb-1">ใช้เครดิตไม่เกิน 26 เครดิตต่อครั้ง</p>
               <Button variant="secondary" disabled={suggestingTopics} onclick={requestTopicSuggestions}>
                 {suggestingTopics ? 'กำลังคิดหัวข้อ...' : topics.length ? '+ คิดหัวข้อเพิ่ม' : '✨ ให้ AI ช่วยคิดหัวข้อให้'}
               </Button>
@@ -555,6 +557,7 @@
           </div>
         </div>
 
+        <p class="t-caption text-dark-500 dark:text-dark-100/60">ใช้เครดิตไม่เกิน {Math.max(1, Math.ceil(requestedCount * 8))} เครดิต — จ่ายจริงเท่าที่ใช้ ส่วนเกินคืนอัตโนมัติ</p>
         <button type="submit" disabled={isGenerating || !topic.trim()} class="btn-primary">
           {isGenerating ? 'กำลังสร้าง...' : `สร้าง ${requestedCount} content`}
         </button>

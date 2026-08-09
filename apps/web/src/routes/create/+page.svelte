@@ -237,12 +237,14 @@
           <TapCard emoji={cat.emoji} title={cat.label} onclick={() => pickCategory(cat)} />
         {/each}
       </div>
+      <p class="t-caption text-dark-500 dark:text-dark-400">ถ้ายังไม่มีหัวข้อสำหรับหมวดนี้ ระบบจะคิดให้ใหม่ ใช้เครดิตไม่เกิน 26 เครดิต</p>
     {:else if phase === 'topics'}
       <button type="button" onclick={() => (phase = 'choose')} class="t-caption text-dark-500 dark:text-dark-400 mb-2">← ย้อนกลับ</button>
       <h1 class="t-title mb-3">{selectedCategory?.emoji} {selectedCategory?.label}</h1>
       {#if loadingTopics}
         <p class="t-caption text-dark-500 dark:text-dark-400">กำลังคิดหัวข้อ...</p>
       {:else}
+        <p class="t-caption text-dark-500 dark:text-dark-400 mb-2">แตะหัวข้อเพื่อให้ AI เขียนโพสต์ให้เลย — ใช้เครดิตไม่เกิน 8 เครดิต</p>
         <div class="space-y-2">
           {#each matchingTopics as t}
             <TapCard onclick={() => pickTopic(t)}>

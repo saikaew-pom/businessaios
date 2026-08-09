@@ -389,7 +389,7 @@
               </div>
               <div>
                 <div class="mb-1 flex items-center justify-between gap-2">
-                  <label class="text-sm font-medium text-dark-700 dark:text-dark-200" for="caption">แคปชั่น</label>
+                  <label class="text-sm font-medium text-dark-700 dark:text-dark-200" for="caption">เนื้อหาโพสต์</label>
                   <button type="button" onclick={() => regenerateField('caption')} disabled={busy} class="shrink-0 text-xs font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 disabled:opacity-40">
                     {regeneratingField === 'caption' ? '✨ กำลังคิด...' : '✨ AI ช่วยเขียน'}
                   </button>
@@ -398,7 +398,7 @@
               </div>
               <div>
                 <div class="mb-1 flex items-center justify-between gap-2">
-                  <label class="text-sm font-medium text-dark-700 dark:text-dark-200" for="cta">คำชวนให้ลูกค้าทำต่อ</label>
+                  <label class="text-sm font-medium text-dark-700 dark:text-dark-200" for="cta">ชวนลูกค้าทำอะไรต่อ</label>
                   <button type="button" onclick={() => regenerateField('cta')} disabled={busy} class="shrink-0 text-xs font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 disabled:opacity-40">
                     {regeneratingField === 'cta' ? '✨ กำลังคิด...' : '✨ AI ช่วยเขียน'}
                   </button>
@@ -416,7 +416,7 @@
               </div>
               <div>
                 <div class="mb-1 flex items-center justify-between gap-2">
-                  <label class="text-sm font-medium text-dark-700 dark:text-dark-200" for="visual">ไอเดียภาพประกอบ</label>
+                  <label class="text-sm font-medium text-dark-700 dark:text-dark-200" for="visual">ภาพประกอบ</label>
                   <button type="button" onclick={() => regenerateField('visual_suggestion')} disabled={busy} class="shrink-0 text-xs font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 disabled:opacity-40">
                     {regeneratingField === 'visual_suggestion' ? '✨ กำลังคิด...' : '✨ AI ช่วยเขียน'}
                   </button>

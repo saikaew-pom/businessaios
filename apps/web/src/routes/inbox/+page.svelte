@@ -261,7 +261,7 @@
                     <p class="mt-2 text-sm text-dark-900/70 dark:text-dark-100/70 whitespace-pre-line">{item.caption}</p>
                   {/if}
                   {#if item.visual_suggestion}
-                    <p class="mt-2 text-sm text-primary-700 dark:text-primary-300">Visual: {item.visual_suggestion}</p>
+                    <p class="mt-2 text-sm text-primary-700 dark:text-primary-300">ภาพประกอบ: {item.visual_suggestion}</p>
                   {/if}
                   {#if item.hashtags?.length}
                     <div class="mt-2 flex flex-wrap gap-1">
