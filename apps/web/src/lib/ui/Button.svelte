@@ -14,7 +14,7 @@
     onclick,
     children,
   }: {
-    variant?: 'primary' | 'secondary' | 'ghost';
+    variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
     type?: 'button' | 'submit';
     disabled?: boolean;
     fullWidth?: boolean;
@@ -27,6 +27,7 @@
     primary: 'bg-primary-500 text-white shadow-sm hover:bg-primary-600',
     secondary: 'bg-dark-100 dark:bg-dark-900 text-dark-900 dark:text-dark-50 hover:bg-dark-200 dark:hover:bg-dark-700',
     ghost: 'text-dark-600 dark:text-dark-300 font-semibold hover:text-dark-900 dark:hover:text-dark-50',
+    danger: 'bg-danger-600 text-white shadow-sm hover:bg-danger-700',
   };
 </script>
 

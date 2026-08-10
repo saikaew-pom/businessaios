@@ -17,7 +17,8 @@
     | 'home' | 'edit' | 'calendar' | 'store' | 'more-horizontal'
     | 'zap' | 'shield' | 'image' | 'wallet' | 'folder' | 'terminal'
     | 'user' | 'inbox' | 'layout-grid' | 'chevron-right' | 'x' | 'log-out'
-    | 'check' | 'undo';
+    | 'check' | 'undo'
+    | 'users' | 'mail' | 'key' | 'clock' | 'bar-chart' | 'search';
 
   let { name, size = 20 }: { name: IconName; size?: number } = $props();
 
@@ -41,6 +42,12 @@
     'log-out': ['M9 21H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h4', 'm16 17 5-5-5-5', 'M21 12H9'],
     check: ['m4 12 6 6 10-12'],
     undo: ['M3 10h10a5 5 0 0 1 5 5v1', 'M8 5 3 10l5 5'],
+    users: ['M9 12a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z', 'M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6', 'M16 7a2.5 2.5 0 0 1 0 5', 'M18 14.5c2 .6 3.3 2.3 3.8 5.5'],
+    mail: ['M4 6h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1Z', 'm4 7 8 6 8-6'],
+    key: ['M14.5 5.5a4 4 0 1 0 0 7 4 4 0 0 0 0-7Z', 'm12 11-8 8', 'm7 16 2 2', 'm4 19 2 2'],
+    clock: ['M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z', 'M12 7v5l3.5 2'],
+    'bar-chart': ['M4 20V10', 'M12 20V4', 'M20 20v-7'],
+    search: ['M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z', 'm21 21-4.35-4.35'],
   };
 </script>
 
