@@ -4,7 +4,7 @@
    * (commitment 4) — every credit-spending button shows this first.
    *
    * The baht conversion is real, not a guess: apps/api/src/lib/packages.ts
-   * prices credits at 0.80-0.99 THB each depending on package size. 0.85 is
+   * prices credits at 0.80-0.99 THB each depending on package size. 0.83 is
    * the "Popular" package's rate (the one most users are actually on) —
    * using it here means this line shows a real, defensible approximation,
    * not a made-up round number. (An earlier draft of this plan's own copy
@@ -12,7 +12,7 @@
    * Exactly the kind of mismatch commitment 4 exists to catch, including
    * in our own examples.)
    */
-  const THB_PER_CREDIT = 0.85;
+  const THB_PER_CREDIT = 0.83;
 
   let { credits, remaining }: { credits: number; remaining?: number } = $props();
 

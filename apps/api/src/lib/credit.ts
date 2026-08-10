@@ -10,7 +10,7 @@
  *  - 1K input tokens  ≈ 1 credit
  *  - 1K output tokens ≈ 2 credits
  *
- * Free tier: 100 credits ≈ $0.10 ≈ 5-7 generations
+ * Free tier: 200 credits (SIGNUP_BONUS_CREDITS in packages.ts) ≈ $0.20 ≈ 10-14 generations
  */
 
 import { generateId } from './crypto';

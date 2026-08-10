@@ -29,7 +29,7 @@
 
 <svelte:head>
   <title>Business Smart OS — วางแผนการตลาดฉบับสมบูรณ์สำหรับ SME ไทย</title>
-  <meta name="description" content="Fill 7 steps. Get a complete marketing plan. Generate a Brand Card, personas, content, and workflow with a Smart Engine. Export as PDF, Word, Excel." />
+  <meta name="description" content="Fill 7 steps. Get a complete marketing plan. Generate a Brand Card, personas, content, and workflow with a Smart Engine. Export as Word, CSV, JSON, plus print-to-PDF." />
   <meta property="og:title" content="Business Smart OS — วางแผนการตลาดฉบับสมบูรณ์สำหรับ SME ไทย" />
   <meta property="og:description" content="Fill 7 steps. Get a complete marketing plan with a Smart Engine." />
   <meta property="og:type" content="website" />
@@ -300,7 +300,7 @@
       <p class="text-lg text-dark-900/70 dark:text-dark-100/70">{t(currentLocale, 'pricing.subtitle')}</p>
     </div>
 
-    <div class="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
       <!-- Free -->
       <div class="bg-white dark:bg-dark-800 rounded-2xl p-8 border border-dark-100 dark:border-dark-700">
         <h3 class="text-lg font-semibold mb-2">{t(currentLocale, 'pricing.free.name')}</h3>
@@ -332,9 +332,30 @@
         </a>
       </div>
 
-      <!-- Pro (Highlighted) -->
-      <div class="bg-gradient-to-br from-primary-500 to-primary-700 rounded-2xl p-8 text-white relative shadow-2xl shadow-primary-500/30 scale-105">
-        <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-dark-900 text-white text-xs font-semibold rounded-full">
+      <!-- Starter -->
+      <div class="bg-white dark:bg-dark-800 rounded-2xl p-8 border border-dark-100 dark:border-dark-700">
+        <h3 class="text-lg font-semibold mb-2">{t(currentLocale, 'pricing.starter.name')}</h3>
+        <p class="text-sm text-dark-900/60 dark:text-dark-100/60 mb-6">{t(currentLocale, 'pricing.starter.desc')}</p>
+        <div class="mb-6">
+          <span class="text-5xl font-bold">{t(currentLocale, 'pricing.starter.price')}</span>
+          <span class="text-dark-900/60 dark:text-dark-100/60">{t(currentLocale, 'pricing.oneTime')}</span>
+        </div>
+        <ul class="space-y-3 mb-8 text-sm">
+          {#each [1, 2, 3, 4] as i}
+            <li class="flex items-start gap-2">
+              <svg class="w-5 h-5 text-primary-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+              {t(currentLocale, `pricing.starter.f${i}` as StringKey)}
+            </li>
+          {/each}
+        </ul>
+        <a href="/register" class="btn-secondary w-full block text-center">
+          {t(currentLocale, 'pricing.starter.cta')}
+        </a>
+      </div>
+
+      <!-- Popular (Highlighted) -->
+      <div class="bg-gradient-to-br from-primary-500 to-primary-700 rounded-2xl p-8 text-white relative shadow-2xl shadow-primary-500/30 lg:scale-105">
+        <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-dark-900 text-white text-xs font-semibold rounded-full whitespace-nowrap">
           {t(currentLocale, 'pricing.pro.badge')}
         </div>
         <h3 class="text-lg font-semibold mb-2">{t(currentLocale, 'pricing.pro.name')}</h3>
@@ -356,7 +377,7 @@
         </a>
       </div>
 
-      <!-- Team -->
+      <!-- Pro tier -->
       <div class="bg-white dark:bg-dark-800 rounded-2xl p-8 border border-dark-100 dark:border-dark-700">
         <h3 class="text-lg font-semibold mb-2">{t(currentLocale, 'pricing.team.name')}</h3>
         <p class="text-sm text-dark-900/60 dark:text-dark-100/60 mb-6">{t(currentLocale, 'pricing.team.desc')}</p>
@@ -372,7 +393,7 @@
             </li>
           {/each}
         </ul>
-        <a href="mailto:hello@businesssmartos.com" class="btn-secondary w-full">
+        <a href="/register" class="btn-secondary w-full block text-center">
           {t(currentLocale, 'pricing.team.cta')}
         </a>
       </div>
