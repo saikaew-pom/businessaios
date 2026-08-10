@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "deploy": "wrangler deploy"
+    "deploy": "bash ../../scripts/deploy-web.sh"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20241218.0",

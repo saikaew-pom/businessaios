@@ -19,7 +19,24 @@
 # date if this ever needs re-diagnosing.
 
 set -e
-cd "$(dirname "$0")/../apps/web"
+# pipefail is required because `npm run build 2>&1 | tail -10` below is a
+# pipeline: without it, `set -e` only sees tail's exit status (always 0,
+# since it just reads stdin), so a real build failure would be silently
+# swallowed and the script would barrel ahead into `wrangler deploy`.
+set -o pipefail
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$SCRIPT_DIR/../apps/web"
+
+# Root-cause fix for a real production bug hit 2026-08-10: a normal
+# `npm run build` can leave `.svelte-kit/cloudflare-tmp/manifest.js` (what
+# the deployed `_worker.js` actually imports its route table from) stale
+# relative to `.svelte-kit/output/server/manifest.js` — a brand-new route
+# then silently 404s in production even though the build/deploy both
+# report success. Wiping the whole `.svelte-kit` directory before every
+# build removes the stale-cache possibility entirely, rather than relying
+# on remembering to do this by hand whenever a new route was just added.
+echo "🧹 Clearing .svelte-kit (prevents a stale route-manifest cache from shipping a 404 for new routes)..."
+rm -rf .svelte-kit
 
 echo "🏗️  Building SvelteKit (adapter-cloudflare)..."
 npm run build 2>&1 | tail -10
@@ -32,5 +49,9 @@ fi
 echo "🚀 Deploying via apps/web-worker (wrangler.toml points at .svelte-kit/cloudflare)..."
 cd ../web-worker
 npx wrangler deploy
+
+echo ""
+echo "🔎 Running post-deploy smoke test..."
+"$SCRIPT_DIR/smoke-test.sh" --web-only
 
 echo "✅ Done!"

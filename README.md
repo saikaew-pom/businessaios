@@ -139,16 +139,19 @@ See [DEPLOY.md](./docs/DEPLOY.md) for the original setup guide (some details pre
 worker names — use `businessaios-*`, not `marketingaios-*`).
 
 ```bash
-# API
+# API — deploys, then runs an automated smoke test against /health
 cd apps/api
-npx wrangler deploy
+npm run deploy
 
-# Web — build SvelteKit, stage the SPA shell, deploy via web-worker
-# (apps/web's own `npm run deploy` targets Cloudflare Pages, which STATUS.md
-# retired due to SPA routing bugs — don't use it; use scripts/deploy-web.sh)
-cd ..
-bash scripts/deploy-web.sh
+# Web — wipes .svelte-kit (prevents a stale route-manifest cache from
+# shipping a 404 for a newly added route), builds, deploys via web-worker,
+# then runs an automated smoke test against the main app routes
+cd ../web
+npm run deploy
 ```
+
+Both `deploy` scripts route through `scripts/deploy-web.sh` / `scripts/smoke-test.sh` —
+don't call `wrangler deploy` directly, it skips the hardening above.
 
 ---
 
