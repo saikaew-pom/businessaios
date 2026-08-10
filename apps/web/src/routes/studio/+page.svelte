@@ -678,7 +678,7 @@
         <a href="/today" class="text-sm text-dark-900/60 dark:text-dark-100/60 hover:text-primary-600">กลับวันนี้</a>
         <h1 class="mt-2 text-3xl font-bold tracking-tight">Creative Studio</h1>
       </div>
-      <div class="flex items-center gap-2">
+      <div class="flex flex-wrap items-center gap-2">
         <a href="/studio/library" class="btn-secondary py-2 px-4 text-sm">Library</a>
         <a href="/studio/brand-kits" class="btn-secondary py-2 px-4 text-sm">Brand Kits</a>
         <a href="/studio/series" class="btn-secondary py-2 px-4 text-sm">Series</a>
