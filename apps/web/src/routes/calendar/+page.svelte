@@ -14,8 +14,25 @@
   import { fetchConfig } from '$lib/config';
   import ContentItemDrawer from '$lib/ContentItemDrawer.svelte';
   import { syncFilterParams, withProjectFilter } from '$lib/urlFilters';
+  import { Sheet, ListItem } from '$lib/ui';
 
   const WEEKDAY_LABELS = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
+
+  // Status dot — semantic tokens (commitment #4.2), not raw hex. Only three
+  // states are ever visible on this page: approved-but-unscheduled (the
+  // "รอจัดตาราง" backlog), scheduled (upcoming), and published (already
+  // posted, fetched into the same date range as scheduled so past cells
+  // show what actually went out).
+  function dotClass(status: string) {
+    if (status === 'published') return 'bg-success-600';
+    if (status === 'scheduled') return 'bg-info-600';
+    return 'bg-warning-600'; // approved, not yet scheduled
+  }
+  function statusLabel(status: string) {
+    if (status === 'published') return 'โพสต์แล้ว';
+    if (status === 'scheduled') return 'ตั้งเวลาไว้';
+    return 'พร้อมโพสต์ ยังไม่ตั้งเวลา';
+  }
 
   let isLoading = $state(true);
   let isFeatureEnabled = $state(false);
@@ -24,8 +41,10 @@
 
   let cursor = $state(startOfMonth(new Date()));
   let scheduledItems = $state<ContentItem[]>([]);
+  let publishedItems = $state<ContentItem[]>([]);
   let backlogItems = $state<ContentItem[]>([]);
   let selectedItem = $state<ContentItem | null>(null);
+  let daySheetCell = $state<{ date: Date; key: string } | null>(null);
   let projectFilter = $state('');
   let projects = $state<Project[]>([]);
   let draggingId = $state<string | null>(null);
@@ -54,11 +73,14 @@
   let gridStart = $derived(new Date(cursor.getFullYear(), cursor.getMonth(), 1 - cursor.getDay()));
   let itemsByDay = $derived.by(() => {
     const map = new Map<string, ContentItem[]>();
-    for (const item of scheduledItems) {
+    for (const item of [...scheduledItems, ...publishedItems]) {
       if (!item.scheduled_at) continue;
       const key = dateKey(new Date(item.scheduled_at));
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(item);
+    }
+    for (const dayItems of map.values()) {
+      dayItems.sort((a, b) => (a.scheduled_at || 0) - (b.scheduled_at || 0));
     }
     return map;
   });
@@ -113,8 +135,9 @@
     error = '';
     const seq = ++loadSeq;
     const gridEnd = new Date(gridStart.getFullYear(), gridStart.getMonth(), gridStart.getDate() + 42);
-    const [scheduled, backlog] = await Promise.all([
+    const [scheduled, published, backlog] = await Promise.all([
       listContentItems({ status: 'scheduled', project_id: projectFilter, scheduled_from: gridStart.getTime(), scheduled_to: gridEnd.getTime(), limit: 100 }),
+      listContentItems({ status: 'published', project_id: projectFilter, scheduled_from: gridStart.getTime(), scheduled_to: gridEnd.getTime(), limit: 100 }),
       listContentItems({ status: 'approved', project_id: projectFilter, limit: 100 }),
     ]);
     // A newer loadCalendar() call already started (and may have already
@@ -122,6 +145,7 @@
     // this stale response instead of overwriting the newer state.
     if (seq !== loadSeq) return;
     scheduledItems = scheduled;
+    publishedItems = published;
     backlogItems = backlog.filter((item) => !item.scheduled_at);
     syncFilterParams({ project_id: projectFilter });
   }
@@ -151,13 +175,21 @@
   }
 
   function openItem(item: ContentItem) {
+    daySheetCell = null;
     selectedItem = item;
   }
+
+  function openDaySheet(cell: { date: Date; key: string }) {
+    daySheetCell = cell;
+  }
+
+  let daySheetLabel = $derived(daySheetCell ? daySheetCell.date.toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long' }) : '');
+  let daySheetItems = $derived(daySheetCell ? itemsByDay.get(daySheetCell.key) || [] : []);
 
   async function handleDrawerUpdated(updated: ContentItem) {
     selectedItem = updated;
     await loadCalendar();
-    const all = [...scheduledItems, ...backlogItems];
+    const all = [...scheduledItems, ...publishedItems, ...backlogItems];
     selectedItem = all.find((existing) => existing.id === updated.id) || null;
   }
 
@@ -267,10 +299,10 @@
     </div>
 
     {#if error}
-      <div class="rounded-lg border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/40 p-3 text-sm text-red-700 dark:text-red-300">{error}</div>
+      <div class="rounded-lg border border-danger-100 dark:border-danger-600/40 bg-danger-50 dark:bg-danger-600/15 p-3 text-sm text-danger-700 dark:text-danger-100">{error}</div>
     {/if}
     {#if notice}
-      <div class="rounded-lg border border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-950/40 p-3 text-sm text-green-700 dark:text-green-300">{notice}</div>
+      <div class="rounded-lg border border-success-100 dark:border-success-600/40 bg-success-50 dark:bg-success-600/15 p-3 text-sm text-success-700 dark:text-success-100">{notice}</div>
     {/if}
 
     {#if isLoading}
@@ -304,6 +336,12 @@
             </div>
           </div>
 
+          <div class="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-dark-900/60 dark:text-dark-100/60">
+            <span class="flex items-center gap-1.5"><span class="h-2 w-2 rounded-full {dotClass('approved')}"></span>พร้อมโพสต์</span>
+            <span class="flex items-center gap-1.5"><span class="h-2 w-2 rounded-full {dotClass('scheduled')}"></span>ตั้งเวลาไว้</span>
+            <span class="flex items-center gap-1.5"><span class="h-2 w-2 rounded-full {dotClass('published')}"></span>โพสต์แล้ว</span>
+          </div>
+
           <div class="grid grid-cols-7 gap-1 text-center text-xs font-semibold text-dark-900/50 dark:text-dark-100/50">
             {#each WEEKDAY_LABELS as label}
               <div class="py-1">{label}</div>
@@ -312,13 +350,18 @@
 
           <div class="grid grid-cols-7 gap-1">
             {#each cells as cell}
+              {@const visibleItems = cell.items.slice(0, 2)}
+              {@const overflowCount = cell.items.length - visibleItems.length}
               <div
-                role="group"
-                aria-label={`วันที่ ${cell.date.getDate()}`}
+                role="button"
+                tabindex="0"
+                aria-label={`วันที่ ${cell.date.getDate()} — แตะดูรายการทั้งหมด`}
+                onclick={() => openDaySheet(cell)}
+                onkeydown={(e) => { if (e.key === 'Enter') openDaySheet(cell); }}
                 ondragover={(e) => handleCellDragOver(e, cell.key)}
                 ondragleave={() => { if (dragOverKey === cell.key) dragOverKey = null; }}
                 ondrop={(e) => handleCellDrop(e, cell.date)}
-                class="min-h-[6rem] rounded-lg border p-1.5 transition
+                class="min-h-[3.75rem] sm:min-h-[6rem] rounded-lg border p-1.5 text-left transition
                   {cell.isCurrentMonth ? 'border-dark-100 dark:border-dark-700 bg-white dark:bg-dark-800' : 'border-transparent bg-dark-50/60 dark:bg-dark-900/40'}
                   {dragOverKey === cell.key ? 'ring-2 ring-primary-400' : ''}"
               >
@@ -326,20 +369,25 @@
                   {cell.date.getDate()}
                 </div>
                 <div class="space-y-1">
-                  {#each cell.items as item}
-                    <button
-                      type="button"
-                      draggable="true"
+                  {#each visibleItems as item}
+                    <div
+                      role="button"
+                      tabindex="0"
+                      draggable={item.status === 'scheduled' && !movingIds.has(item.id)}
                       ondragstart={(e) => handleDragStart(item, e)}
                       ondragend={handleDragEnd}
-                      onclick={() => openItem(item)}
-                      disabled={movingIds.has(item.id)}
-                      class="block w-full truncate rounded bg-primary-50 dark:bg-primary-900/30 px-1.5 py-1 text-left text-xs font-medium text-primary-800 dark:text-primary-200 hover:bg-primary-100 dark:hover:bg-primary-900/50 disabled:opacity-50"
+                      onclick={(e) => { e.stopPropagation(); if (!movingIds.has(item.id)) openItem(item); }}
+                      onkeydown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); if (!movingIds.has(item.id)) openItem(item); } }}
+                      class="flex items-center gap-1 truncate rounded sm:bg-primary-50 sm:dark:bg-primary-900/30 px-0.5 sm:px-1.5 py-1 text-left text-xs font-medium text-primary-800 dark:text-primary-200 sm:hover:bg-primary-100 sm:dark:hover:bg-primary-900/50 {movingIds.has(item.id) ? 'opacity-50' : ''}"
                       title={item.title}
                     >
-                      {formatTime(item.scheduled_at!)} {item.title}
-                    </button>
+                      <span class="h-2 w-2 sm:h-1.5 sm:w-1.5 shrink-0 rounded-full {dotClass(item.status)}"></span>
+                      <span class="hidden sm:inline truncate">{formatTime(item.scheduled_at!)} {item.title}</span>
+                    </div>
                   {/each}
+                  {#if overflowCount > 0}
+                    <div class="px-0.5 sm:px-1.5 text-[11px] text-dark-900/50 dark:text-dark-100/50">+{overflowCount}<span class="hidden sm:inline"> เพิ่มเติม</span></div>
+                  {/if}
                 </div>
               </div>
             {/each}
@@ -366,7 +414,10 @@
                   onkeydown={(e) => { if (e.key === 'Enter') openItem(item); }}
                   class="cursor-grab rounded-lg border border-dark-100 dark:border-dark-700 p-2 text-sm hover:border-primary-300 dark:hover:border-primary-700 {movingIds.has(item.id) ? 'opacity-50' : ''}"
                 >
-                  <div class="truncate font-medium text-dark-900 dark:text-dark-50">{item.title}</div>
+                  <div class="flex items-center gap-1.5 truncate font-medium text-dark-900 dark:text-dark-50">
+                    <span class="h-1.5 w-1.5 shrink-0 rounded-full {dotClass(item.status)}"></span>
+                    <span class="truncate">{item.title}</span>
+                  </div>
                   <div class="text-xs text-dark-900/50 dark:text-dark-100/50">{item.platform || 'social'} · {item.format || 'post'}</div>
                 </div>
               {/each}
@@ -377,5 +428,24 @@
     {/if}
   </main>
 </div>
+
+<Sheet open={Boolean(daySheetCell)} onclose={() => (daySheetCell = null)}>
+  <div class="t-heading mb-1">{daySheetLabel}</div>
+  {#if !daySheetItems.length}
+    <p class="t-caption mb-2">ไม่มีงานในวันนี้</p>
+  {:else}
+    <div class="t-caption mb-2">{daySheetItems.length} รายการ — แตะเพื่อเปิด/แก้ไข</div>
+    {#each daySheetItems as item, i}
+      <ListItem
+        title={item.title}
+        subtitle={`${formatTime(item.scheduled_at!)} · ${statusLabel(item.status)}`}
+        onclick={() => openItem(item)}
+        last={i === daySheetItems.length - 1}
+      >
+        {#snippet icon()}<span class="block h-2.5 w-2.5 rounded-full {dotClass(item.status)}"></span>{/snippet}
+      </ListItem>
+    {/each}
+  {/if}
+</Sheet>
 
 <ContentItemDrawer item={selectedItem} onClose={() => (selectedItem = null)} onUpdated={handleDrawerUpdated} />
