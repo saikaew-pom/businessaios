@@ -4,6 +4,7 @@ import { calculateCredits, deductCredits, addCredits } from './lib/credit';
 import { callMinimax, estimateCost, extractJsonFromAny } from './lib/minimax';
 import { assembleVisualPrompt, buildVisualSlotPrompt, type VisualSlots } from './lib/creative/visualPrompt';
 import { formatBrandContextBlock, getBrandSnapshotObject } from './lib/creative/brandContext';
+import { buildRepurposePrompt, isRepurposeType, repurposeTargetPlatformFormat, REPURPOSE_TYPES, type RepurposeSource } from './lib/creative/repurpose';
 import { getUser, requireAuth } from './lib/middleware';
 import type { Bindings, Variables } from './lib/types';
 
@@ -674,6 +675,174 @@ contentRoutes.post('/api/content-items/:id/checklist-check', async (c) => {
   }
 
   return c.json({ ok: true, results, credits_remaining: finalBalance });
+});
+
+contentRoutes.post('/api/content-items/:id/repurpose', async (c) => {
+  const user = getUser(c)!;
+  const id = c.req.param('id');
+  const item = await getContentItem(c.env, user.id, id);
+  if (!item) return c.json({ error: 'content_item_not_found' }, 404);
+
+  // "ROI สูงสุดเมื่อผู้ใช้มีโพสต์ดีอยู่แล้ว" — proven content (already approved,
+  // scheduled, or actually posted) is the intended repurpose source; a draft
+  // still being edited has no stable facts/CTA worth reusing yet.
+  if (!['approved', 'scheduled', 'published'].includes(item.status)) {
+    return c.json({ error: 'invalid_status', message: 'รีดต่อได้เฉพาะโพสต์ที่อนุมัติแล้วเท่านั้น' }, 400);
+  }
+
+  const account = await c.env.DB.prepare('SELECT email_verified FROM users WHERE id = ?')
+    .bind(user.id).first<{ email_verified: number }>();
+  if (account && account.email_verified === 0) {
+    return c.json({ error: 'email_not_verified', message: 'กรุณายืนยันอีเมลก่อน' }, 403);
+  }
+
+  const body: { output_type?: string } = await c.req.json<{ output_type?: string }>().catch(() => ({}));
+  if (!isRepurposeType(body.output_type)) {
+    return c.json({ error: 'invalid_output_type', message: `output_type ต้องเป็นหนึ่งใน: ${REPURPOSE_TYPES.join(', ')}` }, 400);
+  }
+  const outputType = body.output_type;
+
+  let brandProfileId: string | null = null;
+  if (item.series_id) {
+    const series = await c.env.DB.prepare('SELECT brand_profile_id FROM content_series WHERE id = ? AND user_id = ?')
+      .bind(item.series_id, user.id).first<{ brand_profile_id: string | null }>();
+    brandProfileId = series?.brand_profile_id || null;
+  }
+  const brandSnapshot = await getBrandSnapshotObject(c.env, user.id, brandProfileId);
+  const brandContextBlock = formatBrandContextBlock(brandSnapshot);
+
+  const source: RepurposeSource = {
+    title: item.title || '',
+    hook: item.hook || '',
+    caption: item.caption || '',
+    cta: item.cta || '',
+    hashtags: parseJson(item.hashtags_json, []),
+  };
+
+  const toolRunId = generateId();
+  const startTime = Date.now();
+  const { system, user: userPrompt } = buildRepurposePrompt({ type: outputType, source, brandContextBlock });
+  // Same MiniMax-M3 reasoning-overhead trait documented throughout this
+  // codebase (sales-post's maxTokens comment, contentSeries.ts's
+  // MAX_SERIES_COUNT) — sized between regenerate-field's 12000 and
+  // sales-post's 14000 since this rewrites one field's worth of content
+  // (caption) into a denser multi-part shape (slides/beats) but isn't the
+  // full 15-block sales post.
+  const maxTokens = 12000;
+  const estPromptTokens = Math.ceil((system.length + userPrompt.length) / 3);
+  const reserveCredits = calculateCredits({ prompt_tokens: estPromptTokens, completion_tokens: maxTokens });
+  const reservation = await deductCredits(c.env, user.id, reserveCredits, 'repurpose_reserve', toolRunId);
+  if (!reservation.ok) {
+    return c.json({ error: 'insufficient_credits', message: 'เครดิตไม่เพียงพอ', balance: reservation.balance, required: reserveCredits }, 402);
+  }
+
+  let result: Awaited<ReturnType<typeof callMinimax>>;
+  let parsed: any;
+  try {
+    result = await callMinimax(
+      { apiKey: c.env.MINIMAX_API_KEY, groupId: c.env.MINIMAX_GROUP_ID, model: c.env.MINIMAX_MODEL },
+      [
+        { role: 'system', content: system + '\n\n🚫 ห้าม reasoning หรือคิดออกเสียง — ตอบ JSON object เท่านั้นใน content field' },
+        { role: 'user', content: userPrompt + '\n\n[ตอบเป็น JSON object ใน content field เท่านั้น ไม่ต้องคิดออกเสียง ไม่ต้องอธิบาย]' },
+      ],
+      { maxTokens, temperature: 0.7, jsonMode: true },
+    );
+    // extractJsonFromAny throws when no JSON is found — must stay inside
+    // this try/catch, same reason documented on the sales-post route: a
+    // parse failure escaping uncaught would leave the reservation above
+    // deducted with nothing refunded.
+    parsed = extractJsonFromAny(result.content, result.reasoning);
+  } catch (err: any) {
+    console.error('Repurpose generation error:', err);
+    await addCredits(c.env, user.id, reserveCredits, 'repurpose_refund', { referenceId: toolRunId, note: 'generation failed' });
+    return c.json({ error: 'ai_error', message: 'รีดต่อไม่สำเร็จ ลองอีกครั้ง' }, 500);
+  }
+
+  if (!parsed?.caption || String(parsed.caption).trim().length < 20) {
+    await addCredits(c.env, user.id, reserveCredits, 'repurpose_refund', { referenceId: toolRunId, note: 'empty output' });
+    return c.json({ error: 'ai_error', message: 'รีดต่อไม่สำเร็จ ลองอีกครั้ง' }, 500);
+  }
+
+  try {
+    await c.env.DB.prepare(`
+      INSERT INTO tool_runs (id, user_id, tool_name, input, output, model, prompt_tokens, completion_tokens, total_tokens, cost_usd, duration_ms, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      toolRunId, user.id, 'content_item_repurpose',
+      JSON.stringify({ content_item_id: id, output_type: outputType }),
+      JSON.stringify({ caption_length: String(parsed.caption).length }),
+      c.env.MINIMAX_MODEL,
+      result.usage?.prompt_tokens || 0,
+      result.usage?.completion_tokens || 0,
+      result.usage?.total_tokens || 0,
+      estimateCost(result.usage),
+      Date.now() - startTime,
+      Date.now(),
+    ).run();
+  } catch (err) {
+    console.error('Failed to save repurpose tool_run (non-fatal):', err);
+  }
+
+  const creditsUsed = calculateCredits(result.usage);
+  if (creditsUsed < reserveCredits) {
+    await addCredits(c.env, user.id, reserveCredits - creditsUsed, 'repurpose_refund', { referenceId: toolRunId, note: 'reserved more than actual usage' });
+  } else if (creditsUsed > reserveCredits) {
+    await deductCredits(c.env, user.id, creditsUsed - reserveCredits, 'repurpose_true_up', toolRunId);
+  }
+
+  const { platform: targetPlatform, format: targetFormat } = repurposeTargetPlatformFormat(outputType, item.platform);
+
+  // The prompt instructs the model to always return hashtags: [] and
+  // visual_suggestion: '' for line_broadcast (LINE messages don't use
+  // either) — but that's a request, not a guarantee. Enforce it server-side
+  // too so a future model/prompt drift can't leave real hashtags or a
+  // visual brief sitting on a content type whose own definition says it
+  // has neither, rather than trusting model compliance alone.
+  const outputHashtags = outputType === 'line_broadcast' ? [] : (Array.isArray(parsed.hashtags) ? parsed.hashtags : []);
+  const outputVisualSuggestion = outputType === 'line_broadcast' ? '' : String(parsed.visual_suggestion || '');
+
+  const itemId = generateId();
+  const now = Date.now();
+  // Same not-uncaught-after-payment reasoning as sales-post's own INSERT:
+  // creditsUsed has already been charged net by this point, so a D1 hiccup
+  // here must refund it rather than escape to the global error handler.
+  try {
+    const sourceHash = await contentHash({ repurpose_type: outputType, tool_run_id: toolRunId });
+    await c.env.DB.prepare(`
+      INSERT INTO content_items (
+        id, user_id, project_id, source_type, source_id, source_hash,
+        title, platform, format, pillar, hook, caption, cta, hashtags_json,
+        visual_suggestion, expected_engagement, status, metadata_json,
+        created_at, updated_at
+      )
+      VALUES (?, ?, ?, 'repurpose', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '', 'pending_review', ?, ?, ?)
+    `).bind(
+      itemId,
+      user.id,
+      item.project_id,
+      id,
+      sourceHash,
+      String(parsed.hook || item.title || '').slice(0, 160),
+      targetPlatform,
+      targetFormat,
+      item.pillar || '',
+      String(parsed.hook || ''),
+      String(parsed.caption || ''),
+      String(parsed.cta || ''),
+      JSON.stringify(outputHashtags),
+      outputVisualSuggestion,
+      JSON.stringify({ repurposed_from: id, repurpose_type: outputType }),
+      now,
+      now,
+    ).run();
+
+    const row = await c.env.DB.prepare('SELECT * FROM content_items WHERE id = ?').bind(itemId).first<any>();
+    return c.json({ item: serializeContentItem(row), credits_used: creditsUsed }, 201);
+  } catch (err: any) {
+    console.error('Repurpose persist error:', err);
+    await addCredits(c.env, user.id, creditsUsed, 'repurpose_refund', { referenceId: toolRunId, note: 'persist failed' });
+    return c.json({ error: 'db_error', message: 'บันทึกไม่สำเร็จ ลองอีกครั้ง' }, 500);
+  }
 });
 
 contentRoutes.post('/api/content-items/:id/assets', async (c) => {

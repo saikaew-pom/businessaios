@@ -11,11 +11,13 @@
     checkContentItemChecklist,
     getMediaAssetContentUrl,
     regenerateContentItemField,
+    repurposeContentItem,
     transitionContentItem,
     updateContentItem,
     type ChecklistKey,
     type ContentItem,
     type RegenerableContentField,
+    type RepurposeType,
   } from '$lib/api';
   import { buildStudioPrompt, suggestedAspectRatio } from '$lib/studioHandoff';
 
@@ -35,6 +37,7 @@
     { value: 'carousel', label: 'การ์ดเลื่อน' },
     { value: 'reel', label: 'รีล' },
     { value: 'story', label: 'สตอรี่' },
+    { value: 'album', label: 'อัลบั้มภาพ' },
   ];
   const PILLAR_OPTIONS = [
     { value: 'awareness', label: 'ให้คนรู้จักร้าน' },
@@ -84,6 +87,38 @@
   let checklistTicked = $state<Record<string, boolean>>({});
   let checklistResults = $state<Record<string, { pass: boolean; note: string }>>({});
   let checkingList = $state(false);
+
+  // Content Playbook ขั้นที่ 7 — "รีดสื่อ": turn an already-approved (or
+  // scheduled/published) post into another format, cheap in tokens because
+  // it transforms existing copy rather than writing from scratch. The
+  // result is a brand-new content_items row, not an edit of the open item —
+  // so on success this shows a link into the review queue rather than
+  // trying to swap the drawer to a different item mid-edit.
+  const REPURPOSE_OPTIONS: Array<{ type: RepurposeType; label: string }> = [
+    { type: 'album', label: 'อัลบั้มภาพ' },
+    { type: 'reel_script', label: 'สคริปต์ Reels/TikTok' },
+    { type: 'line_broadcast', label: 'ข้อความ LINE broadcast' },
+  ];
+  let repurposeOpen = $state(false);
+  let repurposingType = $state<RepurposeType | ''>('');
+  let repurposeResult = $state<ContentItem | null>(null);
+
+  async function runRepurpose(type: RepurposeType) {
+    if (!item || busy) return;
+    repurposingType = type;
+    repurposeResult = null;
+    error = '';
+    try {
+      const { item: newItem } = await repurposeContentItem(item.id, type);
+      repurposeResult = newItem;
+      repurposeOpen = false;
+      notice = 'รีดต่อสำเร็จ — ไปตรวจในคิวรีวิวได้เลย';
+    } catch (err) {
+      error = humanizeError(err);
+    } finally {
+      repurposingType = '';
+    }
+  }
 
   async function runChecklistCheck() {
     if (!item || busy) return;
@@ -146,7 +181,7 @@
   // concurrently (e.g. clicking Approve while a Save PATCH — or an AI
   // regenerate — is still in flight) — a single derived busy flag disables
   // ALL of them together instead of each guarding only its own in-flight state.
-  let busy = $derived(isSaving || !!isActionBusy || !!regeneratingField);
+  let busy = $derived(isSaving || !!isActionBusy || !!regeneratingField || !!repurposingType);
   let error = $state('');
   let notice = $state('');
   let showScheduleInput = $state(false);
@@ -205,6 +240,8 @@
       selectedEmotion = '';
       checklistTicked = {};
       checklistResults = {};
+      repurposeOpen = false;
+      repurposeResult = null;
     }
   });
 
@@ -655,6 +692,33 @@
                 </div>
               {/if}
             </div>
+
+            {#if ['approved', 'scheduled', 'published'].includes(item.status)}
+              <div class="border-t border-dark-100 dark:border-dark-700 pt-4">
+                <div class="mb-2 flex items-center justify-between gap-2">
+                  <div class="text-sm font-semibold text-dark-900 dark:text-dark-50">รีดต่อ</div>
+                  <button type="button" onclick={() => (repurposeOpen = !repurposeOpen)} disabled={busy} class="shrink-0 text-xs font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 disabled:opacity-40">
+                    {repurposeOpen ? 'ปิด' : '🔁 แปลงเป็นสื่ออื่น'}
+                  </button>
+                </div>
+                {#if repurposeOpen}
+                  <p class="mb-2 text-xs text-dark-900/60 dark:text-dark-100/60">แปลงโพสต์นี้เป็นสื่อรูปแบบอื่น โดยใช้ข้อมูลเดิม (ไม่แต่งข้อเท็จจริงใหม่) — ใช้เครดิตไม่เกิน 26 เครดิต จ่ายจริงเท่าที่ใช้ ส่วนเกินคืนอัตโนมัติ</p>
+                  <div class="flex flex-wrap gap-2">
+                    {#each REPURPOSE_OPTIONS as opt}
+                      <button type="button" onclick={() => runRepurpose(opt.type)} disabled={busy} class="btn-secondary text-xs px-3 py-1.5 disabled:opacity-40">
+                        {repurposingType === opt.type ? 'กำลังรีด...' : opt.label}
+                      </button>
+                    {/each}
+                  </div>
+                {/if}
+                {#if repurposeResult}
+                  <div class="mt-3 rounded-lg border border-primary-200 dark:border-primary-800 bg-primary-50 dark:bg-primary-900/20 p-3 text-sm">
+                    <div class="font-semibold text-primary-800 dark:text-primary-200">รีดต่อสำเร็จ: {repurposeResult.title || 'ไม่มีหัวข้อ'}</div>
+                    <a href="/inbox" class="mt-1 inline-block text-xs font-semibold text-primary-600 hover:underline dark:text-primary-400">ไปดูในคิวรีวิว →</a>
+                  </div>
+                {/if}
+              </div>
+            {/if}
           </div>
         </div>
       </div>

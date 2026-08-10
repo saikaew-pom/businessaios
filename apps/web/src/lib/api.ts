@@ -2063,6 +2063,15 @@ export async function generateSalesPost(data: {
   });
 }
 
+export type RepurposeType = 'album' | 'reel_script' | 'line_broadcast';
+
+export async function repurposeContentItem(id: string, outputType: RepurposeType): Promise<{ item: ContentItem; credits_used: number }> {
+  return fetchAPI(`/api/content-items/${id}/repurpose`, {
+    method: 'POST',
+    body: JSON.stringify({ output_type: outputType }),
+  });
+}
+
 // =====================================================
 // Visual Templates + Composition rendering (Brand Kit Composition)
 // =====================================================
